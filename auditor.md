@@ -119,7 +119,7 @@
 |------|--------|
 | `COUNTRY_ZONE` / COGS duplicados (C2-04, C2-05) | Refactor estrutural — requer mover `analyzeCSV` para usar `costTable` diretamente; alto risco de regressão sem testes |
 | `isUpsellByName` vs `isUpsell` (C2-06) | Baixo impacto prático: `isUpsellByName` é usado apenas no CSV parser que está em desuso (app usa API) |
-| Deploy em produção sem proxy server | Fora do escopo do front-end; requer decisão de infraestrutura |
+| ~~Deploy em produção sem proxy server~~ | ✅ Resolvido em 2026-03-23 — `api/digistore.ts` (Vercel Serverless Function) + `vercel.json` criados |
 | React Router para URL-based navigation | Mudança arquitetural — não é bug, é feature request |
 | Acessibilidade (C2-11 a C2-14) | Backlog — não afeta funcionalidade |
 | TypeScript casts (C2-15 a C2-17) | Requer schema validation (ex: zod) — investimento maior |
