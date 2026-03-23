@@ -7,9 +7,7 @@ export default async function handler(
   const apiKey = process.env.DIGISTORE_API_KEY;
 
   if (!apiKey) {
-    res
-      .status(500)
-      .json({ result: "error", message: "DIGISTORE_API_KEY não configurada no servidor." });
+    res.status(500).json({ result: "error", message: "DIGISTORE_API_KEY não configurada no servidor." });
     return;
   }
 
@@ -23,20 +21,25 @@ export default async function handler(
     }
   }
 
-  const upstream = await fetch(
-    `https://www.digistore24.com/api/call/listTransactions?${params}`,
-    {
-      headers: {
-        "X-DS-API-KEY": apiKey,
-        Accept: "application/json",
-      },
-    }
-  );
+  let upstream: Response;
+  try {
+    upstream = await fetch(
+      `https://www.digistore24.com/api/call/listTransactions?${params}`,
+      {
+        headers: {
+          "X-DS-API-KEY": apiKey,
+          Accept: "application/json",
+        },
+      }
+    );
+  } catch (err) {
+    res.status(502).json({ result: "error", message: `Erro ao contactar Digistore: ${(err as Error).message}` });
+    return;
+  }
 
   const body = await upstream.text();
 
-  res
-    .status(upstream.status)
-    .setHeader("Content-Type", "application/json")
-    .send(body);
+  // Evita chain com setHeader (retorna void em Node http.ServerResponse)
+  res.setHeader("Content-Type", "application/json");
+  res.status(upstream.status).send(body);
 }

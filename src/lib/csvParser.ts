@@ -300,12 +300,16 @@ export function computePeriod(
 
   // ── Novos Qualificados ─────────────────────────────────────────────────────
   let days = periodDays ?? 30;
-  if (!periodDays && payTxs.length > 0) {
-    const dates = payTxs.map((t) => t.date.getTime());
-    if (dates.length > 1) {
-      const span = Math.max(...dates) - Math.min(...dates);
-      days = Math.max(1, Math.ceil(span / 86400000));
+  if (!periodDays && payTxs.length > 1) {
+    // Evita spread operator em arrays grandes (stack overflow com 65k+ args no V8)
+    let minT = payTxs[0]!.date.getTime();
+    let maxT = minT;
+    for (const t of payTxs) {
+      const ms = t.date.getTime();
+      if (ms < minT) minT = ms;
+      if (ms > maxT) maxT = ms;
     }
+    days = Math.max(1, Math.ceil((maxT - minT) / 86400000));
   }
   const novos = Array.from(affGross.values()).filter(
     (v) => v / days >= 1000
@@ -394,6 +398,16 @@ export function computePeriod(
     e.frontSales += 1;
     prodSumMap.set(base, e);
   }
+  // totalSales += upsells por produto (fronts já foram incrementados acima)
+  for (const t of payTxs) {
+    if (t.upsellNo === 0) continue; // fronts já foram contados
+    const base = getProductBase(t.productName);
+    if (!base) continue;
+    const e = prodSumMap.get(base);
+    if (!e) continue; // só conta upsells de produtos que tiveram front no período
+    e.totalSales += 1;
+  }
+
   for (const t of frontRefCbTxs) {
     const base = getProductBase(t.productName);
     if (!base) continue;
@@ -441,7 +455,7 @@ export function computePeriod(
     };
     e.vendas     += 1;
     e.gross      += t.grossAmount;
-    e.netRevenue += t.earnings;
+    e.netRevenue += t.netAmount;  // gross − VAT (não earnings, que inclui deduções Digistore)
     e.valorLiq   += t.earnings - getFulfillmentCost(t.productName, t.country, true);
     bundleMap.set(name, e);
   }

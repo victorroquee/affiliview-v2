@@ -63,17 +63,21 @@ interface DailyData {
   value: number;
 }
 
-export const GrossEvolutionChart: React.FC<{ data: DailyData[] }> = ({
+export const GrossEvolutionChart: React.FC<{ data: DailyData[]; periodDays?: number }> = ({
   data,
+  periodDays,
 }) => {
   const formatted = data.map((d) => ({
     ...d,
     label: d.date.split("-").slice(1).join("/"),
   }));
 
+  // periodDays = duração real do período; data.length = apenas dias com transações
+  const diasLabel = periodDays ?? data.length;
+
   return (
     <div className="chart-card">
-      <div className="chart-card-title">Evolução Diária de Gross — {data.length} dias</div>
+      <div className="chart-card-title">Evolução Diária de Gross — {diasLabel} dias</div>
       <ResponsiveContainer width="100%" height={280}>
         <AreaChart data={formatted}>
           <defs>

@@ -90,6 +90,33 @@
 
 ---
 
+## Ciclo 4 — 2026-03-23 (auditoria final — versão produção)
+
+### 🔴 P0 — Bugs críticos
+
+| # | Arquivo | Linha | Problema | Status |
+|---|---------|-------|---------|--------|
+| C4-01 | `lib/csvParser.ts` | 306 | **`Math.max(...dates)` spread em array de timestamps**: com 65k+ transações excede limite de args do V8 → `RangeError`. Corrigido com loop `for...of` O(n). | ✅ |
+| C4-02 | `hooks/useDigistoreAPI.ts` | 71 | **Error body parsing**: `body.error` não existe na resposta do proxy (`{ result, message }`). Usuário via "HTTP 500" genérico. Corrigido para `body.message ?? body.error`. | ✅ |
+
+### 🟡 P1 — Dados incorretos
+
+| # | Arquivo | Linha | Problema | Status |
+|---|---------|-------|---------|--------|
+| C4-03 | `lib/csvParser.ts` | 444 | **`BundleRow.netRevenue` acumulava `t.earnings`** (earnings após comissão Digistore) em vez de `t.netAmount` (gross − VAT). Coluna "Net Revenue" na tabela de kits exibia valores errados. | ✅ |
+| C4-04 | `lib/csvParser.ts` | 393 | **`ProductSummaryRow.totalSales === frontSales` sempre**: loop só iterava `frontPayTxs`; upsells nunca eram contados em `totalSales`. Coluna "Total Vendas" era idêntica a "Vendas Front". Adicionado loop separado sobre `payTxs` para upsells. | ✅ |
+
+### 🟡 P2 — UI imprecisa
+
+| # | Arquivo | Linha | Problema | Status |
+|---|---------|-------|---------|--------|
+| C4-05 | `components/Charts.tsx` | 76 | **`{data.length} dias` ≠ período real**: dias sem vendas não geram entrada no array — chart mostrava "23 dias" para período de 30 dias. Adicionada prop `periodDays` ao componente. | ✅ |
+| C4-06 | `pages/Dashboard.tsx` | 124 | **KPI "Vendas Totais" sub-label errado**: "Front + Upsell" mas `metrics.sales` é somente front orders. Corrigido para "Pedidos front (entradas) no período". | ✅ |
+| C4-07 | `pages/Dashboard.tsx` | 125 | **KPI "Ativados ≥ €2K" sub-label impreciso**: "Afiliados com Gross ≥ €2.000" mas para dados da API usa CPA recebido. Corrigido para "CPA recebido ou Gross ≥ €2.000". | ✅ |
+| C4-08 | `pages/Dashboard.tsx` | 126 | **KPI "Novos Qualificados" sub-label completamente errado**: dizia "1ª venda registrada no período" mas o cálculo é `affiliados com gross/dia ≥ €1.000`. Corrigido. | ✅ |
+
+---
+
 ## Ciclo 3 — 2026-03-23 (terceira auditoria)
 
 ### 🔴 P0 — Bugs que afetam dados ou estabilidade

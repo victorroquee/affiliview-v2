@@ -121,9 +121,9 @@ const Dashboard: React.FC<DashboardProps> = ({
       <div className="kpi-group">
         <div className="kpi-group-label">Atividade</div>
         <div className="kpi-grid-4">
-          <KPICard icon={ShoppingCart} label="Vendas Totais"     value={formatInt(metrics.sales)}                     sub="Front + Upsell no período" />
-          <KPICard icon={Zap}          label="Ativados ≥ €2K"    value={formatInt(metrics.activated)}                 sub="Afiliados com Gross ≥ €2.000" />
-          <KPICard icon={Award}        label="Novos Qualificados" value={formatInt(metrics.novosQualificados)}          sub="1ª venda registrada no período" />
+          <KPICard icon={ShoppingCart} label="Vendas Totais"     value={formatInt(metrics.sales)}                     sub="Pedidos front (entradas) no período" />
+          <KPICard icon={Zap}          label="Ativados ≥ €2K"    value={formatInt(metrics.activated)}                 sub="Afiliados com CPA recebido ou Gross ≥ €2.000" />
+          <KPICard icon={Award}        label="Novos Qualificados" value={formatInt(metrics.novosQualificados)}          sub="Afiliados com média ≥ €1.000/dia no período" />
           <KPICard icon={Users}        label="Afiliados Ativos"  value={formatInt(metrics.affiliatesSelling.length)}  sub="Com ao menos 1 venda no período" />
         </div>
       </div>
@@ -146,7 +146,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       <div className="charts-row">
-        <GrossEvolutionChart data={metrics.dailyGross} />
+        <GrossEvolutionChart data={metrics.dailyGross} periodDays={periodDays} />
         <ProductMixChart data={metrics.productMix} />
       </div>
 
