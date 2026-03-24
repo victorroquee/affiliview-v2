@@ -55,7 +55,13 @@ const CPATable: React.FC<CPATableProps> = ({ results, onSelect }) => {
               >
                 <td style={{ fontWeight: 600 }}>{aff.name}</td>
                 <td className="num">{fmtInt(aff.frontTotal)}</td>
-                <td className="num" style={{ color: "var(--green)", fontWeight: 700 }}>
+                <td
+                  className="num"
+                  style={{
+                    color: aff.netProfit >= 0 ? "var(--green)" : "var(--red)",
+                    fontWeight: 700,
+                  }}
+                >
                   {fmtEur(aff.netProfit)}
                 </td>
                 <td className="num" style={refColor ? { color: refColor } : undefined}>

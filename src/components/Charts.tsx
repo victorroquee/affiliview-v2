@@ -98,7 +98,7 @@ export const GrossEvolutionChart: React.FC<{ data: DailyData[]; periodDays?: num
             tickLine={false}
             tick={{ fill: "#5C7085", fontSize: 11 }}
             tickFormatter={(v: number) =>
-              `€${(v / 1000).toFixed(0)}k`
+              v >= 1000 ? `€${(v / 1000).toFixed(0)}k` : `€${v.toFixed(0)}`
             }
             width={50}
           />

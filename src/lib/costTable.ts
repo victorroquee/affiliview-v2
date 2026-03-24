@@ -65,7 +65,7 @@ export function detectBottles(productName: string): number {
   const n = productName.toLowerCase();
 
   // 1st: keyword match (e.g. "6 Bottles", "3 Garrafas")
-  const m = n.match(/(\d+)\s*(bottle|garrafa|b\b|pack|un|capsule|flasche)/i);
+  const m = n.match(/(\d+)\s*(bottle|garrafa|frasco|b\b|pack|un|capsule|flasche)/i);
   if (m) return parseInt(m[1]);
 
   // 2nd: fallback known counts in descending order

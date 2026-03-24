@@ -13,8 +13,8 @@ export interface AffiliateAccumulator {
   refundOrders:     number;
   cbOrders:         number;
   grossBruto:       number;   // soma de grossAmount de pagamentos (para denominador do refundRate)
-  refundAmt:        number;   // soma dos |grossAmount| de refunds
-  cbAmt:            number;   // soma dos |grossAmount| de chargebacks
+  refundAmt:        number;   // soma dos |earned_amount| de refunds
+  cbAmt:            number;   // soma dos |earned_amount| de chargebacks
   buyers:           Set<string>;
   buyersWithUpsell: Set<string>;
 }
