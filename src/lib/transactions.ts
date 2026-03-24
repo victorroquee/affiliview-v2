@@ -443,7 +443,7 @@ export function computePeriod(
     if (!n) continue;
     const e = affMap.get(n) ?? {
       gross: 0, grossBruto: 0, earnings: 0, liq: 0, sales: 0,
-      refundAmt: 0, cbAmt: 0, totalTx: 0, affiliateAmt: 0,
+      refundAmt: 0, cbAmt: 0, totalTx: 0, affiliateAmt: 0, frontGross: 0,
     };
     e.earnings += t.earnings;  // negative — reduces earnings
     e.liq      += t.earnings;  // refund: only earnings returned (fulfillment is sunk cost)
