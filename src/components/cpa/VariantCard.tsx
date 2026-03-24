@@ -1,7 +1,7 @@
 import React from "react";
 import type { VariantResult } from "../../lib/cpa/types";
 import { OP_AVG } from "../../lib/cpa/constants";
-import { formatEur as fmtEur, formatPct as fmtPct } from "../../lib/csvParser";
+import { formatEur as fmtEur, formatPct as fmtPct } from "../../lib/transactions";
 import StatusBadge from "./StatusBadge";
 import Delta from "./Delta";
 

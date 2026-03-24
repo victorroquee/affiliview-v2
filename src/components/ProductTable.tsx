@@ -1,5 +1,5 @@
 import React from "react";
-import { formatEur, formatPct, formatInt, type ProductSummaryRow, type BundleRow } from "../lib/csvParser";
+import { formatEur, formatPct, formatInt, type ProductSummaryRow, type BundleRow } from "../lib/transactions";
 
 // ─── Product Summary Table ────────────────────────
 interface ProductSummaryTableProps {

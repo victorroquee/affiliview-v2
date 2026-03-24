@@ -20,7 +20,7 @@ import {
   formatEur,
   formatPct,
   formatInt,
-} from "../lib/csvParser";
+} from "../lib/transactions";
 
 interface DashboardProps {
   filteredRows: TransactionRow[];
@@ -85,14 +85,14 @@ const Dashboard: React.FC<DashboardProps> = ({
             icon={DollarSign}
             label="Gross Revenue"
             value={formatEur(metrics.gross)}
-            sub="Receita bruta total gerada no período"
+            sub="SUM(amount) dos pagamentos — refunds/CB não reduzem o gross"
             color="green"
           />
           <KPICard
             icon={TrendingUp}
             label="Earnings"
             value={formatEur(metrics.earnings)}
-            sub="Gross após comissão de afil., reserva, taxes e VAT"
+            sub="SUM(earned_amount) — inclui refunds/CB negativos"
           />
           <KPICard
             icon={Wallet}
@@ -105,13 +105,13 @@ const Dashboard: React.FC<DashboardProps> = ({
             icon={ShoppingCart}
             label="Ticket Médio (AOV)"
             value={formatEur(metrics.aov)}
-            sub="Gross ÷ nº de vendas front do período"
+            sub="Gross frontal (upsell_no=0) ÷ nº de vendas front"
           />
           <KPICard
             icon={RotateCcw}
             label="Reembolso + Chargeback"
             value={formatPct(metrics.refundCbPct)}
-            sub={`Reembolso: ${formatPct(metrics.refundPct)} · Chargeback: ${formatPct(metrics.chargebackPct)}`}
+            sub={`Count-based: Reembolso ${formatPct(metrics.refundPct)} · Chargeback ${formatPct(metrics.chargebackPct)}`}
             color={metrics.refundCbPct > 10 ? "red" : metrics.refundCbPct > 5 ? "orange" : ""}
           />
         </div>
@@ -121,9 +121,9 @@ const Dashboard: React.FC<DashboardProps> = ({
       <div className="kpi-group">
         <div className="kpi-group-label">Atividade</div>
         <div className="kpi-grid-4">
-          <KPICard icon={ShoppingCart} label="Vendas Totais"     value={formatInt(metrics.sales)}                     sub="Pedidos front (entradas) no período" />
-          <KPICard icon={Zap}          label="Ativados ≥ €2K"    value={formatInt(metrics.activated)}                 sub="Afiliados com CPA recebido ou Gross ≥ €2.000" />
-          <KPICard icon={Award}        label="Novos Qualificados" value={formatInt(metrics.novosQualificados)}          sub="Afiliados com média ≥ €1.000/dia no período" />
+          <KPICard icon={ShoppingCart} label="Vendas Totais"     value={formatInt(metrics.sales)}                     sub="Pagamentos com upsell_no=0 no período" />
+          <KPICard icon={Zap}          label="Ativados ≥ €2K"    value={formatInt(metrics.activated)}                 sub="Afiliados com affiliate_amount ≥ €2.000" />
+          <KPICard icon={Award}        label="Novos Qualificados" value={formatInt(metrics.novosQualificados)}          sub="Afiliados com gross médio ≥ €1.000/dia" />
           <KPICard icon={Users}        label="Afiliados Ativos"  value={formatInt(metrics.affiliatesSelling.length)}  sub="Com ao menos 1 venda no período" />
         </div>
       </div>

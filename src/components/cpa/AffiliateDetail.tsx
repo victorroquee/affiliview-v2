@@ -1,7 +1,7 @@
 import React from "react";
 import { ArrowLeft } from "lucide-react";
 import type { AffiliateResult } from "../../lib/cpa/types";
-import { formatEur as fmtEur, formatPct as fmtPct, formatInt as fmtInt } from "../../lib/csvParser";
+import { formatEur as fmtEur, formatPct as fmtPct, formatInt as fmtInt } from "../../lib/transactions";
 import VariantCard from "./VariantCard";
 
 interface SummaryCardProps {

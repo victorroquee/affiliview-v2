@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import type { TransactionRow } from "../lib/csvParser";
+import type { TransactionRow } from "../lib/transactions";
 import type { DigiAPIResponse } from "../utils/digiNormalizer";
 import { normalizeDigiTransactions } from "../utils/digiNormalizer";
 

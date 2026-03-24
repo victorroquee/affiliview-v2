@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
-import type { TransactionRow } from "../lib/csvParser";
+import type { TransactionRow } from "../lib/transactions";
 import type { AffiliateResult, VariantResult } from "../lib/cpa/types";
-import { analyzeCSV } from "../lib/cpa/analyzeCSV";
+import { analyzeCPA } from "../lib/cpa/analyzeCPA";
 
 interface UseCPACalculatorReturn {
   results:         AffiliateResult[] | null;
@@ -15,7 +15,7 @@ export function useCPACalculator(rows: TransactionRow[]): UseCPACalculatorReturn
   // rawResults: computed once quando rows mudam (marginTarget=0 preserva ltvProfit estável)
   const rawResults = useMemo<AffiliateResult[] | null>(() => {
     if (rows.length === 0) return null;
-    return analyzeCSV(rows, 0);
+    return analyzeCPA(rows, 0);
   }, [rows]);
 
   // results: reaplica maxCpa/cpaStatus quando marginTarget muda — sem re-parsear

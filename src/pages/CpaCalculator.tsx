@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { BarChart3 } from "lucide-react";
-import type { TransactionRow } from "../lib/csvParser";
+import type { TransactionRow } from "../lib/transactions";
 import type { VariantResult } from "../lib/cpa/types";
 import { useCPACalculator } from "../hooks/useCPACalculator";
 import CPAShell from "../components/cpa/CPAShell";

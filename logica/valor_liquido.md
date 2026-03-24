@@ -8,53 +8,69 @@ O lucro real por período após descontar todos os custos operacionais de cada v
 ## Fórmula
 
 ```
-Valor Líquido = Earnings - Custo de Produto - Custo de Frete
+Valor Líquido = SUM(earned_amount para TODOS os tipos) − SUM(COGS para pagamentos)
 ```
 
-O cálculo é feito **transação por transação** e depois somado:
+Onde COGS (custo de fulfillment) = custo de produto + custo de frete, calculado por transação:
 
 ```
-Valor Líquido Total = Σ (Earnings[i] - Custo Fulfillment[i])
+Valor Líquido Total = SUM(earned_amount) − SUM(product_cost + shipping_cost) para payTxs
 ```
 
-Onde o custo de fulfillment de cada transação = custo de produto + custo de frete para aquele pedido.
+> COGS é aplicado **somente** a transações de pagamento — o produto já foi fabricado e enviado; refunds não geram novo COGS.
 
 ---
 
 ## Componentes do Cálculo
 
 ### 1. Earnings
-Valor recebido pelo produtor após o Digistore descontar comissões e taxas (já incluindo o desconto de refunds/chargebacks). Ver `earnings.md` para detalhes completos.
+`SUM(earned_amount)` para todos os tipos de transação (pagamentos positivos + refunds/CB negativos). Ver `earnings.md` para detalhes.
 
 ### 2. Custo de Produto
 Custo de fabricação dos frascos:
 ```
 Custo Produto = Número de Frascos × €3,26 por frasco
 ```
-O número de frascos é detectado automaticamente pelo nome do produto. Ver `custo_produto.md` para detalhes.
+O número de frascos é detectado pelo nome do produto (`main_product_name`). Ver `custo_produto.md` para detalhes.
 
 ### 3. Custo de Frete
-Custo de envio ao cliente, baseado em tabela por zona geográfica e quantidade de frascos. Ver `custo_frete.md` para a tabela completa de zonas.
+Custo de envio ao cliente, baseado em tabela por zona geográfica (`vat_country`) e quantidade de frascos. Ver `custo_frete.md` para a tabela completa de zonas.
 
 ---
 
-## Regra Especial: Desconto de €20 para Zona Z6 (apenas Produtos M)
+## Regra Especial: Desconto de €20 para Zona Z6 (apenas upsell_no === 0)
 
-Para pedidos **frontais (produtos M)** enviados para países da Zona Z6 (Luxemburgo e Suíça), o cliente paga **€20 do frete diretamente**. Por isso, o custo real de frete para a empresa é reduzido:
+Para pedidos **frontais (`upsell_no === 0`)** enviados para países da Zona Z6 (Luxemburgo e Suíça), o cliente paga **€20 do frete diretamente**. Por isso, o custo real de frete para a empresa é reduzido:
 
 ```
-Custo Frete Z6 = valor_da_tabela - €20
+Custo Frete Z6 = valor_da_tabela − €20
 (nunca abaixo de €0)
 ```
 
-**Importante**: Esta dedução de €20 se aplica **somente a produtos M** (vendas frontais). Upsells enviados para Z6 não recebem esse desconto.
+**Importante**: Esta dedução de €20 se aplica **somente a produtos M** (`upsell_no === 0`). Upsells enviados para Z6 não recebem esse desconto.
+
+---
+
+## Tratamento de Refunds no Valor Líquido
+
+Quando um refund/chargeback ocorre:
+- O `earned_amount` negativo já reduz o Earnings (e portanto o Valor Líquido)
+- **Não há recuperação dos custos de fulfillment** — o produto já foi fabricado e enviado (custo afundado/sunk cost)
+
+```typescript
+// Pagamentos: liq = earned_amount − fulfillment_cost
+e.liq += t.earnings - getFulfillmentCost(t.productName, t.country, t.upsellNo === 0);
+
+// Refunds/CBs: apenas earned_amount (negativo) — sem recuperar COGS
+e.liq += t.earnings;  // valor negativo (estorno da comissão recebida)
+```
 
 ---
 
 ## Regras
 
-- O Valor Líquido é calculado apenas para transações de **pagamento** (positivas) — devoluções já reduzem o Earnings
-- A dedução de €20 de frete Z6 se aplica apenas a **produtos M** (vendas frontais)
+- COGS calculado apenas para transações de pagamento (`transaction_type === "payment"`)
+- O desconto Z6 de €20 se aplica apenas a `upsell_no === 0`
 - Inclui os três produtos: **Erectus X**, **Slimjara** e **Memoguard**
 - O período filtrado segue horário **UTC** (00:00 até 23:59 UTC)
 
@@ -62,40 +78,34 @@ Custo Frete Z6 = valor_da_tabela - €20
 
 ## Exemplo Prático
 
-### Pedido 1 — Erectus X, 6 frascos, Alemanha (Zona Z1)
+### Pedido 1 — Erectus X, 6 frascos, Alemanha (Zona Z1, upsell_no=0)
 
 | Item | Valor |
 |------|-------|
-| Earnings da venda | €65,00 |
+| earned_amount | €65,00 |
 | Custo Produto (6 × €3,26) | -€19,56 |
 | Custo Frete (Z1, 6 frascos) | -€9,42 |
 | **Valor Líquido deste pedido** | **€36,02** |
 
----
-
-### Pedido 2 — Slimjara, 6 frascos, Luxemburgo (Zona Z6, produto M)
+### Pedido 2 — Slimjara, 6 frascos, Luxemburgo (Zona Z6, upsell_no=0)
 
 | Item | Valor |
 |------|-------|
-| Earnings da venda | €55,00 |
+| earned_amount | €55,00 |
 | Custo Produto (6 × €3,26) | -€19,56 |
-| Custo Frete tabela Z6 | -€26,66 |
-| Desconto cliente paga €20 (produto M, Z6) | +€20,00 |
-| Custo Frete real para empresa | **-€6,66** |
-| **Valor Líquido deste pedido** | **€28,78** |
+| Custo Frete tabela Z6 (6 frascos) | -€25,31 |
+| Desconto cliente paga €20 (upsell_no=0, Z6) | +€20,00 |
+| Custo Frete real para empresa | **-€5,31** |
+| **Valor Líquido deste pedido** | **€30,13** |
 
----
-
-### Pedido 3 — Memoguard, 3 frascos, Brasil (Zona Z7)
+### Pedido 3 — Memoguard, 3 frascos, Canadá (Zona Z7, upsell_no=0)
 
 | Item | Valor |
 |------|-------|
-| Earnings da venda | €39,00 |
+| earned_amount | €39,00 |
 | Custo Produto (3 × €3,26) | -€9,78 |
-| Custo Frete (Z7, 3 frascos) | -€52,56 |
-| **Valor Líquido deste pedido** | **-€23,34** ⚠️ |
-
-> Pedidos para países de zona Z7 podem resultar em Valor Líquido negativo — o frete consome toda a margem.
+| Custo Frete (Z7, 3 frascos) | -€51,03 |
+| **Valor Líquido deste pedido** | **-€21,81** ⚠️ |
 
 ---
 
@@ -111,34 +121,30 @@ O cartão de Valor Líquido no dashboard mostra o detalhamento:
 
 ## Onde é Exibido
 - Cartão dedicado com breakdown expansível em `Index.tsx`
-- Por afiliado na página de Afiliados (campo `lucroLiq`)
+- Por afiliado na página de Afiliados (campo `valorLiq`)
 - Usado no cálculo da **Margem %**
-
----
-
-## Observações
-- Esta é a métrica mais importante de lucratividade — mais relevante que Gross ou Earnings isolados
-- Afiliados com alto Gross mas que atraem clientes de países Z7 (frete elevado) podem ter Valor Líquido muito baixo
-- Afiliados que vendem principalmente pacotes de 1-2 frascos têm custo de produto menor, mas o frete por frasco fica mais caro proporcionalmente
-- Memoguard segue as mesmas regras de cálculo dos outros produtos
 
 ---
 
 ## Implementação no Código
 
-**Arquivo**: `src/lib/csvParser.ts` — função `computePeriod()`
+**Arquivo**: `src/lib/transactions.ts` — função `computePeriod()`
 
 ```typescript
-// Valor Líquido calculado transação por transação, somando tudo
-let productCost = 0, shippingCost = 0;
-
-const valorLiq = payTxs.reduce((s, t) => {
-  const front = isFrontSale(t);  // true = produto M, false = upsell
+// COGS acumulado apenas para payTxs (refunds não geram novo COGS)
+let productCostTotal = 0;
+let shippingCostTotal = 0;
+let cogsTotal = 0;
+for (const t of payTxs) {
+  const front = t.upsellNo === 0;  // true = produto M
   const b = getFulfillmentBreakdown(t.productName, t.country, front);
-  productCost  += b.product;   // acumula custo de produto total
-  shippingCost += b.shipping;  // acumula custo de frete total
-  return s + (t.earnings - b.total);  // earnings - (produto + frete)
-}, 0);
+  productCostTotal  += b.product;
+  shippingCostTotal += b.shipping;
+  cogsTotal         += b.total;
+}
+
+// Valor Líquido = SUM(earned_amount para todos os tipos) - COGS
+const valorLiq = earningsTotal - cogsTotal;
 ```
 
 **Arquivo**: `src/lib/costTable.ts` — função `getFulfillmentBreakdown()`
@@ -147,44 +153,27 @@ const valorLiq = payTxs.reduce((s, t) => {
 export function getFulfillmentBreakdown(
   productName: string,
   countryCode: string,
-  isFrontSale = true  // Z6 €20 desconto apenas em vendas M
+  isFrontSale = true  // upsell_no === 0 → true; upsell_no >= 1 → false
 ): FulfillmentBreakdown {
   const cc = resolveCountryCode(countryCode);
   const zone = COUNTRY_ZONE[cc];
-  if (!zone) return { product: 0, shipping: 0, total: 0 };
+  if (!zone) return { product: 0, shipping: 0, total: 0 }; // país não mapeado
 
   const bottles = detectBottles(productName);
-  // Aproxima para o tamanho de pacote mais próximo na tabela
   const closestCount = validCounts.reduce((prev, curr) =>
     Math.abs(curr - bottles) < Math.abs(prev - bottles) ? curr : prev
   );
 
-  const productCost = closestCount * PRODUCT_COST_PER_BOTTLE; // bottles × €3,26
+  const productCost = closestCount * PRODUCT_COST_PER_BOTTLE;
   let shippingCost = SHIPPING_TABLE[closestCount][zone];
 
-  // Desconto Z6: somente em vendas frontais (produtos M)
+  // Desconto Z6: somente em vendas frontais (upsell_no === 0)
   if (isFrontSale && CUSTOMER_SHIPPING_COUNTRIES.has(cc)) {
-    shippingCost = Math.max(0, shippingCost - CUSTOMER_SHIPPING_AMOUNT); // - €20
+    shippingCost = Math.max(0, shippingCost - CUSTOMER_SHIPPING_AMOUNT);
   }
 
   return { product: productCost, shipping: shippingCost, total: productCost + shippingCost };
 }
 ```
 
-- `CUSTOMER_SHIPPING_COUNTRIES = new Set(["LU", "CH"])` — apenas Luxemburgo e Suíça
-- `CUSTOMER_SHIPPING_AMOUNT = 20` — desconto fixo de €20
-
-**Ajuste de Refund/CB no Valor Líquido por afiliado** (`buildAffDetail`):
-
-```typescript
-// Pagamentos: liq = earnings - fulfillmentCost
-e.liq += t.earnings - getFulfillmentCost(t.productName, t.country, front);
-
-// Refunds/CBs: apenas earnings (negativo) — sem recuperação de custos de fulfillment
-// (produto já foi fabricado e enviado — custo é sunk)
-e.liq += t.earnings;  // valor negativo (estorno da comissão recebida)
-```
-
-O custo de fulfillment original (produto + frete) já foi pago e não é devolvido no refund. Apenas o earnings é estornado.
-
-**Exibido em**: `src/pages/Index.tsx` — cartão "Valor Líquido" com breakdown expansível (Earnings, Custo Produto, Custo Frete), e por afiliado em `src/pages/Affiliates.tsx` (campo `lucroLiq`)
+**Exibido em**: `src/pages/Index.tsx` — cartão "Valor Líquido" com breakdown expansível, e por afiliado em `src/pages/Affiliates.tsx`

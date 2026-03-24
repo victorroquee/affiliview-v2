@@ -1,49 +1,50 @@
 # KPI: Gross Revenue (Receita Bruta)
 
 ## O que é
-Receita bruta total gerada pelas vendas no período selecionado. Representa o valor total pago pelos clientes antes de qualquer dedução de comissões, taxas ou custos operacionais. Inclui vendas frontais (produtos M) e upsells aceitos pelo cliente.
+Receita bruta total gerada pelos pagamentos no período selecionado. Representa o valor total pago pelos clientes (incluindo IVA/VAT) em transações do tipo `payment` — vendas frontais (upsell_no = 0) e upsells (upsell_no ≥ 1).
 
 ---
 
 ## Origem e Extração
-- **Fonte**: Planilha de exportação do Digistore24
-- **Coluna utilizada**: Coluna **H** — "Gross Total"
-- Os valores negativos presentes nessa coluna (referentes a refunds e chargebacks) são **somados normalmente**, o que faz com que automaticamente reduzam o total bruto
-- Não há filtragem prévia: todos os registros da coluna H são somados
+- **Fonte**: API Digistore24 — endpoint `listTransactions`
+- **Campo utilizado**: `amount` — valor bruto pago pelo comprador (inclui VAT), somente para transações com `transaction_type === "payment"`
+- Refunds e chargebacks **não afetam o Gross** — o campo `amount` de refunds/CB é positivo na API mas o normalizador define `grossAmount = 0` para transações que não são `payment`
+- O impacto financeiro de devoluções é capturado exclusivamente via `earned_amount` (negativo), refletindo no KPI de **Earnings**
 
 ---
 
 ## Fórmula
 
 ```
-Gross Revenue = SOMA de todos os valores da coluna H (Gross Total)
+Gross Revenue = SUM(amount WHERE transaction_type === "payment")
 ```
 
-Os valores negativos (refunds e chargebacks) já estão na coluna H e reduzem automaticamente o total. Portanto o Gross já é **líquido de devoluções**.
+Refunds e chargebacks **não** são subtraídos do Gross. O Gross representa o volume bruto de receita gerada por pagamentos realizados.
 
 ---
 
 ## Regras
 
-- Inclui vendas frontais (produtos M) e upsells
+- Inclui vendas frontais (`upsell_no === 0`) e upsells (`upsell_no >= 1`)
 - Inclui os três produtos: **Erectus X**, **Slimjara** e **Memoguard**
-- Valores negativos (refunds e chargebacks) são considerados na soma e reduzem o total
+- Refunds e chargebacks não reduzem o Gross — seu impacto vai para o Earnings via `earned_amount` negativo
 - O período filtrado segue horário **UTC**: do início do dia (00:00 UTC) até o fim do dia (23:59 UTC) da janela selecionada
 
 ---
 
 ## Exemplo Prático
 
-| Tipo | Descrição | Valor (coluna H) |
-|------|-----------|-----------------|
-| Venda frontal | Erectus X - 6 frascos | +€150,00 |
-| Upsell | Slimjara - 3 frascos | +€80,00 |
-| Venda frontal | Memoguard - 3 frascos | +€90,00 |
-| Refund | Devolução Erectus X | -€150,00 |
-| Chargeback | Contestação Slimjara | -€80,00 |
+| Tipo | transaction_type | amount (API) | grossAmount (normalizado) |
+|------|-----------------|-------------|--------------------------|
+| Venda frontal | payment | €150,00 | €150,00 |
+| Upsell | payment | €80,00 | €80,00 |
+| Venda frontal | payment | €90,00 | €90,00 |
+| Refund | refund | €150,00 (positivo na API) | €0,00 (zeroed) |
+| Chargeback | chargeback | €80,00 (positivo na API) | €0,00 (zeroed) |
 
 ```
-Gross Revenue = €150 + €80 + €90 + (-€150) + (-€80) = €90,00
+Gross Revenue = €150 + €80 + €90 = €320,00
+(refund e chargeback não entram no gross)
 ```
 
 ---
@@ -55,29 +56,34 @@ Gross Revenue = €150 + €80 + €90 + (-€150) + (-€80) = €90,00
 ---
 
 ## Observações
-- O Gross é a métrica de topo de funil — reflete o volume bruto de receita, já descontando devoluções
-- Não representa lucro — ainda é necessário deduzir comissões, taxas da plataforma e custos de fulfillment para chegar ao lucro real
+- O Gross é a métrica de topo de funil — reflete o volume bruto de receita por pagamentos realizados
+- Não representa lucro — é necessário deduzir comissões, taxas da plataforma e custos de fulfillment para chegar ao lucro real
+- Para análise do impacto de devoluções, ver o KPI **Earnings** (onde `earned_amount` negativo de refunds/CB reduz o total)
 - Para análise de lucratividade real, ver o KPI **Valor Líquido**
-- Memoguard segue as mesmas regras de extração que Erectus X e Slimjara, mesmo que ainda não apareça na interface do sistema
 
 ---
 
 ## Implementação no Código
 
-**Arquivo**: `src/lib/csvParser.ts` — função `computePeriod()`
+**Arquivo**: `src/utils/digiNormalizer.ts` — normalização do campo `amount`
 
 ```typescript
-// Gross bruto = soma apenas dos pagamentos positivos (usado para AOV e Refund%)
-const grossBruto = payTxs.reduce((s, t) => s + t.grossAmount, 0);
-
-// Gross líquido = grossBruto + negativos de refunds e chargebacks
-const gross = grossBruto + refCbTxs.reduce((s, t) => s + t.grossAmount, 0);
+// API field mapping:
+// amount → grossAmount (somente para payments; 0 para refunds/CB)
+const isPaymentTx = transactionType === "payment";
+const grossAmount = isPaymentTx ? rawAmount : 0;
 ```
 
-- `payTxs` — transações de pagamento filtradas pelo período (apenas positivas)
-- `refCbTxs` — transações de refund/chargeback filtradas pelo mesmo período (valores negativos)
-- `t.grossAmount` — coluna H do CSV exportado pelo Digistore24
+**Arquivo**: `src/lib/transactions.ts` — função `computePeriod()`
 
-O `grossBruto` (somente positivos) é usado internamente como denominador para AOV e Refund+CB%. O `gross` (líquido de devoluções) é o valor exibido no cartão KPI do dashboard.
+```typescript
+// payTxs = transações com transaction_type === "payment"
+const grossBruto = payTxs.reduce((s, t) => s + t.grossAmount, 0);
+const gross = grossBruto; // gross === grossBruto (refunds não afetam gross)
+```
 
-**Exibido em**: `src/pages/Index.tsx` — cartão "Gross" com sub-info de grossBruto
+- `payTxs` — transações filtradas para `transaction_type === "payment"`
+- `t.grossAmount` — campo `amount` da API Digistore24 (normalizado para 0 em refunds/CB)
+- `gross === grossBruto` — são o mesmo valor; `grossBruto` mantido para compatibilidade com denominadores de AOV e Refund%
+
+**Exibido em**: `src/pages/Index.tsx` — cartão "Gross" no topo do dashboard

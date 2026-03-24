@@ -1,7 +1,7 @@
 # Componente: Custo de Produto
 
 ## O que é
-Custo de fabricação dos frascos/unidades vendidas. É calculado automaticamente com base na quantidade de frascos identificada no nome do produto, multiplicada pelo custo unitário de produção. É um dos dois componentes deduzidos do Earnings para chegar ao **Valor Líquido**.
+Custo de fabricação dos frascos/unidades vendidas. É calculado automaticamente com base na quantidade de frascos identificada no nome do produto (`main_product_name`), multiplicada pelo custo unitário de produção. É um dos dois componentes deduzidos do Earnings para chegar ao **Valor Líquido**.
 
 ---
 
@@ -13,19 +13,27 @@ Custo de Produto = Número de Frascos × €3,26 por frasco
 
 ---
 
+## Origem e Extração
+- **Fonte**: API Digistore24 — campo `main_product_name`
+- A quantidade de frascos é detectada pelo nome do produto (não existe campo separado para isso na API)
+- Aplica-se somente a transações de pagamento (`transaction_type === "payment"`)
+
+---
+
 ## Como o Número de Frascos é Detectado
 
-O sistema identifica a quantidade de frascos lendo o nome do produto da planilha. A detecção segue esta ordem de prioridade:
+O sistema identifica a quantidade de frascos lendo o nome do produto. A detecção segue esta ordem de prioridade:
 
-### 1ª tentativa — Leitura direta de palavras-chave no nome
-O sistema busca um número seguido de palavras como: "bottle", "garrafa", "b", "pack", "un" (e variações). Exemplos que funcionam:
+### 1ª tentativa — Leitura de palavras-chave no nome
+O sistema busca um número seguido de palavras como: "bottle", "garrafa", "b", "pack", "un", "capsule", "flasche" (e variações). Exemplos que funcionam:
 - `"Erectus X - 6 Bottles"` → detecta **6 frascos**
 - `"Slimjara 3 Garrafas"` → detecta **3 frascos**
-- `"Memoguard - 2b"` → detecta **2 frascos**
+- `"Memoguard - 2 Capsules"` → detecta **2 frascos** ("capsule" incluído)
+- `"Erectus X - 2b"` → detecta **2 frascos**
 
 ### 2ª tentativa — Busca de números conhecidos no nome (fallback)
 Se a 1ª tentativa não encontrar, o sistema procura os números: 12, 9, 6, 3, 2 no nome do produto (nesta ordem).
-- `"Erectus X Gold 6"` → detecta **6 frascos** (número 6 encontrado)
+- `"Erectus X Gold 6"` → detecta **6 frascos**
 
 ### 3ª tentativa — Default
 Se nenhum número for identificado → assume **1 frasco**
@@ -67,11 +75,11 @@ Este valor é fixo e hardcoded no sistema.
 
 ## Exemplo Prático
 
-| Produto | Nome no CSV | Frascos Detectados | Custo de Produto |
-|---------|-----------|--------------------|-----------------|
-| Erectus X | Erectus X - 6 Bottles | 6 | €19,56 |
-| Slimjara | Slimjara - 3 Garrafas | 3 | €9,78 |
-| Memoguard | Memoguard - 2 Capsules | 2 (se detectado como "Caps" → pode cair no fallback) | €6,52 |
+| Produto | main_product_name (API) | Frascos Detectados | Custo de Produto |
+|---------|------------------------|-------------------|-----------------|
+| Erectus X | M3 - Erectus X - 6 Bottles | 6 | €19,56 |
+| Slimjara | M1 - Slimjara - 3 Garrafas | 3 | €9,78 |
+| Memoguard | M2 - Memoguard - 2 Capsules | 2 | €6,52 |
 | Produto desconhecido | Produto sem número | 1 (default) | €3,26 |
 
 ---
@@ -84,8 +92,7 @@ Este valor é fixo e hardcoded no sistema.
 
 ## Observações
 - O valor €3,26 deve ser atualizado manualmente no sistema caso o custo de fabricação mude
-- Produtos Memoguard devem ter a quantidade de frascos/cápsulas incluída no nome para correta detecção — caso contrário o sistema assume 1 unidade
-- Nomes fora do padrão esperado (ex: "Erectus X Platinum" sem número) resultarão em 1 frasco, subestimando o custo de produto nessa venda
+- A palavra-chave "capsule" foi adicionada à 1ª tentativa para melhor detecção dos produtos Memoguard
 
 ---
 
@@ -96,17 +103,17 @@ Este valor é fixo e hardcoded no sistema.
 Custo unitário por frasco (constante fixo):
 
 ```typescript
-const PRODUCT_COST_PER_BOTTLE = 3.26;
+export const PRODUCT_COST_PER_BOTTLE = 3.26;
 ```
 
 Função que detecta o número de frascos a partir do nome do produto:
 
 ```typescript
-function detectBottles(productName: string): number {
+export function detectBottles(productName: string): number {
   const n = productName.toLowerCase();
 
-  // 1ª tentativa: número seguido de palavra-chave (bottle, garrafa, b, pack, un)
-  const m = n.match(/(\d+)\s*(bottle|garrafa|b\b|pack|un)/i);
+  // 1ª tentativa: número seguido de palavra-chave
+  const m = n.match(/(\d+)\s*(bottle|garrafa|b\b|pack|un|capsule|flasche)/i);
   if (m) return parseInt(m[1]);
 
   // 2ª tentativa: fallback por números conhecidos no nome (ordem decrescente)
@@ -133,4 +140,4 @@ const closestCount = validCounts.reduce((prev, curr) =>
 const productCost = closestCount * PRODUCT_COST_PER_BOTTLE; // ex: 6 × €3,26 = €19,56
 ```
 
-**Utilizado em**: `src/lib/csvParser.ts` via `getFulfillmentBreakdown()` no cálculo do Valor Líquido
+**Utilizado em**: `src/lib/transactions.ts` via `getFulfillmentBreakdown()` no cálculo do Valor Líquido

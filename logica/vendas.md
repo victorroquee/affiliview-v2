@@ -1,50 +1,32 @@
 # KPI: Vendas (Sales Count — Vendas Frontais)
 
 ## O que é
-Contagem de pedidos frontais realizados no período. Representa o número de novos clientes que compraram um produto M (produto principal do funil), excluindo upsells, downsells e order bumps.
+Contagem de pedidos frontais realizados no período. Representa o número de transações com `transaction_type === "payment"` e `upsell_no === 0`, ou seja, compras do produto principal — excluindo upsells e downsells.
 
 ---
 
 ## Origem e Extração
-- **Fonte**: Planilha de exportação do Digistore24
-- **Regra de identificação**: Contar apenas as linhas cujo nome do produto se enquadra no padrão de **produto M** (venda frontal)
+- **Fonte**: API Digistore24 — endpoint `listTransactions`
+- **Regra de identificação**: Contar transações com `transaction_type === "payment"` e `upsell_no === 0`
 
 ---
 
-## O que é um Produto M
+## O que é upsell_no === 0
 
-Produto M é o produto principal comprado pelo cliente ao entrar no funil. São os produtos:
+O campo `upsell_no` da API Digistore24 identifica a posição do produto no funil:
 
-- **Erectus X** (em qualquer variação de quantidade de frascos)
-- **Slimjara** (em qualquer variação de quantidade de frascos)
-- **Memoguard** (em qualquer variação de quantidade de frascos)
-
-### O que NÃO é produto M:
-- Upsells (identificados pelo nome — ex: começa com "UP", "Order Bump", "Bump", "Down")
-- Downsells
-- Outras nomenclaturas fora do padrão de produto M
-
----
-
-## Regras de Identificação
-
-O nome do produto na planilha determina se é uma venda frontal ou não:
-
-| Começa com... | Classificação |
-|---------------|---------------|
-| Nome do produto base (Erectus X, Slimjara, Memoguard) | ✅ Produto M — conta como venda |
-| UP1, UP2, UP3... | ❌ Upsell — não conta |
-| Order Bump, Bump | ❌ Order bump — não conta |
-| Down 1, Down 2... | ❌ Downsell — não conta |
-| Qualquer outra nomenclatura não M | ❌ Não conta |
-
-A regra é **pela nomenclatura do produto** — o campo de tipo de transação da planilha não é suficiente para esta classificação.
+| upsell_no | Classificação | Conta como Venda? |
+|-----------|--------------|-------------------|
+| 0 | Produto principal (front offer) | ✅ Sim |
+| 1 | Primeiro upsell | ❌ Não |
+| 2 | Segundo upsell | ❌ Não |
+| ≥ 1 | Qualquer upsell ou downsell | ❌ Não |
 
 ---
 
 ## Regras
 
-- Contar apenas produtos M (vendas frontais)
+- Contar apenas transações com `transaction_type === "payment"` e `upsell_no === 0`
 - Refunds e chargebacks **não reduzem** este contador — ele conta pedidos realizados, independente de devoluções posteriores
 - Inclui os três produtos: **Erectus X**, **Slimjara** e **Memoguard**
 - O período filtrado segue horário **UTC** (00:00 até 23:59 UTC)
@@ -53,19 +35,17 @@ A regra é **pela nomenclatura do produto** — o campo de tipo de transação d
 
 ## Exemplo Prático
 
-| Linha da planilha | Nome do Produto | Conta como Venda? |
-|-------------------|-----------------|--------------------|
-| 1 | Erectus X - 6 Bottles | ✅ Sim |
-| 2 | UP1 - Slimjara 3 frascos | ❌ Não (upsell) |
-| 3 | Slimjara - 3 Garrafas | ✅ Sim |
-| 4 | Memoguard - 6 Capsules | ✅ Sim |
-| 5 | Order Bump - Memoguard 1 frasco | ❌ Não (order bump) |
-| 6 | Down 1 - Oferta especial | ❌ Não (downsell) |
-| 7 | Erectus X - 2 Bottles (Refund) | ✅ Ainda conta (venda foi feita) |
+| transaction_type | upsell_no | Produto | Conta como Venda? |
+|-----------------|-----------|---------|-------------------|
+| payment | 0 | Erectus X - 6 Bottles | ✅ Sim |
+| payment | 1 | Slimjara - 3 frascos (upsell) | ❌ Não |
+| payment | 0 | Slimjara - 3 Garrafas | ✅ Sim |
+| payment | 0 | Memoguard - 6 Capsules | ✅ Sim |
+| refund | 0 | Erectus X - 6 Bottles | ❌ Não (não é payment) |
 
 ```
-Total de Vendas (Produtos M) = 4
-(Erectus X, Slimjara, Memoguard — e o Erectus X que foi devolvido ainda conta como venda realizada)
+Total de Vendas = 3
+(o pedido de Erectus X que foi devolvido ainda conta como venda realizada — mas a linha de refund não conta)
 ```
 
 ---
@@ -77,11 +57,10 @@ Esta contagem é o **denominador mais crítico** do sistema — ela é usada com
 | KPI que usa Vendas como denominador | Impacto de erro |
 |-------------------------------------|-----------------|
 | AOV | Ticket médio errado |
-| Refund % | Taxa de devolução errada |
-| Chargeback % | Taxa de contestação errada |
+| Refund % e Chargeback % | Taxa de devolução errada |
 | CPA | Custo por aquisição errado |
 
-Qualquer produto M classificado incorretamente como upsell (ou vice-versa) afeta todas essas métricas.
+Qualquer transação classificada incorretamente afeta todas essas métricas.
 
 ---
 
@@ -91,49 +70,54 @@ Qualquer produto M classificado incorretamente como upsell (ou vice-versa) afeta
 ---
 
 ## Observações
-- A identificação por nomenclatura do produto é mais confiável que o campo "tipo de transação" da planilha, pois o Digistore nem sempre preenche esse campo de forma consistente
-- Memoguard deve seguir o mesmo padrão de nomenclatura dos outros produtos M para ser corretamente identificado — nomes que começam com o nome base do produto são válidos
-- Devoluções não reduzem a contagem — para ver o impacto de devoluções, usar o KPI de Refund %
+- A identificação via `upsell_no` da API é mais precisa e confiável que a detecção por nome de produto (usada somente como fallback para dados de CSV)
+- Devoluções não reduzem a contagem — para ver o impacto de devoluções, usar os KPIs de Refund % e Chargeback %
 
 ---
 
 ## Implementação no Código
 
-**Arquivo**: `src/lib/csvParser.ts`
+**Arquivo**: `src/lib/transactions.ts`
 
-A classificação de upsell pelo nome do produto:
+Função `isFrontSale()` — usa `upsell_no` da API:
 
 ```typescript
+/**
+ * Returns true if this is a front (non-upsell) payment.
+ * Uses upsellNo (0 = front) from the API; falls back to name-based detection for CSV data.
+ */
+export function isFrontSale(t: TransactionRow): boolean {
+  if (!isPayment(t)) return false;
+  // upsellNo is set by the API normalizer (0 = front) or inferred from name in parseCSV
+  return t.upsellNo === 0;
+}
+```
+
+Contagem de vendas no período:
+
+```typescript
+// Front payments = pagamentos com upsell_no === 0
+const frontPayments = payTxs.filter((t) => t.upsellNo === 0);
+const frontSales    = frontPayments.length;
+```
+
+**Arquivo**: `src/utils/digiNormalizer.ts` — normalização de `upsell_no`:
+
+```typescript
+// upsell_no: 0 = front offer, 1+ = upsell/downsell position in funnel
+const upsellNo = Number(raw["upsell_no"] ?? 0);
+```
+
+**Arquivo**: `src/lib/transactions.ts` — fallback para CSV (inferido por nome):
+
+```typescript
+// Para CSV (sem campo upsell_no), inferido pelo nome do produto
+upsellNo: (!isRefundRow && isUpsellByName(productName)) ? 1 : 0,
+
 function isUpsellByName(productName: string): boolean {
   const n = productName.toLowerCase().trim();
   return /^(up\d|up\(|up |order bump|bump|down\s?\d|down )/.test(n);
 }
-```
-
-A função que determina se é uma transação de pagamento válida:
-
-```typescript
-const isPayment = (t: TransactionRow): boolean =>
-  t.transactionType === "payment" ||
-  t.transactionType === "sale" ||
-  t.transactionType === "upsell" ||
-  t.transactionType === "" ||
-  (t.grossAmount > 0 && !["return", "refund", "chargeback", "reversal"].includes(t.transactionType));
-```
-
-A função que determina se é produto M (venda frontal):
-
-```typescript
-// Produto M = pagamento que NÃO é upsell/downsell
-const isFrontSale = (t: TransactionRow): boolean =>
-  isPayment(t) && !isUpsellByName(t.productName);
-```
-
-A contagem de vendas no período:
-
-```typescript
-// Vendas = contagem de produtos M (sem upsells, sem refunds/chargebacks)
-const frontSales = payTxs.filter(isFrontSale).length;
 ```
 
 **Exibido em**: `src/pages/Index.tsx` — cartão "Vendas" no topo do dashboard

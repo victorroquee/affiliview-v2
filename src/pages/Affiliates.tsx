@@ -6,7 +6,7 @@ import {
   formatEur,
   formatPct,
   formatInt,
-} from "../lib/csvParser";
+} from "../lib/transactions";
 import { Users } from "lucide-react";
 
 interface AffiliatesPageProps {
@@ -48,11 +48,13 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
 
       {/* Legenda das métricas */}
       <div className="metrics-legend">
-        <span><strong>Gross</strong> — Receita bruta gerada pelo afiliado</span>
-        <span><strong>Earnings</strong> — Após comissão do afiliado, reserva, taxes e VAT</span>
-        <span><strong>Valor Líquido</strong> — Earnings menos custo estimado de produto e frete (COGS)</span>
+        <span><strong>Gross</strong> — SUM(amount) dos pagamentos do afiliado (upsell_no=0 e ≥1)</span>
+        <span><strong>Earnings</strong> — SUM(earned_amount) incluindo estornos negativos de refunds/CB</span>
+        <span><strong>Valor Líquido</strong> — Earnings − COGS (produto + frete por transação)</span>
+        <span><strong>Ticket Médio</strong> — Gross frontal (upsell_no=0) ÷ nº de vendas front</span>
+        <span><strong>CPA Médio</strong> — SUM(affiliate_amount) ÷ vendas front (ou gross−earnings se indisponível)</span>
         <span><strong>Margem %</strong> — Valor Líquido ÷ Gross</span>
-        <span><strong>Refund+CB %</strong> — % do Gross devolvido por reembolsos e chargebacks</span>
+        <span><strong>Refund+CB %</strong> — (refundAmt + cbAmt) ÷ grossBruto (value-based por afiliado)</span>
       </div>
 
       <div className="table-container">

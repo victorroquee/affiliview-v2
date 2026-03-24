@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { TransactionRow } from "../lib/csvParser";
+import type { TransactionRow } from "../lib/transactions";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type PresetKey = "today" | "last7" | "last30";
@@ -43,17 +43,17 @@ function txDateStr(t: TransactionRow): string {
 // ─── useFilters Hook ──────────────────────────────────────────────────────────
 
 export function useFilters(rows: TransactionRow[], period: PeriodFilter) {
-  const { csvMaxDate, csvMinDate } = useMemo(() => {
-    if (rows.length === 0) return { csvMaxDate: "", csvMinDate: "" };
+  const { dataMaxDate, dataMinDate } = useMemo(() => {
+    if (rows.length === 0) return { dataMaxDate: "", dataMinDate: "" };
     return rows.reduce(
       (acc, r) => {
         const d = txDateStr(r);
         return {
-          csvMinDate: !acc.csvMinDate || d < acc.csvMinDate ? d : acc.csvMinDate,
-          csvMaxDate: !acc.csvMaxDate || d > acc.csvMaxDate ? d : acc.csvMaxDate,
+          dataMinDate: !acc.dataMinDate || d < acc.dataMinDate ? d : acc.dataMinDate,
+          dataMaxDate: !acc.dataMaxDate || d > acc.dataMaxDate ? d : acc.dataMaxDate,
         };
       },
-      { csvMinDate: "", csvMaxDate: "" }
+      { dataMinDate: "", dataMaxDate: "" }
     );
   }, [rows]);
 
@@ -63,7 +63,7 @@ export function useFilters(rows: TransactionRow[], period: PeriodFilter) {
     }
 
     // preset mode
-    const maxDate = csvMaxDate;
+    const maxDate = dataMaxDate;
     if (!maxDate) return { dateFrom: "", dateTo: "" };
 
     switch (period.preset) {
@@ -75,7 +75,7 @@ export function useFilters(rows: TransactionRow[], period: PeriodFilter) {
       default:
         return { dateFrom: offsetDate(maxDate, -29), dateTo: maxDate };
     }
-  }, [period, csvMaxDate]);
+  }, [period, dataMaxDate]);
 
   const isDateRangeValid = useMemo(() => {
     if (!dateFrom || !dateTo) return true;
@@ -101,8 +101,8 @@ export function useFilters(rows: TransactionRow[], period: PeriodFilter) {
 
   return {
     filteredRows,
-    csvMaxDate,
-    csvMinDate,
+    dataMaxDate,
+    dataMinDate,
     activeDateFrom: dateFrom,
     activeDateTo:   dateTo,
     isDateRangeValid,

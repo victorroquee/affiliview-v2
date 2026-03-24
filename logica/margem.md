@@ -1,7 +1,7 @@
 # KPI: Margem % (Profit Margin)
 
 ## O que é
-Percentual de lucro líquido em relação à receita bruta. Indica quanto do Gross realmente sobra como lucro após pagar comissões de afiliado, taxas da plataforma, custo de fabricação do produto e custo de frete — ou seja, captura o impacto de todos os custos da operação.
+Percentual de lucro líquido em relação à receita bruta do afiliado. Indica quanto do Gross realmente sobra como lucro após pagar comissões de afiliado, taxas da plataforma, custo de fabricação do produto e custo de frete — captura o impacto de todos os custos da operação.
 
 ---
 
@@ -12,8 +12,8 @@ Margem % = (Valor Líquido / Gross) × 100
 ```
 
 Onde:
-- **Valor Líquido** = Earnings - Custo de Produto - Custo de Frete
-- **Gross** = Receita bruta total do período
+- **Valor Líquido** = `SUM(earned_amount)` − COGS (custo produto + custo frete)
+- **Gross** = `SUM(grossAmount)` do afiliado (somente pagamentos — gross é net de devoluções via earned_amount)
 
 ---
 
@@ -22,11 +22,11 @@ Onde:
 A margem captura o impacto de **todas as deduções** da operação:
 
 ```
-Gross
-  ↓ deduz: Comissão Afiliado + Taxas Digistore + Reserva + IVA
-= Earnings
+amount (gross)
+  ↓ deduz: affiliate_amount + Taxas Digistore + Reserva + IVA
+= earned_amount
   ↓ deduz: Custo de Produto (€3,26 × frascos)
-  ↓ deduz: Custo de Frete (tabela por zona)
+  ↓ deduz: Custo de Frete (tabela por zona vat_country)
 = Valor Líquido
 
 Margem % = Valor Líquido / Gross × 100
@@ -37,8 +37,8 @@ Margem % = Valor Líquido / Gross × 100
 ## Regras
 
 - Calculada por afiliado e por período
-- O Gross usado é o total do período (incluindo upsells e devoluções já descontadas)
-- O Valor Líquido considera a regra de €20 de desconto no frete Z6 para produtos M
+- O denominador `d.gross` é o gross acumulado somente de pagamentos — refunds/CB não alteram o gross diretamente
+- O Valor Líquido considera a regra de €20 de desconto no frete Z6 para `upsell_no === 0`
 - Inclui os três produtos: **Erectus X**, **Slimjara** e **Memoguard**
 - O período filtrado segue horário **UTC** (00:00 até 23:59 UTC)
 
@@ -59,11 +59,11 @@ Margem % = Valor Líquido / Gross × 100
 | Item | Valor |
 |------|-------|
 | Gross total (período 7d) | €1.200,00 |
-| Earnings (após comissão 50% + fees) | €500,00 |
+| earned_amount (após comissão 50% + fees) | €500,00 |
 | Custo Produto (média 4 frascos por pedido, 8 pedidos) | -€104,32 |
-| Custo Frete (média Z2, 8 pedidos) | -€84,72 |
-| **Valor Líquido** | **€310,96** |
-| **Margem %** | **€310,96 / €1.200 × 100 = 25,9%** |
+| Custo Frete (média Z2, 8 pedidos) | -€84,48 |
+| **Valor Líquido** | **€311,20** |
+| **Margem %** | **€311,20 / €1.200 × 100 = 25,9%** |
 
 ---
 
@@ -73,9 +73,9 @@ Margem % = Valor Líquido / Gross × 100
 |-------|-----------------|
 | Afiliado em países Z5/Z7 (frete alto) | Reduz margem |
 | Clientes compram pacotes de 1-2 frascos | Frete por frasco fica proporcionalmente mais caro |
-| Alta taxa de Refund/Chargeback | Reduz Earnings, piorando a margem |
+| Alta taxa de Refund/Chargeback | Reduz earned_amount, piorando a margem |
 | Afiliado com alta aceitação de upsells (AOV alto) | Melhora o Gross sem aumentar necessariamente os custos proporcionalmente |
-| Países Z6 com desconto de €20 no frete (produtos M) | Melhora levemente a margem |
+| Países Z6 com desconto de €20 no frete (upsell_no=0) | Melhora levemente a margem |
 
 ---
 
@@ -86,17 +86,9 @@ Margem % = Valor Líquido / Gross × 100
 
 ---
 
-## Observações
-- A Margem % é o indicador mais completo de saúde de um afiliado — considera todos os custos, não apenas o custo de aquisição
-- Uma margem negativa significa que a operação está no prejuízo — pode acontecer com afiliados que trazem muitos clientes de países Z7 ou com alta taxa de devoluções
-- Uma margem de 20-30% é considerada saudável para produtos de suplemento com modelo de comissão alta de afiliados
-- Memoguard segue as mesmas regras de cálculo dos outros produtos
-
----
-
 ## Implementação no Código
 
-**Arquivo**: `src/lib/csvParser.ts` — função `toPeriod()` (converte métricas do período para exibição por afiliado)
+**Arquivo**: `src/lib/transactions.ts` — cálculo de margem por afiliado (`topAffiliates`)
 
 ```typescript
 // Margem % = Valor Líquido / Gross × 100
@@ -104,8 +96,8 @@ margem: d.gross > 0 ? (d.liq / d.gross) * 100 : 0,
 ```
 
 Onde:
-- `d.liq` — Valor Líquido do afiliado no período (earnings − custo produto − custo frete)
-- `d.gross` — Gross líquido de devoluções do afiliado no período
+- `d.liq` — Valor Líquido do afiliado no período (`earned_amount` − COGS de pagamentos + `earned_amount` negativo de refunds/CB)
+- `d.gross` — gross acumulado somente de pagamentos do afiliado
 
 Indicadores visuais de cor definidos em `src/pages/Affiliates.tsx`:
 
@@ -116,7 +108,5 @@ const margemColor = d.margem > 30
   ? "text-foreground"    // neutro — saudável
   : "text-warning";      // amarelo — atenção
 ```
-
-O denominador usa `d.gross` que agora é o **net gross** (positivos de pagamentos + negativos de refund/CB), garantindo que a margem reflita a realidade após devoluções.
 
 **Exibido em**: `src/pages/Affiliates.tsx` — tabela "Métricas Principais por Afiliado", coluna "Margem", com cor condicional por faixa de valor

@@ -188,7 +188,7 @@ export const RefundByProductChart: React.FC<{ data: RefundData[] }> = ({
         Refund + CB por Produto (%) — {data.length > 0 ? `${data.length} produto${data.length !== 1 ? "s" : ""}` : ""}
       </div>
       <div className="chart-card-subtitle" style={{ marginBottom: 16 }}>
-        Ponderado por gross
+        |earned_amount| ÷ grossBruto frontal (value-based)
       </div>
       {data.map((d) => (
         <div className="h-bar-container" key={d.name}>

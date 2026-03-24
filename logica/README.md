@@ -9,7 +9,7 @@ Documentação completa de como cada KPI principal é extraído da planilha e ca
 Abaixo o progresso de implementação de cada componente lógico documentado nesta pasta.
 
 ### ✅ Etapa 1 — Estrutura de Dados e Parsing CSV
-- **Arquivo criado**: `src/lib/csvParser.ts`
+- **Arquivo criado**: `src/lib/transactions.ts`
 - Parsing do CSV Digistore24 (delimitador `;`, formato `="valor"`)
 - Extração de campos: Date, Time, Order ID, Transaction type, Gross amount, Net amount, Your earnings, Affiliate, Product name, Country
 - Conversão de datas para UTC
@@ -17,7 +17,7 @@ Abaixo o progresso de implementação de cada componente lógico documentado nes
 
 ### ✅ Etapa 2 — Classificação de Produtos (Produto M vs Upsell)
 - **Lógica documentada em**: `vendas.md`
-- **Implementado em**: `src/lib/csvParser.ts` → `isUpsellByName()`, `isFrontSale()`
+- **Implementado em**: `src/lib/transactions.ts` → `isUpsellByName()`, `isFrontSale()`
 - Regex para identificar upsells pelo nome: `^(up\d|up\(|up |order bump|bump|down\s?\d|down )`
 - Produtos M (vendas frontais): Erectus X, Slimjara, Memoguard — em qualquer variação de frascos
 - Refunds não reduzem a contagem de vendas
@@ -39,61 +39,61 @@ Abaixo o progresso de implementação de cada componente lógico documentado nes
 
 ### ✅ Etapa 5 — Gross Revenue
 - **Lógica documentada em**: `gross_revenue.md`
-- **Implementado em**: `src/lib/csvParser.ts` → `computePeriod()` (`gross`, `grossBruto`)
+- **Implementado em**: `src/lib/transactions.ts` → `computePeriod()` (`gross`, `grossBruto`)
 - Gross = soma de todos os valores da coluna H (positivos + negativos)
 - Gross Bruto = soma apenas dos pagamentos positivos (denominador para AOV e Refund%)
 
 ### ✅ Etapa 6 — Earnings
 - **Lógica documentada em**: `earnings.md`
-- **Implementado em**: `src/lib/csvParser.ts` → `computePeriod()` (`earningsTotal`)
+- **Implementado em**: `src/lib/transactions.ts` → `computePeriod()` (`earningsTotal`)
 - Earnings = soma de todos os valores de "Your earnings" (positivos + negativos de estornos)
 
 ### ✅ Etapa 7 — Valor Líquido (LIA)
 - **Lógica documentada em**: `valor_liquido.md`
-- **Implementado em**: `src/lib/csvParser.ts` → `computePeriod()` (`valorLiq`) + `getFulfillmentBreakdown()`
+- **Implementado em**: `src/lib/transactions.ts` → `computePeriod()` (`valorLiq`) + `getFulfillmentBreakdown()`
 - Calculado transação por transação: Earnings[i] − Custo Produto[i] − Custo Frete[i]
 - Acumula custos totais de produto e frete para breakdown
 - Regra de refund por afiliado: apenas earnings é estornado (fulfillment é sunk cost)
 
 ### ✅ Etapa 8 — AOV (Ticket Médio)
 - **Lógica documentada em**: `aov.md`
-- **Implementado em**: `src/lib/csvParser.ts` → `computePeriod()` (`aov`)
+- **Implementado em**: `src/lib/transactions.ts` → `computePeriod()` (`aov`)
 - AOV = Gross Bruto (positivos) / Quantidade de Produtos M
 - Numerador inclui upsells, denominador apenas vendas frontais
 
 ### ✅ Etapa 9 — Refund % e Chargeback %
 - **Lógica documentada em**: `refund_chargeback.md`
-- **Implementado em**: `src/lib/csvParser.ts` → `computePeriod()` (`refundPct`, `chargebackPct`)
+- **Implementado em**: `src/lib/transactions.ts` → `computePeriod()` (`refundPct`, `chargebackPct`)
 - Refund+CB% = Soma absoluta de devoluções / Gross Bruto × 100
 - Separação de refunds e chargebacks por tipo de transação
 - Cancelamento do pedido inteiro (frontal + upsell) já tratado automaticamente pelo Digistore
 
 ### ✅ Etapa 10 — CPA (Custo por Aquisição)
 - **Lógica documentada em**: `cpa.md`
-- **Implementado em**: `src/lib/csvParser.ts` → métricas por afiliado (`cpa`)
+- **Implementado em**: `src/lib/transactions.ts` → métricas por afiliado (`cpa`)
 - CPA = (Gross − Earnings) / Vendas Frontais
 
 ### ✅ Etapa 11 — Margem %
 - **Lógica documentada em**: `margem.md`
-- **Implementado em**: `src/lib/csvParser.ts` → métricas por afiliado (`margem`)
+- **Implementado em**: `src/lib/transactions.ts` → métricas por afiliado (`margem`)
 - Margem = Valor Líquido / Gross × 100
 - Cores condicionais: >30% verde, 15-30% neutro, <15% amarelo
 
 ### ✅ Etapa 12 — Activated ≥ €2K
 - **Lógica documentada em**: `activated_2k.md`
-- **Implementado em**: `src/lib/csvParser.ts` → `computePeriod()` (`activated`)
+- **Implementado em**: `src/lib/transactions.ts` → `computePeriod()` (`activated`)
 - Contagem de afiliados com Gross ≥ €2.000 no período
 - Ignora afiliados sem nome
 
 ### ✅ Etapa 13 — Novos Qualificados
 - **Lógica documentada em**: `novos_qualificados.md`
-- **Implementado em**: `src/lib/csvParser.ts` → `computePeriod()` (`novos`)
+- **Implementado em**: `src/lib/transactions.ts` → `computePeriod()` (`novos`)
 - Contagem de afiliados com média diária ≥ €1.000/dia
 - Normalização pelo número de dias do período
 
 ### ✅ Etapa 14 — Status do Afiliado (Scale / Watch / Probation)
 - **Lógica documentada em**: `status_afiliado.md`
-- **Implementado em**: `src/lib/csvParser.ts` → `statusFromPct()`
+- **Implementado em**: `src/lib/transactions.ts` → `statusFromPct()`
 - Scale (≤5%) → verde → aumentar CPA
 - Watch (5-10%) → amarelo → monitorar
 - Probation (>10%) → vermelho → revisar conta

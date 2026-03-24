@@ -9,14 +9,14 @@
 
 | # | Arquivo | Problema | Status |
 |---|---------|----------|--------|
-| 1 | `lib/csvParser.ts` | `parseDate` — verificar formato MM/DD vs DD/MM conforme CSV real | ✅ confirmado MM/DD correto |
+| 1 | `lib/transactions.ts` | `parseDate` — verificar formato MM/DD vs DD/MM conforme CSV real | ✅ confirmado MM/DD correto |
 | 2 | `hooks/useDigistoreAPI.ts` | API busca `"payment,refund,chargeback"` mas `isRefund` também aceita `"return"`, `"reversal"` | 🟡 monitorar |
 | 3 | `lib/costTable.ts` | País desconhecido retorna COGS = €0 silenciosamente | ✅ `console.warn` adicionado |
-| 4 | `lib/csvParser.ts` | `ProductSummaryRow.netRevenue === earnings` (errado) | ✅ corrigido para acumular `netAmount` |
+| 4 | `lib/transactions.ts` | `ProductSummaryRow.netRevenue === earnings` (errado) | ✅ corrigido para acumular `netAmount` |
 | 5 | `lib/cpa/parseHelpers.ts` | `getBottles` incluía `10` sem entrada na tabela de custos | ✅ removido |
-| 6 | `lib/csvParser.ts` | `AffiliateRow.gross7d` nome enganoso para qualquer período | ✅ renomeado para `gross` |
-| 7 | `lib/csvParser.ts` | `topAffiliates.slice(0, 15)` — contagem na UI mostrava total errado | ✅ `.slice` removido |
-| 8 | `lib/csvParser.ts` | `getDateRange` exportada mas sem nenhum consumidor | ✅ removida |
+| 6 | `lib/transactions.ts` | `AffiliateRow.gross7d` nome enganoso para qualquer período | ✅ renomeado para `gross` |
+| 7 | `lib/transactions.ts` | `topAffiliates.slice(0, 15)` — contagem na UI mostrava total errado | ✅ `.slice` removido |
+| 8 | `lib/transactions.ts` | `getDateRange` exportada mas sem nenhum consumidor | ✅ removida |
 | 9 | `utils/digiNormalizer.ts` | `console.log` de debug expunha dados financeiros no console | ✅ removido |
 | 10 | `hooks/useDigistoreAPI.ts` | Race condition: fetch anterior sobrescrevia resultados do novo | ✅ `AbortController` adicionado |
 | 11 | `components/Charts.tsx` | `GrossEvolutionChart` subtítulo duplicava "X dias" do título | ✅ removido |
@@ -32,16 +32,16 @@
 | # | Arquivo | Linha | Problema |
 |---|---------|-------|---------|
 | C2-01 | `hooks/useDigistoreAPI.ts` | finally | **Race condition no `finally`**: ao abortar e iniciar novo fetch, o `finally` do fetch antigo chama `setLoading(false)`, sobrescrevendo o `loading=true` do novo fetch. UI mostra "carregado" enquanto ainda busca. |
-| C2-02 | `lib/cpa/analyzeCSV.ts` | 177 | **NaN em `upsellConvOverall`**: divisão `buyersWithUpsell.size / buyers.size` sem guard quando `buyers.size === 0`. Resulta em `NaN%` exibido na UI. |
+| C2-02 | `lib/cpa/analyzeCPA.ts` | 177 | **NaN em `upsellConvOverall`**: divisão `buyersWithUpsell.size / buyers.size` sem guard quando `buyers.size === 0`. Resulta em `NaN%` exibido na UI. |
 
 ### 🟡 P1 — Inconsistências estruturais
 
 | # | Arquivos | Problema |
 |---|----------|---------|
-| C2-03 | `lib/cpa/AffiliateDetail.tsx`<br>`lib/cpa/VariantCard.tsx`<br>`lib/cpa/CPATable.tsx` | **`fmtEur`, `fmtPct`, `fmtInt` redefinidos localmente** em 3 componentes, idênticos a `formatEur/formatPct/formatInt` já exportados por `lib/csvParser.ts`. 4 implementações do mesmo código. |
-| C2-04 | `lib/csvParser.ts` vs `lib/cpa/constants.ts` | **`COUNTRY_ZONE` duplicado**: `costTable.ts` usa `COUNTRY_ZONE` (cálculo dinâmico) e `cpa/constants.ts` tem tabela hardcoded "espelho". Se frete atualizar, CPA Calculator diverge do Dashboard. |
-| C2-05 | `lib/csvParser.ts` vs `lib/cpa/constants.ts` | **COGS duplicado**: `costTable.ts` calcula via `PRODUCT_COST_PER_BOTTLE × bottles + SHIPPING_TABLE[bottles][zone]`. `cpa/constants.ts` tem os mesmos valores pré-calculados hardcoded. Qualquer mudança de preço requer atualização em dois lugares. |
-| C2-06 | `lib/csvParser.ts:100` vs `lib/cpa/parseHelpers.ts:33` | **Detecção de upsell inconsistente**: `isUpsellByName()` não reconhece `"dw"` (downsell). `isUpsell()` em parseHelpers reconhece `"dw"`. Downsells podem ser classificados diferente dependendo do caminho de código. |
+| C2-03 | `lib/cpa/AffiliateDetail.tsx`<br>`lib/cpa/VariantCard.tsx`<br>`lib/cpa/CPATable.tsx` | **`fmtEur`, `fmtPct`, `fmtInt` redefinidos localmente** em 3 componentes, idênticos a `formatEur/formatPct/formatInt` já exportados por `lib/transactions.ts`. 4 implementações do mesmo código. |
+| C2-04 | `lib/transactions.ts` vs `lib/cpa/constants.ts` | **`COUNTRY_ZONE` duplicado**: `costTable.ts` usa `COUNTRY_ZONE` (cálculo dinâmico) e `cpa/constants.ts` tem tabela hardcoded "espelho". Se frete atualizar, CPA Calculator diverge do Dashboard. |
+| C2-05 | `lib/transactions.ts` vs `lib/cpa/constants.ts` | **COGS duplicado**: `costTable.ts` calcula via `PRODUCT_COST_PER_BOTTLE × bottles + SHIPPING_TABLE[bottles][zone]`. `cpa/constants.ts` tem os mesmos valores pré-calculados hardcoded. Qualquer mudança de preço requer atualização em dois lugares. |
+| C2-06 | `lib/transactions.ts:100` vs `lib/cpa/parseHelpers.ts:33` | **Detecção de upsell inconsistente**: `isUpsellByName()` não reconhece `"dw"` (downsell). `isUpsell()` em parseHelpers reconhece `"dw"`. Downsells podem ser classificados diferente dependendo do caminho de código. |
 
 ### 🟡 P2 — Performance
 
@@ -81,8 +81,8 @@
 | # | Fix |
 |---|-----|
 | C2-01 | `useDigistoreAPI.ts`: `finally` verifica `abortRef.current === controller` antes de chamar `setLoading(false)` |
-| C2-02 | `analyzeCSV.ts`: guard `acc.buyers.size > 0` em `upsellConvOverall` |
-| C2-03 | `AffiliateDetail.tsx`, `VariantCard.tsx`, `CPATable.tsx`: removidas funções locais, importam de `lib/csvParser` |
+| C2-02 | `analyzeCPA.ts`: guard `acc.buyers.size > 0` em `upsellConvOverall` |
+| C2-03 | `AffiliateDetail.tsx`, `VariantCard.tsx`, `CPATable.tsx`: removidas funções locais, importam de `lib/transactions` |
 | C2-07 | `useFilters.ts`: `min/max` de datas via `reduce` O(n) |
 | C2-08 | `Charts.tsx`: `key={i}` → `key={entry.name}` no PieChart |
 
@@ -96,15 +96,15 @@
 
 | # | Arquivo | Linha | Problema | Status |
 |---|---------|-------|---------|--------|
-| C4-01 | `lib/csvParser.ts` | 306 | **`Math.max(...dates)` spread em array de timestamps**: com 65k+ transações excede limite de args do V8 → `RangeError`. Corrigido com loop `for...of` O(n). | ✅ |
+| C4-01 | `lib/transactions.ts` | 306 | **`Math.max(...dates)` spread em array de timestamps**: com 65k+ transações excede limite de args do V8 → `RangeError`. Corrigido com loop `for...of` O(n). | ✅ |
 | C4-02 | `hooks/useDigistoreAPI.ts` | 71 | **Error body parsing**: `body.error` não existe na resposta do proxy (`{ result, message }`). Usuário via "HTTP 500" genérico. Corrigido para `body.message ?? body.error`. | ✅ |
 
 ### 🟡 P1 — Dados incorretos
 
 | # | Arquivo | Linha | Problema | Status |
 |---|---------|-------|---------|--------|
-| C4-03 | `lib/csvParser.ts` | 444 | **`BundleRow.netRevenue` acumulava `t.earnings`** (earnings após comissão Digistore) em vez de `t.netAmount` (gross − VAT). Coluna "Net Revenue" na tabela de kits exibia valores errados. | ✅ |
-| C4-04 | `lib/csvParser.ts` | 393 | **`ProductSummaryRow.totalSales === frontSales` sempre**: loop só iterava `frontPayTxs`; upsells nunca eram contados em `totalSales`. Coluna "Total Vendas" era idêntica a "Vendas Front". Adicionado loop separado sobre `payTxs` para upsells. | ✅ |
+| C4-03 | `lib/transactions.ts` | 444 | **`BundleRow.netRevenue` acumulava `t.earnings`** (earnings após comissão Digistore) em vez de `t.netAmount` (gross − VAT). Coluna "Net Revenue" na tabela de kits exibia valores errados. | ✅ |
+| C4-04 | `lib/transactions.ts` | 393 | **`ProductSummaryRow.totalSales === frontSales` sempre**: loop só iterava `frontPayTxs`; upsells nunca eram contados em `totalSales`. Coluna "Total Vendas" era idêntica a "Vendas Front". Adicionado loop separado sobre `payTxs` para upsells. | ✅ |
 
 ### 🟡 P2 — UI imprecisa
 
@@ -123,13 +123,13 @@
 
 | # | Arquivo | Linha | Problema |
 |---|---------|-------|---------|
-| C3-01 | `lib/csvParser.ts` | 306 | **Stack overflow em `Math.max(...dates)`**: `payTxs.map(t => t.date.getTime())` pode gerar dezenas de milhares de elementos. O spread `...dates` com 65k+ args ultrapassa o limite de argumentos do V8, causando `RangeError: Maximum call stack size exceeded`. Corrigir com `dates.reduce((a,b) => b > a ? b : a)`. |
+| C3-01 | `lib/transactions.ts` | 306 | **Stack overflow em `Math.max(...dates)`**: `payTxs.map(t => t.date.getTime())` pode gerar dezenas de milhares de elementos. O spread `...dates` com 65k+ args ultrapassa o limite de argumentos do V8, causando `RangeError: Maximum call stack size exceeded`. Corrigir com `dates.reduce((a,b) => b > a ? b : a)`. |
 
 ### 🟡 P1 — Inconsistências estruturais
 
 | # | Arquivos | Problema |
 |---|----------|---------|
-| C3-02 | `lib/costTable.ts:64` vs `lib/cpa/parseHelpers.ts:7` | **Duas funções paralelas para detectar frascos**: `detectBottles()` usa regex + busca numérica; `getBottles()` só busca numérica. `analyzeCSV.ts` usa `getBottles`, mas `costTable.ts` usa `detectBottles`. Para o mesmo produto, podem retornar resultados diferentes. Ex: `"6 Bottles Kit"` — ambas retornam `6` (OK); mas `"SixPack"` — `getBottles` retorna `null`, `detectBottles` retorna `1` (fallback). |
+| C3-02 | `lib/costTable.ts:64` vs `lib/cpa/parseHelpers.ts:7` | **Duas funções paralelas para detectar frascos**: `detectBottles()` usa regex + busca numérica; `getBottles()` só busca numérica. `analyzeCPA.ts` usa `getBottles`, mas `costTable.ts` usa `detectBottles`. Para o mesmo produto, podem retornar resultados diferentes. Ex: `"6 Bottles Kit"` — ambas retornam `6` (OK); mas `"SixPack"` — `getBottles` retorna `null`, `detectBottles` retorna `1` (fallback). |
 | C3-03 | `lib/costTable.ts` | 79 | **`detectBottles()` retorna `1` silenciosamente sem aviso**: produto não reconhecido (sem número no nome) recebe COGS de 1 frasco, inflando margem artificialmente. O `console.warn` para país desconhecido foi adicionado (C1-3), mas aqui não há alerta equivalente — falha silenciosa piora que `€0`. |
 
 ### 🟡 P3 — Qualidade de código React
@@ -144,7 +144,7 @@
 
 | Item | Motivo |
 |------|--------|
-| `COUNTRY_ZONE` / COGS duplicados (C2-04, C2-05) | Refactor estrutural — requer mover `analyzeCSV` para usar `costTable` diretamente; alto risco de regressão sem testes |
+| `COUNTRY_ZONE` / COGS duplicados (C2-04, C2-05) | Refactor estrutural — requer mover `analyzeCPA` para usar `costTable` diretamente; alto risco de regressão sem testes |
 | `isUpsellByName` vs `isUpsell` (C2-06) | Baixo impacto prático: `isUpsellByName` é usado apenas no CSV parser que está em desuso (app usa API) |
 | ~~Deploy em produção sem proxy server~~ | ✅ Resolvido em 2026-03-23 — `api/digistore.ts` (Vercel Serverless Function) + `vercel.json` criados |
 | React Router para URL-based navigation | Mudança arquitetural — não é bug, é feature request |

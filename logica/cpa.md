@@ -1,34 +1,48 @@
 # KPI: CPA (Custo por Aquisição)
 
 ## O que é
-Custo médio para adquirir uma venda frontal. Representa tudo que foi pago a terceiros por cada pedido realizado: a comissão do afiliado mais todas as taxas e reservas cobradas pelo Digistore. É um indicador direto da eficiência de custo de cada afiliado.
+Custo médio para adquirir uma venda frontal. Representa a comissão paga ao afiliado por cada pedido realizado. Com a API Digistore24, usa o campo exato `affiliate_amount` — sem estimativa.
 
 ---
 
 ## Fórmula
 
+### Primária (API — usa affiliate_amount exato):
 ```
-CPA = (Gross - Earnings) / Quantidade de Vendas Frontais (produtos M)
+CPA = SUM(affiliate_amount WHERE payment) / Quantidade de Vendas Frontais (upsell_no === 0)
+```
+
+### Fallback (quando affiliate_amount indisponível, ex: dados CSV):
+```
+CPA = (Gross − Earnings) / Quantidade de Vendas Frontais
 ```
 
 ---
 
-## O que está dentro do CPA
+## Campos utilizados
+
+| Campo API | Descrição |
+|-----------|-----------|
+| `affiliate_amount` | Comissão exata paga ao afiliado por transação (`payment`) |
+| `upsell_no` | 0 = venda frontal (denominador); ≥ 1 = upsell (excluído do denominador) |
+
+---
+
+## O que está dentro do CPA (fórmula de fallback)
 
 A diferença entre Gross e Earnings representa todos os valores retidos pelo Digistore antes de repassar ao produtor:
 
 ```
-Gross - Earnings = Comissão do Afiliado + Taxas Digistore + Reserva Digistore + IVA/VAT
+Gross − Earnings = Comissão do Afiliado + Taxas Digistore + Reserva Digistore + IVA/VAT
 ```
 
-Ao dividir pelo número de vendas frontais, obtemos quanto custou, em média, cada pedido em termos de terceiros.
+Ao usar `affiliate_amount` diretamente (fórmula primária), o CPA representa **apenas a comissão do afiliado**, sem incluir taxas da plataforma.
 
 ---
 
 ## Regras
 
-- O Gross usado é o valor positivo (receita gerada) — refunds e chargebacks impactam o earnings mas o denominador (vendas) não é reduzido por devoluções
-- O denominador conta apenas **produtos M** (vendas frontais) — sem upsells, downsells ou order bumps
+- O denominador conta apenas **vendas frontais** (`upsell_no === 0`) — sem upsells, downsells
 - Inclui os três produtos: **Erectus X**, **Slimjara** e **Memoguard**
 - O período filtrado segue horário **UTC** (00:00 até 23:59 UTC)
 
@@ -38,13 +52,11 @@ Ao dividir pelo número de vendas frontais, obtemos quanto custou, em média, ca
 
 | Item | Valor |
 |------|-------|
-| Gross Total (5 vendas frontais + upsells) | €950,00 |
-| Earnings Total (após dedução Digistore) | €380,00 |
-| Gross − Earnings | €570,00 |
-| Quantidade de Produtos M (vendas frontais) | 5 |
-| **CPA** | **€114,00 por venda** |
+| SUM(affiliate_amount) — 5 vendas frontais | €380,00 |
+| Quantidade de Produtos M (upsell_no = 0) | 5 |
+| **CPA (primário)** | **€76,00 por venda** |
 
-Interpretação: cada venda custou €114 em comissão de afiliado e taxas da plataforma.
+Interpretação: cada venda frontal custou €76 em comissão direta ao afiliado.
 
 ---
 
@@ -66,27 +78,37 @@ Interpretação: cada venda custou €114 em comissão de afiliado e taxas da pl
 ---
 
 ## Observações
-- O CPA **não inclui** custos de fulfillment (produto + frete) — para o custo total por aquisição, é necessário somar o custo médio de fulfillment por pedido
-- Em países com IVA mais elevado (ex: alguns países Z3 e Z5), o CPA será naturalmente maior mesmo que a comissão do afiliado seja a mesma
-- Um CPA mais baixo com AOV alto é a combinação ideal — indica que o afiliado traz clientes de alto valor com custo de aquisição eficiente
-- Memoguard segue as mesmas regras de cálculo dos outros produtos
+- Com a API, o CPA usa `affiliate_amount` exato — é mais preciso que a estimativa `(gross - earnings) / sales` do CSV
+- O fallback `(gross - earnings)` inclui taxas da plataforma além da comissão — superestima o CPA comparado ao `affiliate_amount` direto
 
 ---
 
 ## Implementação no Código
 
-**Arquivo**: `src/lib/csvParser.ts` — função `toPeriod()` (converte métricas do período para exibição por afiliado)
+**Arquivo**: `src/lib/transactions.ts` — cálculo de CPA por afiliado (`topAffiliates`)
 
 ```typescript
-// CPA = (gross - earnings) / vendas frontais
-cpa: d.sales > 0 ? (d.gross - d.earnings) / d.sales : 0,
+// CPA: usa affiliate_amount real se disponível; fallback para estimativa via gross-earnings
+const cpa = d.sales > 0
+  ? (d.affiliateAmt > 0 ? d.affiliateAmt / d.sales : (d.gross - d.earnings) / d.sales)
+  : 0;
 ```
 
 Onde:
-- `d.gross` — receita bruta do afiliado no período (líquida de devoluções)
-- `d.earnings` — ganhos do produtor após deduções do Digistore
-- `d.sales` — contagem de produtos M (vendas frontais) do afiliado
+- `d.affiliateAmt` — soma de `affiliate_amount` do afiliado no período (campo direto da API)
+- `d.sales` — contagem de vendas frontais (`upsell_no === 0`) do afiliado
+- `d.gross` / `d.earnings` — usados apenas como fallback quando `affiliateAmt === 0`
 
-O cálculo usa `d.gross` = **net gross** (pagamentos − refund/CB negatives) e `d.earnings` = **net earnings** (incluindo estornos de comissão de refunds/CBs), ambos corrigidos em `buildAffDetail()`. Isso garante que o CPA reflita o custo líquido real de aquisição — descontando o que foi devolvido pelos afiliados nos estornos.
+**Arquivo**: `src/utils/digiNormalizer.ts` — normalização de `affiliate_amount`:
+
+```typescript
+// affiliateAmount: actual CPA paid to the affiliate for this transaction
+const affiliateAmount = parseMoney(raw["affiliate_amount"]);
+
+return {
+  // ...
+  affiliateAmount,
+};
+```
 
 **Exibido em**: `src/pages/Affiliates.tsx` — tabela "Métricas Principais por Afiliado", coluna "CPA (€)", por período selecionado

@@ -1,4 +1,3 @@
-import Papa from "papaparse";
 import { getFulfillmentBreakdown, getFulfillmentCost } from "./costTable";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -86,6 +85,7 @@ export interface AffiliateRow {
 export interface AffiliateDetail {
   gross: number;
   grossBruto: number;
+  frontGross: number;     // SUM(grossAmount WHERE upsellNo === 0) — for AOV calculation
   earnings: number;
   liq: number;
   sales: number;
@@ -127,7 +127,7 @@ export function isChargeback(t: TransactionRow): boolean {
  */
 export function isFrontSale(t: TransactionRow): boolean {
   if (!isPayment(t)) return false;
-  // upsellNo is set by the API normalizer (0 = front) or inferred from name in parseCSV
+  // upsellNo is set by the API normalizer (0 = front)
   return t.upsellNo === 0;
 }
 
@@ -145,73 +145,6 @@ function getProductBase(productName: string): string | null {
   if (n.includes("slimjara")) return "Slimjara";
   if (n.includes("memoguard")) return "Memoguard";
   return null;
-}
-
-// ─── CSV Parsing ──────────────────────────────────────────────────────────────
-function parseNumber(val: string): number {
-  if (!val) return 0;
-  // Digistore exports numbers as ="158.00"
-  const cleaned = val.replace(/^="?|"?$/g, "").replace(",", ".");
-  return parseFloat(cleaned) || 0;
-}
-
-function parseDate(dateStr: string, timeStr: string): Date {
-  if (!dateStr) return new Date(0);
-  // Format: "03/12/2026" "18:02"
-  const parts = dateStr.split("/");
-  if (parts.length === 3) {
-    const [month, day, year] = parts;
-    const [hour = "0", minute = "0"] = (timeStr || "0:0").split(":");
-    return new Date(
-      Date.UTC(
-        parseInt(year),
-        parseInt(month) - 1,
-        parseInt(day),
-        parseInt(hour),
-        parseInt(minute)
-      )
-    );
-  }
-  return new Date(dateStr);
-}
-
-export function parseCSV(csvText: string): TransactionRow[] {
-  const result = Papa.parse(csvText, {
-    delimiter: ";",
-    header: true,
-    skipEmptyLines: true,
-    transformHeader: (h: string) => h.replace(/"/g, "").trim(),
-  });
-
-  return result.data
-    .map((row: unknown) => {
-      const r = row as Record<string, string>;
-      const date = parseDate(r["Date"] || "", r["Time"] || "");
-      const productName = (r["Product name"] || "").replace(/"/g, "").trim();
-      const transactionType = (r["Transaction type"] || "").replace(/"/g, "").toLowerCase().trim();
-      const grossRaw = parseNumber(r["Gross amount"] || "");
-      // For CSV: refund rows have negative grossAmount already
-      const isRefundRow = ["return", "refund", "reversal", "chargeback"].includes(transactionType);
-      return {
-        date,
-        orderId: (r["Order ID"] || "").replace(/"/g, ""),
-        buyerId: (r["Buyer ID"] || "").replace(/"/g, "").trim(),
-        transactionType,
-        grossAmount: grossRaw,  // CSV already has correct signs
-        netAmount: parseNumber(r["Net amount"] || ""),
-        earnings: parseNumber(r["Your earnings"] || ""),
-        affiliate: (r["Affiliate"] || "").replace(/"/g, "").trim(),
-        productName,
-        productGroup: (r["Product group"] || "").replace(/"/g, "").trim(),
-        country: (r["Country"] || "").replace(/"/g, "").trim(),
-        quantity: parseInt((r["quantity"] || "1").replace(/"/g, "")) || 1,
-        // Infer upsellNo from product name (CSV has no upsell_no field)
-        upsellNo: (!isRefundRow && isUpsellByName(productName)) ? 1 : 0,
-        affiliateAmount: 0,  // not available in CSV export
-        vatAmount: 0,        // not available in CSV export
-      } as TransactionRow;
-    })
-    .filter((t: TransactionRow) => t.date.getTime() > 0);
 }
 
 // ─── Period Computation ───────────────────────────────────────────────────────
@@ -283,7 +216,7 @@ export function computePeriod(
 
   // ── Activated 2K ──────────────────────────────────────────────────────────
   // Affiliates whose total affiliate_amount (CPA received) >= €2000 in the period.
-  // Falls back to gross-based for CSV data where affiliateAmount = 0.
+  // Falls back to gross-based when affiliateAmount = 0.
   const affCpa   = new Map<string, number>();
   const affGross = new Map<string, number>();
   for (const t of payTxs) {
@@ -490,7 +423,7 @@ export function computePeriod(
     const n = t.affiliate.trim();
     if (!n) continue;
     const e = affMap.get(n) ?? {
-      gross: 0, grossBruto: 0, earnings: 0, liq: 0, sales: 0,
+      gross: 0, grossBruto: 0, frontGross: 0, earnings: 0, liq: 0, sales: 0,
       refundAmt: 0, cbAmt: 0, totalTx: 0, affiliateAmt: 0,
     };
     e.gross          += t.grossAmount;
@@ -498,7 +431,10 @@ export function computePeriod(
     e.earnings       += t.earnings;
     e.affiliateAmt   += t.affiliateAmount;
     e.totalTx        += 1;
-    if (t.upsellNo === 0) e.sales += 1;  // count only front orders as "sales"
+    if (t.upsellNo === 0) {
+      e.sales      += 1;               // count only front orders as "sales"
+      e.frontGross += t.grossAmount;   // AOV numerator: only upsell_no === 0 gross
+    }
     e.liq += t.earnings - getFulfillmentCost(t.productName, t.country, t.upsellNo === 0);
     affMap.set(n, e);
   }
@@ -532,7 +468,7 @@ export function computePeriod(
         sales:        d.sales,
         refundCbPct:  rcPct,
         status:       statusFromPct(rcPct),
-        aov:          d.sales > 0 ? d.grossBruto / d.sales : 0,
+        aov:          d.sales > 0 ? d.frontGross / d.sales : 0,
         cpa,
         margem:       d.gross > 0 ? (d.liq / d.gross) * 100 : 0,
       };

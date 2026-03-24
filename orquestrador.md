@@ -235,7 +235,7 @@ export interface ParseMeta {
 
 ## 4. Fase 3 — Mapeamento de Colunas CSV (`utils/csvColumnMap.ts`)
 
-> ⚠️ **PASSO CRÍTICO**: Abrir `export (4).csv` e verificar os nomes reais das colunas antes de fixar este arquivo.
+> ⚠️ **PASSO CRÍTICO**: Abrir `N/A` e verificar os nomes reais das colunas antes de fixar este arquivo.
 
 ```ts
 // utils/csvColumnMap.ts
@@ -661,7 +661,7 @@ export default function HomePage() {
 
 **Parser**
 - [ ] `hooks/useCSVParser.ts` implementado com PapaParse
-- [ ] Testado com `export (4).csv` — `NormalizedRow[]` retornado sem NaN
+- [ ] Testado com `N/A` — `NormalizedRow[]` retornado sem NaN
 
 **Lógicas (na ordem obrigatória)**
 - [ ] `logica/vendas.ts` conforme `docs/logica/vendas.md`
@@ -718,7 +718,7 @@ export default function HomePage() {
 
 ## 14. Notas para o Agente
 
-- **Inspecionar `export (4).csv`** é o passo mais crítico — fixar `csvColumnMap.ts` só depois de ver as colunas reais
+- **Inspecionar `N/A`** é o passo mais crítico — fixar `csvColumnMap.ts` só depois de ver as colunas reais
 - Se uma coluna não existir no CSV, registrar em `README.md` como limitação conhecida
 - Chart.js no Next.js App Router **sempre** exige `'use client'` — nunca em Server Component
 - `useCSVParser` e `useFilters` devem ser instanciados **apenas** em `page.tsx` — não duplicar estado em subcomponentes

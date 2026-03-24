@@ -19,6 +19,13 @@ Custo de Frete efetivo = valor_da_tabela - €20
 
 ---
 
+## Origem e Extração
+- **Fonte**: API Digistore24 — campo `vat_country`
+- `vat_country` já retorna código ISO de 2 letras (ex: "DE", "AT") — não requer conversão para a maioria dos casos
+- A função `resolveCountryCode()` normaliza entradas que possam chegar como nome por extenso (ex: "Germany")
+
+---
+
 ## Mapeamento de Zonas por País
 
 | Zona | Países incluídos |
@@ -59,31 +66,31 @@ Para **Luxemburgo (LU)** e **Suíça (CH)**, o cliente é cobrado adicionalmente
 Custo de Frete Z6 (empresa) = valor_tabela_Z6 - €20
 ```
 
-**Importante**: Esta regra de desconto de €20 se aplica **somente a produtos M** (vendas frontais). Upsells enviados para Z6 têm o frete integral conforme tabela.
+**Importante**: Esta regra de desconto de €20 se aplica **somente a produtos M** (transações com `upsell_no === 0`). Upsells enviados para Z6 têm o frete integral conforme tabela.
 
 ---
 
 ## Regras
 
-- O país de destino vem da coluna "country" na planilha do Digistore24
-- Países não mapeados nas zonas → **custo zero retornado** — sem produto e sem frete computados (não há fallback para Z1)
+- O país de destino vem do campo `vat_country` da API Digistore24 (código ISO 2 letras)
+- Países não mapeados nas zonas → **custo zero retornado** — sem produto e sem frete computados
 - A quantidade de frascos é detectada pelo nome do produto (mesma lógica do custo de produto — ver `custo_produto.md`)
-- Desconto Z6 de €20 → apenas para produtos M (frontais)
+- Desconto Z6 de €20 → apenas para produtos M (`upsell_no === 0`)
 - Aplica-se a todos os produtos: **Erectus X**, **Slimjara** e **Memoguard**
 
 ---
 
 ## Exemplo Prático
 
-| Produto | País | Zona | Frascos | Frete Tabela | Desconto Z6 | Frete Efetivo |
-|---------|------|------|---------|-------------|------------|--------------|
-| Erectus X 6 frascos (produto M) | DE | Z1 | 6 | €9,42 | — | €9,42 |
-| Slimjara 3 frascos (produto M) | PT | Z2 | 3 | €10,59 | — | €10,59 |
-| Memoguard 6 frascos (produto M) | IT | Z3 | 6 | €12,77 | — | €12,77 |
-| Erectus X 6 frascos (produto M) | SE | Z5 | 6 | €18,30 | — | €18,30 |
-| Slimjara 6 frascos (produto M) | CH | Z6 | 6 | €26,66 | -€20,00 | €6,66 |
-| UP1 Slimjara 3 frascos (upsell) | CH | Z6 | 3 | €26,66 | ❌ não aplica | €26,66 |
-| Memoguard 3 frascos (produto M) | CA | Z7 | 3 | €52,56 | — | €52,56 |
+| Produto | vat_country | Zona | Frascos | Frete Tabela | Desconto Z6 | Frete Efetivo |
+|---------|------------|------|---------|-------------|------------|--------------|
+| Erectus X 6 frascos (upsell_no=0) | DE | Z1 | 6 | €9,42 | — | €9,42 |
+| Slimjara 3 frascos (upsell_no=0) | PT | Z2 | 3 | €10,14 | — | €10,14 |
+| Memoguard 6 frascos (upsell_no=0) | IT | Z3 | 6 | €11,94 | — | €11,94 |
+| Erectus X 6 frascos (upsell_no=0) | SE | Z5 | 6 | €17,93 | — | €17,93 |
+| Slimjara 6 frascos (upsell_no=0) | CH | Z6 | 6 | €25,31 | -€20,00 | €5,31 |
+| UP1 Slimjara 3 frascos (upsell_no=1) | CH | Z6 | 3 | €25,19 | ❌ não aplica | €25,19 |
+| Memoguard 3 frascos (upsell_no=0) | CA | Z7 | 3 | €51,03 | — | €51,03 |
 
 ---
 
@@ -95,8 +102,7 @@ Custo de Frete Z6 (empresa) = valor_tabela_Z6 - €20
 
 ## Observações
 - Fretes de Zona Z7 (~€51-52 por envio) são muito elevados e podem tornar o Valor Líquido negativo, especialmente em pacotes menores
-- A diferença de frete entre Z1 e Z5 é de quase €9 por pedido — afiliados com tráfego majoritariamente de países nórdicos terão margem naturalmente mais apertada
-- Memoguard deve ter os países de destino mapeados da mesma forma que os outros produtos — não há diferenciação de frete por produto, apenas por zona e quantidade de frascos
+- A diferença de frete entre Z1 e Z5 é de quase €9 por pedido
 
 ---
 
@@ -107,7 +113,7 @@ Custo de Frete Z6 (empresa) = valor_tabela_Z6 - €20
 Tabela completa de fretes por quantidade de frascos e zona:
 
 ```typescript
-const SHIPPING_TABLE: Record<number, Record<ZoneKey, number>> = {
+export const SHIPPING_TABLE: Record<number, Record<ZoneKey, number>> = {
   1:  { z1: 9.30, z2: 10.14, z3: 11.82, z4: 13.66, z5: 17.81, z6: 25.19, z7: 51.03, uk: 10.14 },
   2:  { z1: 9.30, z2: 10.14, z3: 11.82, z4: 13.66, z5: 17.81, z6: 25.19, z7: 51.03, uk: 10.14 },
   3:  { z1: 9.30, z2: 10.14, z3: 11.82, z4: 13.66, z5: 17.81, z6: 25.19, z7: 51.03, uk: 10.14 },
@@ -117,39 +123,42 @@ const SHIPPING_TABLE: Record<number, Record<ZoneKey, number>> = {
 };
 ```
 
-Mapeamento de país para zona (Digistore exporta nome completo do país):
+Mapeamento de país para zona (API retorna código ISO diretamente via `vat_country`):
 
 ```typescript
-const COUNTRY_ZONE: Record<string, ZoneKey> = {
+export const COUNTRY_ZONE: Record<string, ZoneKey> = {
   FR: "z1", DE: "z1", GR: "z1", ES: "z1",
   CZ: "z2", IE: "z2", PT: "z2", SK: "z2",
   AT: "z3", BE: "z3", HU: "z3", IT: "z3", NL: "z3", PL: "z3", RO: "z3",
-  // ... e demais zonas
-  LU: "z6", CH: "z6", // Z6 — cliente paga €20
+  BG: "z4", HR: "z4", DK: "z4", LT: "z4", SI: "z4",
+  EE: "z5", FI: "z5", LV: "z5", SE: "z5",
+  CY: "z6", LU: "z6", MT: "z6", CH: "z6", LI: "z6", AE: "z6", GA: "z6",
+  IS: "z7", GE: "z7", MX: "z7", CA: "z7", DO: "z7", CL: "z7", UY: "z7", PY: "z7", MC: "z7", NO: "z7",
   GB: "uk",
 };
 ```
 
-Países não mapeados em `COUNTRY_ZONE` retornam `{ product: 0, shipping: 0, total: 0 }` (custo zero), não Z1.
+Países não mapeados em `COUNTRY_ZONE` retornam `{ product: 0, shipping: 0, total: 0 }` (custo zero).
 
-Cálculo do custo de frete com desconto Z6 para produtos M:
+Cálculo do custo de frete com desconto Z6 para produtos M (`upsell_no === 0`):
 
 ```typescript
+// isFrontSale = t.upsellNo === 0
 let shippingCost = SHIPPING_TABLE[closestCount][zone];
 
-// Desconto Z6: cliente paga €20 — apenas em vendas frontais (produtos M)
-const CUSTOMER_SHIPPING_COUNTRIES = new Set(["LU", "CH"]);
-const CUSTOMER_SHIPPING_AMOUNT = 20;
+// Desconto Z6: cliente paga €20 — apenas em vendas frontais (upsell_no === 0)
+export const CUSTOMER_SHIPPING_COUNTRIES = new Set(["LU", "CH"]);
+export const CUSTOMER_SHIPPING_AMOUNT = 20;
 
 if (isFrontSale && CUSTOMER_SHIPPING_COUNTRIES.has(cc)) {
   shippingCost = Math.max(0, shippingCost - CUSTOMER_SHIPPING_AMOUNT);
 }
 ```
 
-O país vem da coluna `country` do CSV. A função `resolveCountryCode()` aceita tanto código ISO (ex: "DE") quanto nome por extenso (ex: "Germany", "Deutschland"):
+Resolução do código do país (API já retorna ISO 2 letras via `vat_country`):
 
 ```typescript
-function resolveCountryCode(raw: string): string {
+export function resolveCountryCode(raw: string): string {
   const s = raw.trim();
   if (s.length <= 3 && /^[A-Za-z]{2,3}$/.test(s)) return s.toUpperCase(); // já é código
   const code = COUNTRY_NAME_TO_CODE[s.toLowerCase()];                      // busca por nome
@@ -157,4 +166,4 @@ function resolveCountryCode(raw: string): string {
 }
 ```
 
-**Utilizado em**: `src/lib/csvParser.ts` via `getFulfillmentBreakdown()` no cálculo do Valor Líquido
+**Utilizado em**: `src/lib/transactions.ts` via `getFulfillmentBreakdown()` no cálculo do Valor Líquido

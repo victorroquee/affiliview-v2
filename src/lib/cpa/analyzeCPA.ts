@@ -1,4 +1,4 @@
-import type { TransactionRow } from "../csvParser";
+import type { TransactionRow } from "../transactions";
 import type { AffiliateAccumulator, AffiliateResult, VariantResult } from "./types";
 import { CPA_DEFAULTS, OP_AVG, VARIANT_BOTTLES } from "./constants";
 import { getBottles, getFrontVariant, getCogs } from "./parseHelpers";
@@ -28,9 +28,9 @@ function makeAcc(name: string): AffiliateAccumulator {
  * não de upsell orders — o LTV reflete o uplift médio por pedido de entrada,
  * absorvendo implicitamente a taxa de conversão de upsell.
  *
- * Front/Upsell detection: uses upsellNo === 0 (from API) or name-based fallback (CSV).
+ * Front/Upsell detection: uses upsellNo === 0 (from API).
  */
-export function analyzeCSV(
+export function analyzeCPA(
   rows: TransactionRow[],
   marginTarget: number
 ): AffiliateResult[] {

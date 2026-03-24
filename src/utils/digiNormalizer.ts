@@ -1,4 +1,4 @@
-import type { TransactionRow } from "../lib/csvParser";
+import type { TransactionRow } from "../lib/transactions";
 import type { PeriodFilter, PresetKey } from "../hooks/useFilters";
 
 // ─── Digistore API Types ──────────────────────────────────────────────────────

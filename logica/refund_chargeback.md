@@ -4,79 +4,75 @@
 
 - **Refund**: Devolução solicitada pelo cliente diretamente ao produtor/plataforma (reembolso voluntário)
 - **Chargeback**: Contestação iniciada pelo cliente junto ao banco/operadora do cartão (dispute bancário)
-- **Refund + CB %**: Percentual combinado das duas situações em relação ao volume de vendas — principal indicador de qualidade de tráfego de um afiliado
+- **Refund + CB %**: Percentual combinado das duas situações em relação ao total de transações de pagamento — principal indicador de qualidade de tráfego de um afiliado
 
 ---
 
 ## Origem e Extração
-- **Fonte**: Planilha de exportação do Digistore24
-- Refunds e chargebacks aparecem como **linhas com valores negativos** na planilha
-- O tipo da transação (refund, return, reversal, chargeback) identifica a natureza de cada devolução
+- **Fonte**: API Digistore24 — endpoint `listTransactions`
+- Refunds e chargebacks aparecem como transações separadas com `transaction_type` igual a `"refund"` ou `"chargeback"`
+- O campo `earned_amount` dessas transações é **negativo** na API (representa o valor estornado)
 
 ---
 
 ## Fórmula
 
 ```
-Refund + CB % = (Soma dos valores absolutos de Refunds + Chargebacks) / Gross Bruto × 100
+Refund %    = (COUNT de transações refund) / (COUNT de transações payment) × 100
+Chargeback % = (COUNT de transações chargeback) / (COUNT de transações payment) × 100
+Refund + CB % = Refund % + Chargeback %
 ```
 
-Onde:
-- **Numerador**: Soma dos valores absolutos de todas as linhas de refund e chargeback no período
-- **Denominador**: **Gross Bruto** — receita bruta total **sem** descontar os refunds e chargebacks (ou seja, apenas os valores positivos da coluna H)
-
-> Esta fórmula mede a proporção de devoluções em relação ao que foi gerado de receita positiva, sem a distorção de subtrair as próprias devoluções do denominador.
-
----
-
-## Regra Especial: Cancelamento com Upsell
-
-Quando um pedido frontal é cancelado (refund ou chargeback), **o upsell vinculado ao mesmo pedido também deve ser cancelado e contabilizado na taxa**.
-
-Ou seja: se um cliente comprou um produto M (frontal) + aceitou um upsell, e solicitou devolução do pedido, tanto o valor do frontal quanto o valor do upsell entram no numerador da taxa de refund/chargeback.
-
-**Regra**: o cancelamento é do **pedido inteiro**, não apenas da linha de venda frontal.
+> A taxa é calculada por **contagem de transações**, não por valor monetário. O denominador é o total de registros com `transaction_type === "payment"`.
 
 ---
 
 ## Como Identificar Refunds e Chargebacks
 
-| Tipo | Como aparece na planilha |
-|------|--------------------------|
-| Refund | Linha com valor negativo, tipo: `return`, `refund` ou `reversal` |
-| Chargeback | Linha com valor negativo, tipo: `chargeback` |
+| Tipo | transaction_type na API |
+|------|------------------------|
+| Refund | `"refund"` ou `"return"` ou `"reversal"` |
+| Chargeback | `"chargeback"` |
+
+> A API Digistore24 utiliza `"refund"` como tipo principal. Os tipos `"return"` e `"reversal"` também são tratados como refund por compatibilidade.
+
+---
+
+## Valores Monetários (para exibição)
+
+Além das taxas percentuais, os **valores absolutos** de devoluções são exibidos para referência:
+
+```
+refundAmt = SUM(ABS(earned_amount) WHERE type IN refund/return/reversal)
+cbAmt     = SUM(ABS(earned_amount) WHERE type = chargeback)
+```
+
+O `earned_amount` é negativo na API para esses tipos — `Math.abs()` converte para valor positivo de exibição.
 
 ---
 
 ## Regras
 
-- O denominador usa o **Gross Bruto** (somente valores positivos da coluna H) — sem desconto de devoluções
-- Quando um frontal é cancelado, o upsell correspondente ao mesmo pedido também deve ser incluído no numerador
+- O denominador é a **contagem total de transações payment** no período
 - Inclui os três produtos: **Erectus X**, **Slimjara** e **Memoguard**
 - O período filtrado segue horário **UTC** (00:00 até 23:59 UTC)
+- `refund_request` é filtrado antes da normalização e **não entra** no cálculo
 
 ---
 
 ## Exemplo Prático
 
-| Tipo | Produto | Valor |
-|------|---------|-------|
-| Venda frontal | Erectus X 6 frascos | +€150,00 |
-| Upsell (mesmo pedido) | Slimjara 3 frascos | +€80,00 |
-| Venda frontal | Memoguard 3 frascos | +€90,00 |
-| Venda frontal | Slimjara 6 frascos | +€120,00 |
-| Refund frontal | Erectus X 6 frascos | -€150,00 |
-| Refund upsell (mesmo pedido cancelado) | Slimjara 3 frascos | -€80,00 |
+| transaction_type | Contagem | Entra no cálculo |
+|-----------------|----------|-----------------|
+| payment | 10 | Denominador |
+| refund | 1 | Numerador Refund |
+| chargeback | 0 | Numerador CB |
 
 ```
-Gross Bruto (somente positivos) = €150 + €80 + €90 + €120 = €440,00
-
-Soma dos refunds/CBs = €150 + €80 = €230,00
-
-Refund + CB % = €230 / €440 × 100 = 52,3%
+Refund %     = 1 / 10 × 100 = 10,0%
+Chargeback % = 0 / 10 × 100 = 0,0%
+Refund + CB % = 10,0%
 ```
-
-> Neste exemplo extremo, o pedido com upsell foi cancelado integralmente — ambos os valores entram no numerador.
 
 ---
 
@@ -109,52 +105,63 @@ Refund + CB % = €230 / €440 × 100 = 52,3%
 
 ## Observações
 - Um Chargeback % acima de 1-2% já é sinal de alerta crítico para a plataforma Digistore
-- A regra de cancelar frontal + upsell juntos evita subestimar o impacto real de devoluções no resultado
-- Memoguard segue as mesmas regras de classificação dos outros produtos
+- A taxa count-based reflete a proporção de pedidos problemáticos, independente do valor monetário
 
 ---
 
 ## Implementação no Código
 
-**Arquivo**: `src/lib/csvParser.ts` — função `computePeriod()`
+**Arquivo**: `src/lib/transactions.ts` — função `computePeriod()`
 
 Identificação de refunds e chargebacks:
 
 ```typescript
-const isRefund = (t: TransactionRow): boolean =>
-  ["return", "refund", "reversal"].includes(t.transactionType);
+export function isRefund(t: TransactionRow): boolean {
+  return ["return", "refund", "reversal"].includes(t.transactionType);
+}
 
-const isChargeback = (t: TransactionRow): boolean =>
-  t.transactionType === "chargeback";
+export function isChargeback(t: TransactionRow): boolean {
+  return t.transactionType === "chargeback";
+}
 ```
 
-Cálculo da taxa por valor (denominador = grossBruto, não contagem de vendas):
+Cálculo das taxas (count-based):
 
 ```typescript
-// Soma dos valores absolutos de refunds e chargebacks
-const refundAmt = refCbTxs.filter(isRefund)
-  .reduce((s, t) => s + Math.abs(t.grossAmount), 0);
+const refundRows = refCbTxs.filter(isRefund);
+const cbRows     = refCbTxs.filter(isChargeback);
+const payCount   = payTxs.length;  // total de transações payment
 
-const cbAmt = refCbTxs.filter(isChargeback)
-  .reduce((s, t) => s + Math.abs(t.grossAmount), 0);
-
-// Divisor = grossBruto (somente positivos — sem descontar devoluções)
-const rPct = grossBruto > 0 ? (refundAmt / grossBruto) * 100 : 0;
-const cPct = grossBruto > 0 ? (cbAmt     / grossBruto) * 100 : 0;
+// Taxas por contagem de transações
+const rPct = payCount > 0 ? (refundRows.length / payCount) * 100 : 0;
+const cPct = payCount > 0 ? (cbRows.length   / payCount) * 100 : 0;
 ```
 
-O `refCbTxs` contém todas as linhas de devolução do período — tanto dos frontais quanto dos upsells do mesmo pedido, pois o Digistore gera uma linha de devolução por produto cancelado. A soma total automática já reflete a regra de cancelamento de pedido inteiro (frontal + upsell).
-
-**Denominador correto na tabela de afiliados** (`buildAffDetail` + `toPeriod`):
+Valores monetários (para exibição):
 
 ```typescript
-// grossBruto é rastreado separadamente — acumulado apenas de payTxs (positivos)
-e.grossBruto += t.grossAmount; // apenas nos pagamentos
-
-// No toPeriod(), o denominador usa grossBruto, não o net gross
-const rcPct = d.grossBruto > 0 ? ((d.refundAmt + d.cbAmt) / d.grossBruto) * 100 : 0;
+// earned_amount é negativo na API para refunds/CB — Math.abs() para exibição
+const refundAmt = refundRows.reduce((s, t) => s + Math.abs(t.earnings), 0);
+const cbAmt     = cbRows.reduce((s, t)     => s + Math.abs(t.earnings), 0);
 ```
 
-Isso garante que o denominador seja sempre o **grossBruto** (somente positivos), mesmo após aplicar os ajustes negativos de refund/CB ao `d.gross` para outras métricas.
+Filtro de `refund_request` na normalização (excluído antes de chegar ao cálculo):
+
+```typescript
+// src/utils/digiNormalizer.ts
+.filter((t) => {
+  const type = String(t["transaction_type"] ?? "");
+  return type !== "refund_request";  // refund_request é descartado
+})
+```
+
+**Taxa por afiliado** (tabela de top afiliados — usa valor monetário como denominador para consistência):
+
+```typescript
+// Na tabela de afiliados, o denominador é grossBruto (somente pagamentos positivos)
+const rcPct = d.grossBruto > 0
+  ? ((d.refundAmt + d.cbAmt) / d.grossBruto) * 100
+  : 0;
+```
 
 **Exibido em**: `src/pages/Index.tsx` — cartão "Refund+CB%" com breakdown separado, e por afiliado em `src/pages/Affiliates.tsx`
