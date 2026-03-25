@@ -18,7 +18,7 @@ const CPATable: React.FC<CPATableProps> = ({ results, onSelect }) => {
   }
 
   return (
-    <div className="table-container" style={{ overflowX: "auto" }}>
+    <div className="table-container">
       <table className="cpa-table">
         <thead>
           <tr>
@@ -39,27 +39,24 @@ const CPATable: React.FC<CPATableProps> = ({ results, onSelect }) => {
           {results.map((aff) => {
             const domV = aff.variants.find(v => v.variant === aff.domVariant);
 
-            const refColor = aff.refundRate > 10
-              ? "#C92A2A"
+            const refColor: string | undefined = aff.refundRate > 10
+              ? "var(--red)"
               : aff.refundRate > 5
-              ? "#B45309"
+              ? "var(--amber)"
               : undefined;
 
-            const roomColor = !domV ? undefined
-              : domV.roomAboveCurrent > 0 ? "#0D5C2E"
-              : domV.roomAboveCurrent < 0 ? "#C92A2A"
+            const roomColor: string | undefined = !domV ? undefined
+              : domV.roomAboveCurrent > 0 ? "var(--green-text)"
+              : domV.roomAboveCurrent < 0 ? "var(--red)"
               : undefined;
 
-            const netProfitColor = aff.netProfit >= 0 ? "#0D5C2E" : "#C92A2A";
+            const netColor = aff.netProfit >= 0 ? "var(--green-text)" : "var(--red)";
 
             return (
               <tr key={aff.name}>
                 <td style={{ fontWeight: 600 }}>{aff.name}</td>
                 <td className="num">{fmtInt(aff.frontTotal)}</td>
-                <td
-                  className="num"
-                  style={{ color: netProfitColor, fontWeight: 600 }}
-                >
+                <td className="num" style={{ color: netColor, fontWeight: 600 }}>
                   {fmtEur(aff.netProfit)}
                 </td>
                 <td className="num" style={refColor ? { color: refColor } : undefined}>
@@ -73,16 +70,13 @@ const CPATable: React.FC<CPATableProps> = ({ results, onSelect }) => {
                   style={{
                     fontWeight: 600,
                     color: domV
-                      ? domV.cpaStatus === "reduce" ? "#C92A2A" : "#0D5C2E"
+                      ? domV.cpaStatus === "reduce" ? "var(--red)" : "var(--green-text)"
                       : undefined,
                   }}
                 >
                   {domV ? fmtEur(domV.maxCpa) : "—"}
                 </td>
-                <td
-                  className="num"
-                  style={roomColor ? { color: roomColor, fontWeight: 600 } : undefined}
-                >
+                <td className="num" style={roomColor ? { color: roomColor, fontWeight: 600 } : undefined}>
                   {domV
                     ? `${domV.roomAboveCurrent >= 0 ? "+" : ""}${fmtEur(domV.roomAboveCurrent)}`
                     : "—"

@@ -10,10 +10,10 @@ const Delta: React.FC<DeltaProps> = ({ value, unit = "€", inverse = false }) =
   const isPositive = value >= 0;
   const good       = inverse ? !isPositive : isPositive;
   const color      = value === 0
-    ? "#9299A8"
+    ? "var(--text-3)"
     : good
-    ? "#0D5C2E"
-    : "#C92A2A";
+    ? "var(--green-text)"
+    : "var(--red)";
   const sign      = value > 0 ? "+" : "";
   const formatted = unit === "€"
     ? `${sign}€${Math.abs(value).toFixed(2)}`

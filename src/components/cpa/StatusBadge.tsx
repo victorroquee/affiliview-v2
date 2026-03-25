@@ -5,9 +5,9 @@ const STATUS_CONFIG: Record<
   VariantResult["cpaStatus"],
   { label: string; bg: string; color: string }
 > = {
-  increase: { label: "↑ Pode aumentar",    bg: "#EDFAF3", color: "#0D5C2E" },
-  ok:       { label: "✓ Dentro do limite", bg: "#EFF6FF", color: "#1D4ED8" },
-  reduce:   { label: "↓ Reduzir CPA",      bg: "#FFF0F0", color: "#C92A2A" },
+  increase: { label: "↑ Pode aumentar",    bg: "var(--green-bg)",  color: "var(--green-text)" },
+  ok:       { label: "✓ Dentro do limite", bg: "var(--blue-bg)",   color: "var(--blue)" },
+  reduce:   { label: "↓ Reduzir CPA",      bg: "var(--red-bg)",    color: "var(--red)" },
 };
 
 interface StatusBadgeProps {
@@ -23,13 +23,12 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, compact = false }) =>
         display: "inline-flex",
         alignItems: "center",
         padding: compact ? "2px 8px" : "3px 10px",
-        borderRadius: 20,
+        borderRadius: "20px",
         background: cfg.bg,
         color: cfg.color,
         fontSize: compact ? 10 : 11,
         fontWeight: 600,
         whiteSpace: "nowrap",
-        fontFamily: "'Inter', sans-serif",
       }}
     >
       {cfg.label}

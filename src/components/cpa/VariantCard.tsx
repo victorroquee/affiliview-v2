@@ -6,9 +6,9 @@ import StatusBadge from "./StatusBadge";
 import Delta from "./Delta";
 
 const BORDER_COLOR: Record<VariantResult["cpaStatus"], string> = {
-  increase: "#bbf7d0",
-  ok:       "#bfdbfe",
-  reduce:   "#fecaca",
+  increase: "var(--green-bd)",
+  ok:       "var(--blue-bd)",
+  reduce:   "var(--red-bd)",
 };
 
 interface MetricRowProps {
@@ -34,22 +34,19 @@ const VariantCard: React.FC<VariantCardProps> = ({ v }) => {
       className="variant-card"
       style={{ borderColor: BORDER_COLOR[v.cpaStatus] }}
     >
-      {/* Header */}
       <div className="vc-header">
         <span className="vc-title">M{v.variant} — {v.bottles} potes</span>
         <StatusBadge status={v.cpaStatus} compact />
       </div>
 
-      {/* Métricas */}
       <div className="vc-metrics">
-        <MetricRow label="Pedidos"              value={String(v.count)} />
-        <MetricRow label="Front earn/pedido"    value={fmtEur(v.frontEarnPer)} />
-        <MetricRow label="Upsell earn/pedido"   value={fmtEur(v.upsellEarnPer)} />
-        <MetricRow label="COGs/pedido"          value={fmtEur(v.frontCogsPer + v.upsellCogsPer)} />
-        <MetricRow label="Conv. upsell"         value={fmtPct(v.upsellConv)} />
+        <MetricRow label="Pedidos"             value={String(v.count)} />
+        <MetricRow label="Front earn/pedido"   value={fmtEur(v.frontEarnPer)} />
+        <MetricRow label="Upsell earn/pedido"  value={fmtEur(v.upsellEarnPer)} />
+        <MetricRow label="COGs/pedido"         value={fmtEur(v.frontCogsPer + v.upsellCogsPer)} />
+        <MetricRow label="Conv. upsell"        value={fmtPct(v.upsellConv)} />
       </div>
 
-      {/* LTV Lucro */}
       <div className="vc-ltv">
         <span className="vc-ltv-label">LTV lucro/pedido</span>
         <span className={`vc-ltv-value ${v.ltvProfit >= 0 ? "green" : "red"}`}>
@@ -57,7 +54,6 @@ const VariantCard: React.FC<VariantCardProps> = ({ v }) => {
         </span>
       </div>
 
-      {/* Caixa de CPA */}
       <div className="vc-cpa-box">
         <div className="vc-cpa-row">
           <span className="vc-cpa-label">CPA atual</span>
@@ -75,7 +71,6 @@ const VariantCard: React.FC<VariantCardProps> = ({ v }) => {
         </div>
       </div>
 
-      {/* vs média da operação */}
       {opAvg && (
         <div className="vc-op-avg">
           <span className="vc-op-title">vs média da operação</span>

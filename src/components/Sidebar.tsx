@@ -1,5 +1,5 @@
 import React from "react";
-import { LayoutDashboard, Users, Calculator } from "lucide-react";
+import { LayoutDashboard, Users, Calculator, TrendingUp } from "lucide-react";
 
 type Page = "dashboard" | "affiliates" | "calculator";
 
@@ -11,11 +11,18 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ activePage, onNavigate }) => {
   return (
     <aside className="sidebar">
-      {/* Logo */}
+      {/* OG Group Logo */}
+      <div className="sidebar-brand">
+        <img src="/og-logo.png" alt="OG Group" className="sidebar-brand-logo" />
+      </div>
+
+      {/* App identity */}
       <div className="sidebar-logo">
-        <div className="sidebar-logo-mark">OG</div>
+        <div className="sidebar-logo-mark">
+          <TrendingUp size={14} strokeWidth={1.4} />
+        </div>
         <span className="sidebar-logo-name">AffiliView</span>
-        <span className="sidebar-logo-badge">Stats</span>
+        <span className="sidebar-logo-badge">Online</span>
       </div>
 
       {/* Navegação */}

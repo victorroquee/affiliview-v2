@@ -25,11 +25,8 @@ interface AffiliateDetailProps {
 }
 
 const AffiliateDetail: React.FC<AffiliateDetailProps> = ({ aff, marginTarget, onBack }) => {
-  const refundColor = aff.refundRate > 10
-    ? "#C92A2A"
-    : aff.refundRate > 5
-    ? "#B45309"
-    : undefined;
+  const refundHigh = aff.refundRate > 10;
+  const refundMid  = aff.refundRate > 5;
 
   return (
     <div className="aff-detail">
@@ -47,12 +44,12 @@ const AffiliateDetail: React.FC<AffiliateDetailProps> = ({ aff, marginTarget, on
         <SummaryCard
           label="Refund + CB"
           value={fmtPct(aff.refundRate)}
-          color={refundColor}
+          color={refundHigh ? "var(--red)" : refundMid ? "var(--amber)" : undefined}
         />
         <SummaryCard
           label="Lucro líquido"
           value={fmtEur(aff.netProfit)}
-          color={aff.netProfit >= 0 ? "#0D5C2E" : "#C92A2A"}
+          color={aff.netProfit >= 0 ? "var(--green-text)" : "var(--red)"}
         />
       </div>
 
@@ -60,21 +57,21 @@ const AffiliateDetail: React.FC<AffiliateDetailProps> = ({ aff, marginTarget, on
         <span
           className="aff-inline-badge"
           style={{
-            background: refundColor ? "#FFF0F0" : "#EDFAF3",
-            color: refundColor ?? "#0D5C2E",
+            background: refundHigh ? "var(--red-bg)" : refundMid ? "var(--amber-bg)" : "var(--green-bg)",
+            color:      refundHigh ? "var(--red)"    : refundMid ? "var(--amber)"    : "var(--green-text)",
           }}
         >
           Reembolso: {fmtPct(aff.refundRate)}
         </span>
         <span
           className="aff-inline-badge"
-          style={{ background: "#EFF6FF", color: "#1D4ED8" }}
+          style={{ background: "var(--blue-bg)", color: "var(--blue)" }}
         >
           Conv. upsell: {fmtPct(aff.upsellConvOverall)}
         </span>
         <span
           className="aff-inline-badge"
-          style={{ background: "#F8F9FB", color: "#4A5165" }}
+          style={{ background: "var(--bg-secondary)", color: "var(--text-2)" }}
         >
           Margem alvo: {marginTarget}%
         </span>

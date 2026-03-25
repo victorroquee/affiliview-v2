@@ -81,7 +81,7 @@ export const BundlePerformanceTable: React.FC<BundlePerformanceTableProps> = ({ 
           {data.map((row) => (
             <tr key={row.bundle}>
               <td style={{ fontWeight: 600 }}>{row.bundle}</td>
-              <td style={{ color: "#9299A8", fontSize: 11 }}>{row.product}</td>
+              <td style={{ color: "var(--text-3)", fontSize: 11 }}>{row.product}</td>
               <td className="num">{formatInt(row.vendas)}</td>
               <td className="num green">{formatEur(row.gross)}</td>
               <td className="num">{formatEur(row.netRevenue)}</td>
@@ -123,9 +123,9 @@ export const AffiliateTable: React.FC<AffiliateTableProps> = ({ data }) => {
         <>
           <div className="aff-table-header-row">
             <span className="aff-table-rank" />
-            <span className="aff-table-name" style={{ fontSize: 10, color: "#9299A8", fontWeight: 600, letterSpacing: ".5px", textTransform: "uppercase" }}>Afiliado</span>
-            <span className="aff-table-gross" style={{ fontSize: 10, color: "#9299A8", fontWeight: 600, letterSpacing: ".5px", textTransform: "uppercase" }}>Gross</span>
-            <span style={{ width: 72, fontSize: 10, color: "#9299A8", fontWeight: 600, letterSpacing: ".5px", textTransform: "uppercase", textAlign: "right" }}>Status</span>
+            <span className="aff-table-name aff-col-label">Afiliado</span>
+            <span className="aff-table-gross aff-col-label">Gross</span>
+            <span className="aff-col-label" style={{ width: 72, textAlign: "right" }}>Status</span>
           </div>
           {data.slice(0, 8).map((a, i) => (
             <div key={a.name} className="aff-table-row">
@@ -144,7 +144,7 @@ export const AffiliateTable: React.FC<AffiliateTableProps> = ({ data }) => {
           </div>
         </>
       ) : (
-        <div style={{ color: "#9299A8", fontSize: 13 }}>—</div>
+        <div style={{ color: "var(--text-3)", fontSize: 13 }}>—</div>
       )}
     </div>
   );

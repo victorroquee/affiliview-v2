@@ -84,7 +84,7 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
                 a.margem > 30 ? "green" : a.margem > 15 ? "" : "orange";
               return (
                 <tr key={a.name}>
-                  <td style={{ color: "var(--text-3)", fontWeight: 500 }}>{i + 1}</td>
+                  <td style={{ color: "var(--text-3)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>{i + 1}</td>
                   <td style={{ fontWeight: 600 }}>{a.name}</td>
                   <td className="num green">{formatEur(a.gross)}</td>
                   <td className="num">{formatEur(a.earnings)}</td>

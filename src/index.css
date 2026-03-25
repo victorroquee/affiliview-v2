@@ -93,6 +93,22 @@ input  { font-family: inherit; }
 }
 
 /* ── Sidebar ────────────────────────────────────────────────────────────── */
+.sidebar-brand {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--sidebar-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-brand-logo {
+  width: 108px;
+  height: auto;
+  object-fit: contain;
+  opacity: 0.85;
+  filter: brightness(0) invert(1);
+}
+
 .sidebar {
   width: var(--sidebar-w);
   flex-shrink: 0;
@@ -105,7 +121,7 @@ input  { font-family: inherit; }
 }
 
 .sidebar-logo {
-  padding: 18px 16px 14px;
+  padding: 10px 16px 12px;
   border-bottom: 1px solid var(--sidebar-border);
   display: flex;
   align-items: center;
@@ -609,6 +625,14 @@ input  { font-family: inherit; }
   margin-bottom: 4px;
 }
 
+.aff-col-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-3);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
 .aff-table-legend {
   display: flex;
   align-items: center;
@@ -675,6 +699,7 @@ input  { font-family: inherit; }
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  overflow-x: auto;
   margin-bottom: 12px;
   box-shadow: var(--shadow-card);
 }
@@ -727,9 +752,9 @@ tbody tr:hover td { background: var(--bg-secondary); }
   font-feature-settings: "tnum";
 }
 
-td.green  { color: var(--green);      font-weight: 600; }
-td.red    { color: var(--red);        font-weight: 600; }
-td.orange { color: var(--amber);      font-weight: 600; }
+td.green,  .num.green  { color: var(--green);  font-weight: 600; }
+td.red,    .num.red    { color: var(--red);    font-weight: 600; }
+td.orange, .num.orange { color: var(--amber);  font-weight: 600; }
 
 /* Status badges (affiliates table) */
 .status-badge {
