@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { BarChart3 } from "lucide-react";
+import { BarChart2 } from "lucide-react";
 import type { TransactionRow } from "../lib/transactions";
 import type { VariantResult } from "../lib/cpa/types";
 import { useCPACalculator } from "../hooks/useCPACalculator";
@@ -56,7 +56,7 @@ const CpaCalculator: React.FC<CpaCalculatorProps> = ({
     >
       {filteredRows.length === 0 && (
         <div className="empty-state">
-          <BarChart3 />
+          <BarChart2 size={36} strokeWidth={1.4} />
           <h3>{loading ? "Buscando transações..." : "Nenhum dado carregado"}</h3>
           <p>
             {loading
@@ -68,7 +68,7 @@ const CpaCalculator: React.FC<CpaCalculatorProps> = ({
 
       {filteredRows.length > 0 && results !== null && results.length === 0 && (
         <div className="empty-state">
-          <BarChart3 />
+          <BarChart2 size={36} strokeWidth={1.4} />
           <h3>Sem afiliados com front orders</h3>
           <p>
             Nenhum produto M1/M2/M3 encontrado no período selecionado.

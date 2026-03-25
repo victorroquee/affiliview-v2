@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
-  DollarSign,
+  CircleDollarSign,
   TrendingUp,
   Wallet,
   ShoppingCart,
@@ -8,7 +8,7 @@ import {
   Zap,
   Award,
   Users,
-  BarChart3,
+  BarChart2,
 } from "lucide-react";
 import KPICard from "../components/KPICard";
 import { GrossEvolutionChart, ProductMixChart, RefundByProductChart } from "../components/Charts";
@@ -62,7 +62,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   if (!metrics) {
     return (
       <div className="empty-state">
-        <BarChart3 />
+        <BarChart2 size={36} strokeWidth={1.4} />
         <h3>Nenhum dado carregado</h3>
         <p>
           {error
@@ -82,7 +82,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         <div className="kpi-group-label">Receita</div>
         <div className="kpi-grid">
           <KPICard
-            icon={DollarSign}
+            icon={CircleDollarSign}
             label="Gross Revenue"
             value={formatEur(metrics.gross)}
             sub="SUM(amount) dos pagamentos — refunds/CB não reduzem o gross"
@@ -140,7 +140,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* ── Evolução & Mix de Receita ── */}
+      {/* ── Evolução & Mix ── */}
       <div className="section-header">
         <h2>Evolução &amp; Mix de Receita</h2>
       </div>

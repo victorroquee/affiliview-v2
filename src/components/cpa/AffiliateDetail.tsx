@@ -25,24 +25,25 @@ interface AffiliateDetailProps {
 }
 
 const AffiliateDetail: React.FC<AffiliateDetailProps> = ({ aff, marginTarget, onBack }) => {
-  const refundColor = aff.refundRate > 10 ? "var(--red)" : aff.refundRate > 5 ? "var(--amber)" : undefined;
+  const refundColor = aff.refundRate > 10
+    ? "#C92A2A"
+    : aff.refundRate > 5
+    ? "#B45309"
+    : undefined;
 
   return (
     <div className="aff-detail">
-      {/* Back */}
       <button className="aff-back-btn" onClick={onBack}>
-        <ArrowLeft size={15} />
+        <ArrowLeft size={15} strokeWidth={1.4} />
         Voltar
       </button>
 
-      {/* Nome */}
       <h2 className="aff-detail-name">{aff.name}</h2>
 
-      {/* Grid de métricas resumidas */}
       <div className="aff-summary-grid">
-        <SummaryCard label="Front orders"   value={fmtInt(aff.frontTotal)} />
+        <SummaryCard label="Front orders"    value={fmtInt(aff.frontTotal)} />
         <SummaryCard label="Earnings totais" value={fmtEur(aff.totalEarn)} />
-        <SummaryCard label="COGs totais"    value={fmtEur(aff.totalCogs)} />
+        <SummaryCard label="COGs totais"     value={fmtEur(aff.totalCogs)} />
         <SummaryCard
           label="Refund + CB"
           value={fmtPct(aff.refundRate)}
@@ -51,31 +52,34 @@ const AffiliateDetail: React.FC<AffiliateDetailProps> = ({ aff, marginTarget, on
         <SummaryCard
           label="Lucro líquido"
           value={fmtEur(aff.netProfit)}
-          color={aff.netProfit >= 0 ? "var(--green)" : "var(--red)"}
+          color={aff.netProfit >= 0 ? "#0D5C2E" : "#C92A2A"}
         />
       </div>
 
-      {/* Badges inline */}
       <div className="aff-badges-row">
         <span
           className="aff-inline-badge"
           style={{
-            background: refundColor ? "var(--red-bg)" : "var(--green-bg)",
-            color: refundColor ?? "var(--green)",
-            border: `1px solid ${refundColor ? "var(--red-bd)" : "var(--green-bd)"}`,
+            background: refundColor ? "#FFF0F0" : "#EDFAF3",
+            color: refundColor ?? "#0D5C2E",
           }}
         >
           Reembolso: {fmtPct(aff.refundRate)}
         </span>
-        <span className="aff-inline-badge" style={{ background: "var(--blue-bg)", color: "var(--blue)", border: "1px solid var(--blue-bd)" }}>
+        <span
+          className="aff-inline-badge"
+          style={{ background: "#EFF6FF", color: "#1D4ED8" }}
+        >
           Conv. upsell: {fmtPct(aff.upsellConvOverall)}
         </span>
-        <span className="aff-inline-badge" style={{ background: "var(--bg-card)", color: "var(--text-2)", border: "1px solid var(--border-2)" }}>
+        <span
+          className="aff-inline-badge"
+          style={{ background: "#F8F9FB", color: "#4A5165" }}
+        >
           Margem alvo: {marginTarget}%
         </span>
       </div>
 
-      {/* CPA máximo por variante */}
       <div className="section-header" style={{ marginTop: 24 }}>
         <h2>CPA máximo por variante</h2>
       </div>

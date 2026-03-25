@@ -6,9 +6,9 @@ import StatusBadge from "./StatusBadge";
 import Delta from "./Delta";
 
 const BORDER_COLOR: Record<VariantResult["cpaStatus"], string> = {
-  increase: "rgba(63,185,80,.30)",
-  ok:       "rgba(88,166,255,.30)",
-  reduce:   "rgba(248,81,73,.30)",
+  increase: "#bbf7d0",
+  ok:       "#bfdbfe",
+  reduce:   "#fecaca",
 };
 
 interface MetricRowProps {
@@ -49,7 +49,7 @@ const VariantCard: React.FC<VariantCardProps> = ({ v }) => {
         <MetricRow label="Conv. upsell"         value={fmtPct(v.upsellConv)} />
       </div>
 
-      {/* LTV Lucro — destaque */}
+      {/* LTV Lucro */}
       <div className="vc-ltv">
         <span className="vc-ltv-label">LTV lucro/pedido</span>
         <span className={`vc-ltv-value ${v.ltvProfit >= 0 ? "green" : "red"}`}>

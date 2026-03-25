@@ -4,6 +4,7 @@ import {
   Area,
   XAxis,
   YAxis,
+  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   PieChart,
@@ -12,13 +13,13 @@ import {
   Legend,
 } from "recharts";
 
-// ─── Colors ────────────────────────────────────────
-const GREEN = "#00E898";
-const COLORS = ["#00E898", "#4A95FF", "#9F60FF", "#F5A520", "#FF3B56"];
+// ─── OG Group Colors ───────────────────────────────
+const GREEN = "#15803D";
+const COLORS = ["#15803D", "#1D4ED8", "#7C3AED", "#B45309", "#C92A2A"];
 const REFUND_COLORS: Record<string, string> = {
-  Slimjara: "#F5A520",
-  "Erectus X": "#FF3B56",
-  Memoguard: "#9F60FF",
+  Slimjara:   "#B45309",
+  "Erectus X": "#C92A2A",
+  Memoguard:  "#7C3AED",
 };
 
 // ─── Custom Tooltip ────────────────────────────────
@@ -38,17 +39,25 @@ const CustomTooltip = ({
     return (
       <div
         style={{
-          background: "#10141F",
-          border: "1px solid rgba(255,255,255,.10)",
+          background: "#091A0F",
           borderRadius: 8,
           padding: "10px 14px",
-          fontSize: 13,
+          fontSize: 12,
+          fontFamily: "'Inter', sans-serif",
         }}
       >
-        <div style={{ color: "#5C7085", fontSize: 11, marginBottom: 4 }}>
+        <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, marginBottom: 4 }}>
           {payload[0].payload.date}
         </div>
-        <div style={{ color: GREEN, fontWeight: 700, fontSize: 16, fontFamily: "'Space Mono', monospace" }}>
+        <div
+          style={{
+            color: "#fff",
+            fontWeight: 600,
+            fontSize: 15,
+            fontVariantNumeric: "tabular-nums",
+            letterSpacing: "-0.4px",
+          }}
+        >
           €{payload[0].value.toLocaleString("de-DE", { minimumFractionDigits: 2 })}
         </div>
       </div>
@@ -72,44 +81,49 @@ export const GrossEvolutionChart: React.FC<{ data: DailyData[]; periodDays?: num
     label: d.date.split("-").slice(1).join("/"),
   }));
 
-  // periodDays = duração real do período; data.length = apenas dias com transações
   const diasLabel = periodDays ?? data.length;
 
   return (
     <div className="chart-card">
       <div className="chart-card-title">Evolução Diária de Gross — {diasLabel} dias</div>
-      <ResponsiveContainer width="100%" height={280}>
+      <ResponsiveContainer width="100%" height={260}>
         <AreaChart data={formatted}>
           <defs>
-            <linearGradient id="grossGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={GREEN} stopOpacity={0.4} />
-              <stop offset="100%" stopColor={GREEN} stopOpacity={0.02} />
+            <linearGradient id="og-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%"  stopColor={GREEN} stopOpacity={0.10} />
+              <stop offset="95%" stopColor={GREEN} stopOpacity={0.01} />
             </linearGradient>
           </defs>
           <XAxis
             dataKey="label"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: "#5C7085", fontSize: 11 }}
+            tick={{ fill: "#9299A8", fontSize: 9, fontFamily: "Inter" }}
             interval="preserveStartEnd"
           />
           <YAxis
             axisLine={false}
             tickLine={false}
-            tick={{ fill: "#5C7085", fontSize: 11 }}
+            tick={{ fill: "#9299A8", fontSize: 9, fontFamily: "Inter" }}
             tickFormatter={(v: number) =>
               v >= 1000 ? `€${(v / 1000).toFixed(0)}k` : `€${v.toFixed(0)}`
             }
-            width={50}
+            width={46}
+          />
+          <CartesianGrid
+            strokeDasharray="4 3"
+            stroke="#E5E8EE"
+            strokeWidth={0.5}
+            vertical={false}
           />
           <Tooltip content={<CustomTooltip />} />
           <Area
             type="monotone"
             dataKey="value"
             stroke={GREEN}
-            strokeWidth={2.5}
-            fill="url(#grossGradient)"
-            animationDuration={1200}
+            strokeWidth={1.5}
+            fill="url(#og-fill)"
+            animationDuration={800}
           />
         </AreaChart>
       </ResponsiveContainer>
@@ -130,17 +144,17 @@ export const ProductMixChart: React.FC<{ data: MixData[] }> = ({ data }) => {
       <div className="chart-card-subtitle">
         Distribuição de receita ({data.map((d) => d.name).join(" / ")})
       </div>
-      <ResponsiveContainer width="100%" height={280}>
+      <ResponsiveContainer width="100%" height={260}>
         <PieChart>
           <Pie
             data={data}
             cx="50%"
             cy="50%"
-            innerRadius={70}
-            outerRadius={100}
+            innerRadius={65}
+            outerRadius={95}
             paddingAngle={3}
             dataKey="value"
-            animationDuration={1000}
+            animationDuration={800}
           >
             {data.map((entry, i) => (
               <Cell key={entry.name} fill={COLORS[i % COLORS.length]} />
@@ -149,7 +163,7 @@ export const ProductMixChart: React.FC<{ data: MixData[] }> = ({ data }) => {
           <Legend
             verticalAlign="bottom"
             formatter={(value: string) => (
-              <span style={{ color: "#5C7085", fontSize: 12 }}>{value}</span>
+              <span style={{ color: "#4A5165", fontSize: 11, fontFamily: "Inter" }}>{value}</span>
             )}
           />
           <Tooltip
@@ -159,10 +173,12 @@ export const ProductMixChart: React.FC<{ data: MixData[] }> = ({ data }) => {
               "Gross",
             ]) as any}
             contentStyle={{
-              background: "#10141F",
-              border: "1px solid rgba(255,255,255,.10)",
+              background: "#091A0F",
+              border: "none",
               borderRadius: 8,
-              fontSize: 13,
+              fontSize: 12,
+              fontFamily: "Inter",
+              color: "#fff",
             }}
           />
         </PieChart>
@@ -201,7 +217,7 @@ export const RefundByProductChart: React.FC<{ data: RefundData[] }> = ({
               className="h-bar-fill"
               style={{
                 width: `${(d.refundPct / maxPct) * 100}%`,
-                background: REFUND_COLORS[d.name] || "#f59e0b",
+                background: REFUND_COLORS[d.name] || "#B45309",
               }}
             />
           </div>
@@ -210,3 +226,4 @@ export const RefundByProductChart: React.FC<{ data: RefundData[] }> = ({
     </div>
   );
 };
+

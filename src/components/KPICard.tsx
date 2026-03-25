@@ -23,10 +23,12 @@ const KPICard: React.FC<KPICardProps> = ({
   return (
     <div className="kpi-card">
       <div className="kpi-card-header">
-        <Icon />
-        {label}
+        <span className="kpi-card-label">{label}</span>
+        <div className="kpi-card-icon">
+          <Icon size={14} strokeWidth={1.4} />
+        </div>
       </div>
-      <div className={`kpi-card-value ${color}`}>{value}</div>
+      <div className={`kpi-card-value${color ? ` ${color}` : ""}`}>{value}</div>
       {sub && <div className="kpi-card-sub">{sub}</div>}
       {trend && (
         <div className={`kpi-trend ${trendDir}`}>

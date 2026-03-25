@@ -29,7 +29,7 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
   if (affiliates.length === 0) {
     return (
       <div className="empty-state">
-        <Users />
+        <Users size={36} strokeWidth={1.4} />
         <h3>Sem dados de afiliados</h3>
         <p>
           {loading

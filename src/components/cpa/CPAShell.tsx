@@ -27,7 +27,6 @@ const CPAShell: React.FC<CPAShellProps> = ({
   displayResults,
   children,
 }) => {
-  // Contagem por status (sobre domVariant)
   const counts = React.useMemo(() => {
     if (!results) return { increase: 0, ok: 0, reduce: 0 };
     return results.reduce(
@@ -45,7 +44,7 @@ const CPAShell: React.FC<CPAShellProps> = ({
       {/* Header */}
       <div className="cpa-shell-header">
         <div className="cpa-shell-title">
-          <Calculator size={22} />
+          <Calculator size={20} strokeWidth={1.4} />
           <div>
             <div className="cpa-shell-label">Gestão de Afiliados</div>
             <h1 className="cpa-shell-h1">Calculadora de CPA</h1>
@@ -53,9 +52,8 @@ const CPAShell: React.FC<CPAShellProps> = ({
         </div>
       </div>
 
-      {/* Barra de controles */}
+      {/* Controles */}
       <div className="cpa-controls">
-        {/* Slider de margem */}
         <div className="cpa-margin-group">
           <label className="cpa-margin-label">
             Margem mínima: <strong>{marginTarget}%</strong>
@@ -75,10 +73,9 @@ const CPAShell: React.FC<CPAShellProps> = ({
           </div>
         </div>
 
-        {/* Busca */}
         {results && (
           <div className="cpa-search-wrap">
-            <Search size={14} className="cpa-search-icon" />
+            <Search size={14} strokeWidth={1.4} className="cpa-search-icon" />
             <input
               type="text"
               className="cpa-search-input"
@@ -89,15 +86,14 @@ const CPAShell: React.FC<CPAShellProps> = ({
           </div>
         )}
 
-        {/* Filtros de status */}
         {results && (
           <div className="cpa-filter-group">
             {(
               [
-                { key: "all",      label: "Todos",         count: results.length },
-                { key: "increase", label: "↑ Aumentar",    count: counts.increase },
-                { key: "ok",       label: "✓ OK",           count: counts.ok },
-                { key: "reduce",   label: "↓ Reduzir",     count: counts.reduce },
+                { key: "all",      label: "Todos",       count: results.length },
+                { key: "increase", label: "↑ Aumentar",  count: counts.increase },
+                { key: "ok",       label: "✓ OK",         count: counts.ok },
+                { key: "reduce",   label: "↓ Reduzir",   count: counts.reduce },
               ] as { key: FilterStatus; label: string; count: number }[]
             ).map(({ key, label, count }) => (
               <button
@@ -112,7 +108,6 @@ const CPAShell: React.FC<CPAShellProps> = ({
         )}
       </div>
 
-      {/* Info de resultados filtrados */}
       {results && (
         <div className="cpa-results-info">
           {displayResults.length} afiliado{displayResults.length !== 1 ? "s" : ""}
@@ -120,7 +115,6 @@ const CPAShell: React.FC<CPAShellProps> = ({
         </div>
       )}
 
-      {/* Conteúdo */}
       {children}
 
       <div className="footer">AFFILIVIEW by OG GROUP · 2026</div>
