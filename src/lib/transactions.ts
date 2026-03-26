@@ -221,7 +221,7 @@ export function computePeriod(
   const affGross = new Map<string, number>();
   for (const t of payTxs) {
     const n = t.affiliate.trim();
-    if (!n) continue;
+    if (!n || n === "(direto)") continue;
     affCpa.set(n,   (affCpa.get(n)   ?? 0) + t.affiliateAmount);
     affGross.set(n, (affGross.get(n) ?? 0) + t.grossAmount);
   }
@@ -250,7 +250,7 @@ export function computePeriod(
 
   // ── Affiliates selling ────────────────────────────────────────────────────
   const affiliatesSelling = Array.from(
-    new Set(payTxs.map((t) => t.affiliate.trim()).filter(Boolean))
+    new Set(payTxs.map((t) => t.affiliate.trim()).filter((n) => Boolean(n) && n !== "(direto)"))
   );
 
   // ── Daily Gross ───────────────────────────────────────────────────────────

@@ -11,7 +11,7 @@ import {
   BarChart2,
 } from "lucide-react";
 import KPICard from "../components/KPICard";
-import { GrossEvolutionChart, ProductMixChart, RefundByProductChart } from "../components/Charts";
+import { GrossEvolutionChart, ProductMixChart, RefundByProductChart, PRODUCT_COLORS } from "../components/Charts";
 import { ProductSummaryTable, BundlePerformanceTable, AffiliateTable } from "../components/ProductTable";
 import {
   type TransactionRow,
@@ -169,6 +169,20 @@ const Dashboard: React.FC<DashboardProps> = ({
             className={`product-tab ${productFilter === p ? "active" : ""}`}
             onClick={() => setProductFilter(p)}
           >
+            {PRODUCT_COLORS[p] && (
+              <span
+                style={{
+                  display: "inline-block",
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: PRODUCT_COLORS[p],
+                  marginRight: 6,
+                  flexShrink: 0,
+                  verticalAlign: "middle",
+                }}
+              />
+            )}
             {p}
           </button>
         ))}

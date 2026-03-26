@@ -16,6 +16,13 @@ import {
 // ─── OG Group Colors ───────────────────────────────
 const GREEN   = "#15803D";
 const COLORS  = ["#15803D", "#1D4ED8", "#7C3AED", "#B45309", "#C92A2A"];
+
+export const PRODUCT_COLORS: Record<string, string> = {
+  "Erectus X": "#C92A2A",
+  "Slimjara":  "#B45309",
+  "Memoguard": "#7C3AED",
+};
+
 const REFUND_COLORS: Record<string, string> = {
   Slimjara:    "#B45309",
   "Erectus X": "#C92A2A",
@@ -166,7 +173,7 @@ export const ProductMixChart: React.FC<{ data: MixData[] }> = ({ data }) => {
             animationDuration={800}
           >
             {data.map((entry, i) => (
-              <Cell key={entry.name} fill={COLORS[i % COLORS.length]} />
+              <Cell key={entry.name} fill={PRODUCT_COLORS[entry.name] ?? COLORS[i % COLORS.length]} />
             ))}
           </Pie>
           <Legend
