@@ -8,6 +8,7 @@ import {
   formatInt,
 } from "../lib/transactions";
 import { Users } from "lucide-react";
+import InfoTooltip from "../components/InfoTooltip";
 
 interface AffiliatesPageProps {
   filteredRows: TransactionRow[];
@@ -46,17 +47,6 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
         <h2>Resultados por Afiliado</h2>
       </div>
 
-      {/* Legenda das métricas */}
-      <div className="metrics-legend">
-        <span><strong>Gross</strong> — SUM(amount) dos pagamentos do afiliado (upsell_no=0 e ≥1)</span>
-        <span><strong>Earnings</strong> — SUM(earned_amount) incluindo estornos negativos de refunds/CB</span>
-        <span><strong>Valor Líquido</strong> — Earnings − COGS (produto + frete por transação)</span>
-        <span><strong>Ticket Médio</strong> — Gross frontal (upsell_no=0) ÷ nº de vendas front</span>
-        <span><strong>CPA Médio</strong> — SUM(affiliate_amount) ÷ vendas front (ou gross−earnings se indisponível)</span>
-        <span><strong>Margem %</strong> — Valor Líquido ÷ Gross</span>
-        <span><strong>Refund+CB %</strong> — (refundAmt + cbAmt) ÷ grossBruto (value-based por afiliado)</span>
-      </div>
-
       <div className="table-container">
         <div className="table-header">
           <h3>Ranking de Afiliados</h3>
@@ -67,15 +57,15 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
             <tr>
               <th>#</th>
               <th>Afiliado</th>
-              <th style={{ textAlign: "right" }}>Gross</th>
-              <th style={{ textAlign: "right" }}>Earnings</th>
-              <th style={{ textAlign: "right" }}>Valor Líquido</th>
-              <th style={{ textAlign: "right" }}>Vendas</th>
-              <th style={{ textAlign: "right" }}>Ticket Médio</th>
-              <th style={{ textAlign: "right" }}>CPA Médio</th>
-              <th style={{ textAlign: "right" }}>Margem %</th>
-              <th style={{ textAlign: "right" }}>Refund+CB %</th>
-              <th>Status</th>
+              <th style={{ textAlign: "right" }}>Gross <InfoTooltip text="Soma de amount de todos os pagamentos atribuídos ao afiliado (front + upsell). Não deduz reembolsos nem chargebacks — representa a receita bruta gerada pelo afiliado." /></th>
+              <th style={{ textAlign: "right" }}>Earnings <InfoTooltip text="Soma de earned_amount incluindo estornos negativos de reembolsos e chargebacks. Representa o valor líquido de comissões e receita após devoluções." /></th>
+              <th style={{ textAlign: "right" }}>Valor Líquido <InfoTooltip text="Earnings do afiliado menos o COGS (custo do produto + frete) por transação. Representa o lucro operacional direto após custos variáveis." /></th>
+              <th style={{ textAlign: "right" }}>Vendas <InfoTooltip text="Contagem de pagamentos frontais (upsell_no=0) atribuídos ao afiliado no período. Upsells e bump orders não são contados." /></th>
+              <th style={{ textAlign: "right" }}>Ticket Médio <InfoTooltip text="Gross frontal ÷ nº de vendas front do afiliado. Indica o valor médio por pedido inicial gerado por este afiliado." /></th>
+              <th style={{ textAlign: "right" }}>CPA Médio <InfoTooltip text="SUM(affiliate_amount) ÷ vendas front. Se affiliate_amount indisponível, usa gross−earnings como proxy do custo de aquisição." /></th>
+              <th style={{ textAlign: "right" }}>Margem % <InfoTooltip text="Valor Líquido ÷ Gross × 100. Verde >30%, laranja 15–30%, vermelho ≤15%. Indica a eficiência do afiliado em gerar lucro líquido." /></th>
+              <th style={{ textAlign: "right" }}>Refund+CB % <InfoTooltip text="Value-based por afiliado: (valor reembolsos + valor chargebacks) ÷ gross bruto. Diferente da métrica count-based exibida no dashboard geral." /></th>
+              <th>Status <InfoTooltip text="Scale: afiliado acima da meta — candidato a aumento de CPA. Watch: desempenho instável — monitorar. Probation: abaixo do mínimo — risco de desativação." /></th>
             </tr>
           </thead>
           <tbody>

@@ -85,33 +85,33 @@ const Dashboard: React.FC<DashboardProps> = ({
             icon={CircleDollarSign}
             label="Gross Revenue"
             value={formatEur(metrics.gross)}
-            sub="SUM(amount) dos pagamentos — refunds/CB não reduzem o gross"
+            info="Soma de amount de todos os pagamentos aprovados no período. Não é reduzido por reembolsos nem chargebacks — representa a receita bruta total gerada."
             color="green"
           />
           <KPICard
             icon={TrendingUp}
             label="Earnings"
             value={formatEur(metrics.earnings)}
-            sub="SUM(earned_amount) — inclui refunds/CB negativos"
+            info="Soma de earned_amount de todas as transações, incluindo estornos negativos de reembolsos e chargebacks. Representa a receita líquida da plataforma após devoluções."
           />
           <KPICard
             icon={Wallet}
             label="Valor Líquido"
             value={formatEur(metrics.valorLiq)}
-            sub="Earnings − custo de produtos e frete (COGS)"
+            info="Earnings menos o custo de produtos (COGS): preço do produto + frete por transação. Representa o lucro operacional direto após custos variáveis."
             color="green"
           />
           <KPICard
             icon={ShoppingCart}
             label="Ticket Médio (AOV)"
             value={formatEur(metrics.aov)}
-            sub="Gross frontal (upsell_no=0) ÷ nº de vendas front"
+            info="Gross das vendas frontais (upsell_no=0) dividido pelo número de pedidos front. Mede o valor médio por pedido inicial, excluindo upsells e bump orders."
           />
           <KPICard
             icon={RotateCcw}
             label="Reembolso + Chargeback"
             value={formatPct(metrics.refundCbPct)}
-            sub={`Count-based: Reembolso ${formatPct(metrics.refundPct)} · Chargeback ${formatPct(metrics.chargebackPct)}`}
+            info={`Taxa count-based: (qtd. reembolsos + qtd. chargebacks) ÷ qtd. vendas front. Alerta: laranja >5%, vermelho >10%. Reembolso: ${formatPct(metrics.refundPct)} · Chargeback: ${formatPct(metrics.chargebackPct)}`}
             color={metrics.refundCbPct > 10 ? "red" : metrics.refundCbPct > 5 ? "orange" : ""}
           />
         </div>
@@ -121,10 +121,10 @@ const Dashboard: React.FC<DashboardProps> = ({
       <div className="kpi-group">
         <div className="kpi-group-label">Atividade</div>
         <div className="kpi-grid-4">
-          <KPICard icon={ShoppingCart} label="Vendas Totais"     value={formatInt(metrics.sales)}                     sub="Pagamentos com upsell_no=0 no período" />
-          <KPICard icon={Zap}          label="Ativados ≥ €2K"    value={formatInt(metrics.activated)}                 sub="Afiliados com affiliate_amount ≥ €2.000" />
-          <KPICard icon={Award}        label="Novos Qualificados" value={formatInt(metrics.novosQualificados)}          sub="Afiliados com gross médio ≥ €1.000/dia" />
-          <KPICard icon={Users}        label="Afiliados Ativos"  value={formatInt(metrics.affiliatesSelling.length)}  sub="Com ao menos 1 venda no período" />
+          <KPICard icon={ShoppingCart} label="Vendas Totais"     value={formatInt(metrics.sales)}                     info="Contagem de pagamentos aprovados com upsell_no=0 (pedidos principais/frontais). Upsells e bump orders não são contados aqui." />
+          <KPICard icon={Zap}          label="Ativados ≥ €2K"    value={formatInt(metrics.activated)}                 info="Afiliados cujo affiliate_amount acumulado no período é ≥ €2.000. Indica afiliados operando em escala ativa com alto volume de comissões." />
+          <KPICard icon={Award}        label="Novos Qualificados" value={formatInt(metrics.novosQualificados)}          info="Afiliados com média diária de gross ≥ €1.000/dia no período. São candidatos a promoção de CPA ou condições especiais de parceria." />
+          <KPICard icon={Users}        label="Afiliados Ativos"  value={formatInt(metrics.affiliatesSelling.length)}  info="Número de afiliados distintos com ao menos um pagamento registrado no período selecionado. Inclui todos os produtos e tipos de venda." />
         </div>
       </div>
 

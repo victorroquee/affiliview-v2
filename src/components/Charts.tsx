@@ -18,14 +18,14 @@ const GREEN   = "#15803D";
 const COLORS  = ["#15803D", "#1D4ED8", "#7C3AED", "#B45309", "#C92A2A"];
 
 export const PRODUCT_COLORS: Record<string, string> = {
-  "Erectus X": "#C92A2A",
-  "Slimjara":  "#B45309",
+  "Erectus X": "#1D4ED8",
+  "Slimjara":  "#15803D",
   "Memoguard": "#7C3AED",
 };
 
 const REFUND_COLORS: Record<string, string> = {
-  Slimjara:    "#B45309",
-  "Erectus X": "#C92A2A",
+  Slimjara:    "#15803D",
+  "Erectus X": "#1D4ED8",
   Memoguard:   "#7C3AED",
 };
 

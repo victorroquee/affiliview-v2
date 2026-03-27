@@ -2,6 +2,7 @@ import React from "react";
 import type { AffiliateResult } from "../../lib/cpa/types";
 import { formatEur as fmtEur, formatPct as fmtPct, formatInt as fmtInt } from "../../lib/transactions";
 import StatusBadge from "./StatusBadge";
+import InfoTooltip from "../InfoTooltip";
 
 interface CPATableProps {
   results:  AffiliateResult[];
@@ -23,15 +24,15 @@ const CPATable: React.FC<CPATableProps> = ({ results, onSelect }) => {
         <thead>
           <tr>
             <th>Afiliado</th>
-            <th style={{ textAlign: "right" }}>Fronts</th>
-            <th style={{ textAlign: "right" }}>Lucro líquido</th>
-            <th style={{ textAlign: "right" }}>Reembolso</th>
-            <th style={{ textAlign: "right" }}>Upsell conv.</th>
-            <th style={{ textAlign: "right" }}>Kit dom.</th>
-            <th style={{ textAlign: "right" }}>CPA atual</th>
-            <th style={{ textAlign: "right" }}>CPA máx.</th>
-            <th style={{ textAlign: "right" }}>Espaço</th>
-            <th style={{ textAlign: "center" }}>Status</th>
+            <th style={{ textAlign: "right" }}>Fronts <InfoTooltip text="Total de pedidos frontais (upsell_no=0) atribuídos ao afiliado no período selecionado." /></th>
+            <th style={{ textAlign: "right" }}>Lucro líquido <InfoTooltip text="Earnings totais − COGs totais do afiliado. Verde = lucrativo, vermelho = operação deficitária no período." /></th>
+            <th style={{ textAlign: "right" }}>Reembolso <InfoTooltip text="Taxa count-based de reembolsos + chargebacks do afiliado. Laranja >5%, vermelho >10%. Afeta o CPA máximo sustentável." /></th>
+            <th style={{ textAlign: "right" }}>Upsell conv. <InfoTooltip text="% de pedidos front que geraram ao menos um upsell associado. Indicador de qualidade e intenção de compra do tráfego." /></th>
+            <th style={{ textAlign: "right" }}>Kit dom. <InfoTooltip text="Variante (quantidade de potes) mais vendida por este afiliado — usada como referência principal para o cálculo de CPA." /></th>
+            <th style={{ textAlign: "right" }}>CPA atual <InfoTooltip text="Valor de comissão por pedido front atualmente configurado para o afiliado na variante dominante." /></th>
+            <th style={{ textAlign: "right" }}>CPA máx. <InfoTooltip text="CPA máximo sustentável calculado: LTV lucro/pedido × (1 − margem alvo%). Verde = pode aumentar, vermelho = deve reduzir." /></th>
+            <th style={{ textAlign: "right" }}>Espaço <InfoTooltip text="CPA máx. − CPA atual. Positivo = margem disponível para aumentar comissão. Negativo = CPA acima do sustentável." /></th>
+            <th style={{ textAlign: "center" }}>Status <InfoTooltip text="Increase: CPA pode subir sem risco. OK: CPA adequado à margem alvo. Reduce: CPA está acima do máximo sustentável." /></th>
             <th />
           </tr>
         </thead>
