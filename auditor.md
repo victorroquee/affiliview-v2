@@ -140,6 +140,40 @@
 
 ---
 
+---
+
+## Ciclo 5 — 2026-03-27 (pós-refactor Maileonardo + CPA Fixo redesign)
+
+### 🟡 P3 — Qualidade de código
+
+| # | Arquivo | Linha | Problema | Status |
+|---|---------|-------|---------|--------|
+| C5-01 | Dashboard, Affiliates, useCPACalculator, CpaFixo, MailSales | - | **`isMaileonardo()` definida inline em 5 arquivos**: função idêntica de 1 linha. Candidata a export de `lib/transactions.ts`, mas a troca locality vs DRY não justifica o churn neste momento. | 🟡 doc only |
+| C5-02 | `lib/transactions.ts:142` + `pages/MailSales.tsx` | 142 / 28 | **`getProductBase()` duplicada**: função privada em transactions.ts recopiada manualmente em MailSales.tsx. Fix: exportar de transactions.ts e importar onde necessário. | ✅ |
+| C5-03 | `components/Charts.tsx` | 85 | **`formatted` mapping sem `useMemo`** (C3-04 reconfirmado): `GrossEvolutionChart` refaz `.map()` em cada render do pai. Persiste aberto. | 🟡 open |
+| C5-04 | `pages/CpaFixo.tsx` | 589 | **`Math.min(...)` recomputado por linha** na tabela de sensibilidade: recalcula o mínimo do array (n=6) em cada iteração `.map()`. Impacto zero, mas padrão inconsistente. | 🟡 doc only |
+
+### 🟢 P5 — TypeScript / Segurança de tipos
+
+| # | Arquivo | Linha | Problema | Status |
+|---|---------|-------|---------|--------|
+| C5-05 | `lib/transactions.ts` | 257 | **`split("T")[0]` sem `!`**: retorna `string \| undefined`, inconsistente com `MailSales.tsx:83` que usa `!`. Corrigido adicionando asserção não-nula. | ✅ |
+
+### Confirmados resolvidos em ciclos anteriores (revalidados neste ciclo)
+
+| Item | Fix |
+|------|-----|
+| C2-01 | `finally` guard em useDigistoreAPI ✅ |
+| C2-02 | Guard `buyers.size > 0` em analyzeCPA ✅ |
+| C2-07 | `useFilters` O(n) reduce ✅ |
+| C2-08 | `key={entry.name}` no PieChart ✅ |
+| C4-01 | `Math.max` spread via loop `for...of` ✅ |
+| C4-02 | Error body parsing `body.message ?? body.error` ✅ |
+| C4-03 | `BundleRow.netRevenue` usa `t.netAmount` ✅ |
+| C4-04 | `ProductSummaryRow.totalSales` conta upsells separadamente ✅ |
+
+---
+
 ## Pendências conhecidas (não corrigidas intencionalmente)
 
 | Item | Motivo |

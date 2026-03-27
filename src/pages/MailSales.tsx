@@ -14,6 +14,7 @@ import {
   isPayment,
   isRefund,
   isChargeback,
+  getProductBase,
   formatEur,
   formatPct,
   formatInt,
@@ -22,15 +23,6 @@ import {
 // ─── Maileonardo identifier ───────────────────────────────────────────────────
 function isMaileonardo(affiliate: string): boolean {
   return affiliate.toLowerCase().includes("maileonardo");
-}
-
-// ─── Product base name ────────────────────────────────────────────────────────
-function getProductBase(productName: string): string | null {
-  const n = productName.toLowerCase().trim();
-  if (n.includes("erectus")) return "Erectus X";
-  if (n.includes("slimjara")) return "Slimjara";
-  if (n.includes("memoguard")) return "Memoguard";
-  return null;
 }
 
 // ─── Metrics ──────────────────────────────────────────────────────────────────

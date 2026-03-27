@@ -139,7 +139,7 @@ export function statusFromPct(pct: number): "Scale" | "Watch" | "Probation" {
 // Retorna o nome base do produto principal (Slimjara, Erectus X, Memoguard).
 // Retorna null para upsells, downsells ou produtos não reconhecidos —
 // esses são excluídos do Mix, Reembolso, Product Summary e Bundle.
-function getProductBase(productName: string): string | null {
+export function getProductBase(productName: string): string | null {
   const n = productName.toLowerCase().trim();
   if (n.includes("erectus")) return "Erectus X";
   if (n.includes("slimjara")) return "Slimjara";
@@ -254,7 +254,7 @@ export function computePeriod(
   // Only payment rows — gross is not affected by refund/CB per logica2.md
   const dailyMap = new Map<string, number>();
   for (const t of payTxs) {
-    const dateKey = t.date.toISOString().split("T")[0];
+    const dateKey = t.date.toISOString().split("T")[0]!;
     dailyMap.set(dateKey, (dailyMap.get(dateKey) ?? 0) + t.grossAmount);
   }
   const dailyGross = Array.from(dailyMap.entries())
