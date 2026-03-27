@@ -9,13 +9,19 @@ interface UseCPACalculatorReturn {
   setMarginTarget: (v: number) => void;
 }
 
+function isMaileonardo(affiliate: string): boolean {
+  return affiliate.toLowerCase().includes("maileonardo");
+}
+
 export function useCPACalculator(rows: TransactionRow[]): UseCPACalculatorReturn {
   const [marginTarget, setMarginTarget] = useState(30);
 
   // rawResults: computed once quando rows mudam (marginTarget=0 preserva ltvProfit estável)
+  // Maileonardo é excluído — ele é recuperador de carrinho e tem sua própria página
   const rawResults = useMemo<AffiliateResult[] | null>(() => {
     if (rows.length === 0) return null;
-    return analyzeCPA(rows, 0);
+    const filteredRows = rows.filter((r) => !isMaileonardo(r.affiliate));
+    return analyzeCPA(filteredRows, 0);
   }, [rows]);
 
   // results: reaplica maxCpa/cpaStatus quando marginTarget muda — sem re-parsear

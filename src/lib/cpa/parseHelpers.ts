@@ -2,14 +2,18 @@ import { COUNTRY_ZONE, COGS, Z6_FRONT_DISCOUNT, Z6_FRONT_COUNTRIES } from "./con
 
 /**
  * Extrai número de potes do nome do produto.
- * Ordem do maior para o menor para evitar falso match de "1" dentro de "12".
+ * 1º: regex com keyword (e.g. "6 Bottles", "3 Garrafas") — evita falso match de M3 como "3 potes".
+ * 2º: fallback numérico em ordem decrescente para evitar "1" dentro de "12".
+ * Default: 1 (alinhado com costTable.ts detectBottles).
  */
-export function getBottles(name: string): number | null {
+export function getBottles(name: string): number {
   const n = name.toLowerCase();
+  const m = n.match(/(\d+)\s*(bottle|garrafa|frasco|b\b|pack|un|capsule|flasche)/i);
+  if (m) return parseInt(m[1], 10);
   for (const b of [12, 9, 6, 3, 2, 1]) {
     if (n.includes(String(b))) return b;
   }
-  return null;
+  return 1;
 }
 
 /**
@@ -39,8 +43,7 @@ export function isUpsell(name: string): boolean {
  * isFrontSale: se true e o país for Z6 com desconto (LU/CH), aplica desconto de €20.
  * Fallback: se a combinação exata não existir, tenta z1.
  */
-export function getCogs(bottles: number | null, country: string, isFrontSale = false): number {
-  if (bottles === null) return 0;
+export function getCogs(bottles: number, country: string, isFrontSale = false): number {
   const zone = COUNTRY_ZONE[country.toUpperCase()] ?? "z1";
   const base = COGS[`${bottles}-${zone}`] ?? COGS[`${bottles}-z1`] ?? 0;
   if (isFrontSale && zone === "z6" && Z6_FRONT_COUNTRIES.has(country.toUpperCase())) {

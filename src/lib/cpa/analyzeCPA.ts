@@ -2,6 +2,7 @@ import type { TransactionRow } from "../transactions";
 import type { AffiliateAccumulator, AffiliateResult, VariantResult } from "./types";
 import { CPA_DEFAULTS, OP_AVG, VARIANT_BOTTLES } from "./constants";
 import { getBottles, getFrontVariant, getCogs } from "./parseHelpers";
+import { isPayment } from "../transactions";
 
 function makeAcc(name: string): AffiliateAccumulator {
   return {
@@ -34,7 +35,8 @@ export function analyzeCPA(
   rows: TransactionRow[],
   marginTarget: number
 ): AffiliateResult[] {
-  const payments   = rows.filter(r => r.transactionType === "payment");
+  // Use isPayment() para alinhar com a lógica do dashboard (captura "sale", "upsell", "" e grossAmount > 0)
+  const payments   = rows.filter(isPayment);
   const refunds    = rows.filter(r =>
     r.transactionType === "refund" ||
     r.transactionType === "return"  ||
@@ -91,17 +93,16 @@ export function analyzeCPA(
 
   for (const r of refunds) {
     const acc = getAcc(r.affiliate);
-    acc.refundEarn += r.earnings;     // negative — reduces earnings
+    acc.refundEarn += r.earnings;     // negative — reduces earnings (profit calc)
     acc.refundOrders++;
-    // Use |earnings| for amount since grossAmount = 0 for refunds in API data
-    acc.refundAmt += Math.abs(r.earnings);
+    acc.refundAmt += r.grossAmount;   // gross revertido (para taxa de reembolso)
   }
 
   for (const r of cbs) {
     const acc = getAcc(r.affiliate);
     acc.cbEarn += r.earnings;         // negative
     acc.cbOrders++;
-    acc.cbAmt += Math.abs(r.earnings);
+    acc.cbAmt += r.grossAmount;       // gross revertido (para taxa de CB)
   }
 
   // ── 3. Calcular resultados por afiliado ──────────────────────────────────

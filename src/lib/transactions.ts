@@ -162,12 +162,23 @@ export function computePeriod(
   const payTxs   = filtered.filter(isPayment);
   const refCbTxs = filtered.filter((t) => isRefund(t) || isChargeback(t));
 
+  // ── Refund & Chargeback (calculados primeiro para uso no Gross líquido) ────
+  // Amounts: SUM(grossAmount) de refunds/CB — a API retorna o valor bruto revertido
+  const refundRows = refCbTxs.filter(isRefund);
+  const cbRows     = refCbTxs.filter(isChargeback);
+
+  const refundAmt = refundRows.reduce((s, t) => s + t.grossAmount, 0);
+  const cbAmt     = cbRows.reduce((s, t)     => s + t.grossAmount, 0);
+
   // ── Gross ──────────────────────────────────────────────────────────────────
-  // grossRevenue = SUM(amount WHERE transaction_type === "payment")
-  // Refunds/CB are NOT subtracted from gross — their impact is captured in earnings.
-  // (API returns `amount` as positive for refunds; normalizer sets grossAmount=0 for non-payments)
+  // grossBruto = soma dos pagamentos aprovados (denominador interno para taxas)
+  // gross = grossBruto − reembolsos − chargebacks, alinhado com o "Gross" da Digistore
   const grossBruto = payTxs.reduce((s, t) => s + t.grossAmount, 0);
-  const gross = grossBruto;  // gross === grossBruto per logica2.md
+  const gross = grossBruto - refundAmt - cbAmt;
+
+  // Rates: value-based (gross do reembolso/CB ÷ grossBruto × 100)
+  const rPct = grossBruto > 0 ? (refundAmt / grossBruto) * 100 : 0;
+  const cPct = grossBruto > 0 ? (cbAmt     / grossBruto) * 100 : 0;
 
   // ── Earnings ───────────────────────────────────────────────────────────────
   // SUM(earned_amount) for ALL transaction types.
@@ -199,20 +210,6 @@ export function computePeriod(
     cogsTotal         += b.total;
   }
   const valorLiq = earningsTotal - cogsTotal;
-
-  // ── Refund & Chargeback ────────────────────────────────────────────────────
-  // Rates: count-based per logica2.md (COUNT refunds / COUNT payments)
-  // Amounts: ABS(SUM(earned_amount)) for display purposes
-  const refundRows = refCbTxs.filter(isRefund);
-  const cbRows     = refCbTxs.filter(isChargeback);
-  const payCount   = payTxs.length;
-
-  const rPct = payCount > 0 ? (refundRows.length / payCount) * 100 : 0;
-  const cPct = payCount > 0 ? (cbRows.length   / payCount) * 100 : 0;
-
-  // Use |earnings| for amount display (earned_amount is negative for refunds/CB)
-  const refundAmt = refundRows.reduce((s, t) => s + Math.abs(t.earnings), 0);
-  const cbAmt     = cbRows.reduce((s, t)     => s + Math.abs(t.earnings), 0);
 
   // ── Activated 2K ──────────────────────────────────────────────────────────
   // Affiliates whose total affiliate_amount (CPA received) >= €2000 in the period.
@@ -292,7 +289,7 @@ export function computePeriod(
     const base = getProductBase(t.productName);
     if (!base) continue;
     const e = refByProd.get(base) ?? { refAmt: 0, grossB: 0 };
-    e.refAmt += Math.abs(t.earnings);
+    e.refAmt += t.grossAmount;  // gross do reembolso/CB (não earned_amount)
     refByProd.set(base, e);
   }
   const refundByProduct = Array.from(refByProd.entries())
@@ -348,15 +345,15 @@ export function computePeriod(
       gross: 0, grossBruto: 0, net: 0, earnings: 0, frontSales: 0, totalSales: 0, refAmt: 0, cbAmt: 0,
     };
     e.earnings += t.earnings;
-    if (isRefund(t))     e.refAmt += Math.abs(t.earnings);
-    if (isChargeback(t)) e.cbAmt  += Math.abs(t.earnings);
+    if (isRefund(t))     e.refAmt += t.grossAmount;  // gross revertido (não earned_amount)
+    if (isChargeback(t)) e.cbAmt  += t.grossAmount;
     prodSumMap.set(base, e);
   }
   const productSummary: ProductSummaryRow[] = Array.from(prodSumMap.entries())
     .map(([product, d]) => ({
       product,
       grossRevenue: d.gross,
-      netRevenue:   d.net,
+      netRevenue:   d.gross - d.refAmt - d.cbAmt,  // gross − valor de reembolsos e CB (o que foi efetivamente retido)
       earnings:     d.earnings,
       aov:          d.frontSales > 0 ? d.grossBruto / d.frontSales : 0,
       frontSales:   d.frontSales,
@@ -373,7 +370,8 @@ export function computePeriod(
       product: string;
       vendas: number;
       gross: number;
-      netRevenue: number;
+      refundAmt: number;   // ABS(SUM earnings) de reembolsos — para netRevenue e valorLiq
+      cbAmt: number;       // ABS(SUM earnings) de chargebacks — para netRevenue e valorLiq
       valorLiq: number;
       reembolsos: number;
       chargebacks: number;
@@ -384,12 +382,11 @@ export function computePeriod(
     const base = getProductBase(name);
     if (!base) continue; // ignora UPS, DW e produtos não reconhecidos
     const e = bundleMap.get(name) ?? {
-      product: base, vendas: 0, gross: 0, netRevenue: 0, valorLiq: 0, reembolsos: 0, chargebacks: 0,
+      product: base, vendas: 0, gross: 0, refundAmt: 0, cbAmt: 0, valorLiq: 0, reembolsos: 0, chargebacks: 0,
     };
-    e.vendas     += 1;
-    e.gross      += t.grossAmount;
-    e.netRevenue += t.netAmount;  // gross − VAT (não earnings, que inclui deduções Digistore)
-    e.valorLiq   += t.earnings - getFulfillmentCost(t.productName, t.country, true);
+    e.vendas   += 1;
+    e.gross    += t.grossAmount;
+    e.valorLiq += t.earnings - getFulfillmentCost(t.productName, t.country, true);
     bundleMap.set(name, e);
   }
   for (const t of frontRefCbTxs) {
@@ -397,10 +394,17 @@ export function computePeriod(
     const base = getProductBase(name);
     if (!base) continue;
     const e = bundleMap.get(name) ?? {
-      product: base, vendas: 0, gross: 0, netRevenue: 0, valorLiq: 0, reembolsos: 0, chargebacks: 0,
+      product: base, vendas: 0, gross: 0, refundAmt: 0, cbAmt: 0, valorLiq: 0, reembolsos: 0, chargebacks: 0,
     };
-    if (isRefund(t))     e.reembolsos  += 1;
-    if (isChargeback(t)) e.chargebacks += 1;
+    e.valorLiq += t.earnings;  // earnings negativo — reduz o lucro do bundle (fulfillment é sunk cost)
+    if (isRefund(t)) {
+      e.reembolsos += 1;
+      e.refundAmt  += t.grossAmount;  // gross revertido para netRevenue
+    }
+    if (isChargeback(t)) {
+      e.chargebacks += 1;
+      e.cbAmt       += t.grossAmount;
+    }
     bundleMap.set(name, e);
   }
   const bundlePerformance: BundleRow[] = Array.from(bundleMap.entries())
@@ -409,7 +413,7 @@ export function computePeriod(
       product:     d.product,
       vendas:      d.vendas,
       gross:       d.gross,
-      netRevenue:  d.netRevenue,
+      netRevenue:  d.gross - d.refundAmt - d.cbAmt,  // gross − valor de reembolsos e CB retidos
       valorLiq:    d.valorLiq,
       reembolsos:  d.reembolsos,
       chargebacks: d.chargebacks,
@@ -447,11 +451,12 @@ export function computePeriod(
     };
     e.earnings += t.earnings;  // negative — reduces earnings
     e.liq      += t.earnings;  // refund: only earnings returned (fulfillment is sunk cost)
-    if (isRefund(t))     e.refundAmt += Math.abs(t.earnings);
-    if (isChargeback(t)) e.cbAmt     += Math.abs(t.earnings);
+    if (isRefund(t))     e.refundAmt += t.grossAmount;  // gross revertido para taxa de reembolso
+    if (isChargeback(t)) e.cbAmt     += t.grossAmount;
     affMap.set(n, e);
   }
   const topAffiliates: AffiliateRow[] = Array.from(affMap.entries())
+    .filter(([, d]) => d.grossBruto > 0)  // exclui afiliados criados apenas por reembolsos sem pagamentos
     .map(([name, d]) => {
       const rcPct = d.grossBruto > 0
         ? ((d.refundAmt + d.cbAmt) / d.grossBruto) * 100

@@ -24,8 +24,8 @@ export const ProductSummaryTable: React.FC<ProductSummaryTableProps> = ({ data }
             <th style={{ textAlign: "right" }}>Ticket Médio <InfoTooltip text="Gross frontal ÷ nº de vendas front. Valor médio por pedido inicial neste produto, excluindo upsells." /></th>
             <th style={{ textAlign: "right" }}>Vendas Front <InfoTooltip text="Contagem de pagamentos aprovados com upsell_no=0 atribuídos a este produto no período." /></th>
             <th style={{ textAlign: "right" }}>Total Vendas <InfoTooltip text="Vendas frontais + upsells atribuídos a este produto. Inclui todos os tipos de transação do produto." /></th>
-            <th style={{ textAlign: "right" }}>Reembolso % <InfoTooltip text="Count-based: qtd. reembolsos ÷ vendas front. Laranja >5%, vermelho >10%. Impacta diretamente o Net Revenue." /></th>
-            <th style={{ textAlign: "right" }}>Chargeback % <InfoTooltip text="Count-based: qtd. chargebacks ÷ vendas front. Laranja >1%, vermelho >2%. Chargebacks têm custo adicional de disputa." /></th>
+            <th style={{ textAlign: "right" }}>Reembolso % <InfoTooltip text="Value-based: valor dos reembolsos ÷ gross revenue front. Laranja >5%, vermelho >10%. Impacta diretamente o Net Revenue." /></th>
+            <th style={{ textAlign: "right" }}>Chargeback % <InfoTooltip text="Value-based: valor dos chargebacks ÷ gross revenue front. Laranja >1%, vermelho >2%. Chargebacks têm custo adicional de disputa." /></th>
           </tr>
         </thead>
         <tbody>

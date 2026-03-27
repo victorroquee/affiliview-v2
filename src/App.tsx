@@ -3,6 +3,8 @@ import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import AffiliatesPage from "./pages/Affiliates";
 import CpaCalculator from "./pages/CpaCalculator";
+import CpaFixo from "./pages/CpaFixo";
+import MailSalesPage from "./pages/MailSales";
 import PeriodBar from "./components/PeriodBar";
 import ConnectionStatus from "./components/ConnectionStatus";
 import { useDigistoreAPI } from "./hooks/useDigistoreAPI";
@@ -11,7 +13,7 @@ import { periodToApiParams } from "./utils/digiNormalizer";
 import type { PeriodFilter } from "./hooks/useFilters";
 import { INITIAL_PERIOD } from "./hooks/useFilters";
 
-type Page = "dashboard" | "affiliates" | "calculator";
+type Page = "dashboard" | "affiliates" | "calculator" | "cpa-fixo" | "mail";
 
 const App: React.FC = () => {
   const [page, setPage] = useState<Page>("dashboard");
@@ -86,6 +88,16 @@ const App: React.FC = () => {
             <AffiliatesPage
               filteredRows={filteredRows}
               periodDays={periodDays}
+              loading={loading}
+            />
+          ) : page === "cpa-fixo" ? (
+            <CpaFixo
+              filteredRows={filteredRows}
+              loading={loading}
+            />
+          ) : page === "mail" ? (
+            <MailSalesPage
+              filteredRows={filteredRows}
               loading={loading}
             />
           ) : (

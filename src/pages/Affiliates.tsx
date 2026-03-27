@@ -10,6 +10,10 @@ import {
 import { Users } from "lucide-react";
 import InfoTooltip from "../components/InfoTooltip";
 
+function isMaileonardo(affiliate: string): boolean {
+  return affiliate.toLowerCase().includes("maileonardo");
+}
+
 interface AffiliatesPageProps {
   filteredRows: TransactionRow[];
   periodDays:   number | undefined;
@@ -24,7 +28,7 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
   const affiliates: AffiliateRow[] = useMemo(() => {
     if (filteredRows.length === 0) return [];
     const m = computeFromFiltered(filteredRows, periodDays);
-    return m.topAffiliates;
+    return m.topAffiliates.filter((a) => !isMaileonardo(a.name));
   }, [filteredRows, periodDays]);
 
   if (affiliates.length === 0) {
@@ -50,7 +54,7 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
       <div className="table-container">
         <div className="table-header">
           <h3>Ranking de Afiliados</h3>
-          <p>Ordenado por Gross Revenue decrescente · {affiliates.length} afiliados no período selecionado</p>
+          <p>Ordenado por Gross Revenue decrescente · {affiliates.length} afiliados no período selecionado · Maileonardo contabilizado em Mail Vendas</p>
         </div>
         <table>
           <thead>
@@ -71,7 +75,7 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
           <tbody>
             {affiliates.map((a, i) => {
               const margemColor =
-                a.margem > 30 ? "green" : a.margem > 15 ? "" : "orange";
+                a.margem > 30 ? "green" : a.margem > 15 ? "orange" : "red";
               return (
                 <tr key={a.name}>
                   <td style={{ color: "var(--text-3)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>{i + 1}</td>

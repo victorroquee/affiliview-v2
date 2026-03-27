@@ -99,12 +99,13 @@ export function normalizeDigiTransaction(t: DigiAPITransaction): TransactionRow 
   const isPaymentTx = transactionType === "payment";
 
   // ── Amounts ───────────────────────────────────────────────────────────────
-  // grossAmount: only meaningful for payments.
-  // Refunds/CB have a positive `amount` in the API but should NOT be added to
-  // gross revenue — their financial impact comes via earned_amount (negative).
+  // grossAmount: always stores the raw `amount` from the API (positive for all types).
+  // For payments: the sale price paid by the customer.
+  // For refunds/CB: the gross amount reversed (used as numerator in refund rate calculations).
+  // Gross REVENUE is computed by summing only payTxs — refunds don't pollute revenue totals.
   const rawAmount   = parseMoney(raw["amount"]);
   const vatAmount   = parseMoney(raw["vat_amount"]);
-  const grossAmount = isPaymentTx ? rawAmount : 0;
+  const grossAmount = rawAmount;
   const netAmount   = isPaymentTx ? rawAmount - vatAmount : 0;
 
   // earned_amount: correctly signed by the API — positive for payments,

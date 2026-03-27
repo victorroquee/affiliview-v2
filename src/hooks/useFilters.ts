@@ -62,18 +62,18 @@ export function useFilters(rows: TransactionRow[], period: PeriodFilter) {
       return { dateFrom: period.dateFrom, dateTo: period.dateTo };
     }
 
-    // preset mode
-    const maxDate = dataMaxDate;
-    if (!maxDate) return { dateFrom: "", dateTo: "" };
+    // preset mode — âncora em hoje (alinhado com o dashboard da Digistore)
+    if (!dataMaxDate) return { dateFrom: "", dateTo: "" };
+    const today = toISO(new Date());
 
     switch (period.preset) {
       case "today":
-        return { dateFrom: maxDate, dateTo: maxDate };
+        return { dateFrom: today, dateTo: today };
       case "last7":
-        return { dateFrom: offsetDate(maxDate, -6), dateTo: maxDate };
+        return { dateFrom: offsetDate(today, -6), dateTo: today };
       case "last30":
       default:
-        return { dateFrom: offsetDate(maxDate, -29), dateTo: maxDate };
+        return { dateFrom: offsetDate(today, -29), dateTo: today };
     }
   }, [period, dataMaxDate]);
 
