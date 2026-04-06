@@ -1,6 +1,11 @@
 import React from "react";
-import { formatEur, formatPct, formatInt, type ProductSummaryRow, type BundleRow } from "../lib/transactions";
+import { formatEur, formatPct, formatInt, type ProductSummaryRow, type BundleRow, type AffiliateRow, type AffiliateRanking, type AffiliateRankingInfo } from "../lib/transactions";
 import InfoTooltip from "./InfoTooltip";
+
+const RANKING_CLASS: Record<AffiliateRanking, string> = {
+  "Tier 1": "tier-1", "Tier 2": "tier-2", "Tier 3": "tier-3",
+  "Ativo": "tier-ativo", "Inativo": "tier-inativo",
+};
 
 // ─── Product Summary Table ────────────────────────
 interface ProductSummaryTableProps {
@@ -108,15 +113,12 @@ export const BundlePerformanceTable: React.FC<BundlePerformanceTableProps> = ({ 
 
 // ─── Top Affiliates Table ─────────────────────────
 interface AffiliateTableProps {
-  data: {
-    name: string;
-    gross: number;
-    refundCbPct: number;
-    status: "Scale" | "Watch" | "Probation";
-  }[];
+  data: AffiliateRow[];
+  rankings?: Map<string, AffiliateRankingInfo>;
+  onSelectAffiliate?: (affiliate: AffiliateRow) => void;
 }
 
-export const AffiliateTable: React.FC<AffiliateTableProps> = ({ data }) => {
+export const AffiliateTable: React.FC<AffiliateTableProps> = ({ data, rankings, onSelectAffiliate }) => {
   return (
     <div className="scorecard-card">
       <div className="scorecard-label">Top Afiliados por Gross Revenue</div>
@@ -126,22 +128,30 @@ export const AffiliateTable: React.FC<AffiliateTableProps> = ({ data }) => {
             <span className="aff-table-rank" />
             <span className="aff-table-name aff-col-label">Afiliado</span>
             <span className="aff-table-gross aff-col-label">Gross</span>
-            <span className="aff-col-label" style={{ width: 72, textAlign: "right" }}>Status</span>
+            <span className="aff-col-label" style={{ width: 56, textAlign: "right" }}>Tier</span>
           </div>
-          {data.slice(0, 8).map((a, i) => (
-            <div key={a.name} className="aff-table-row">
-              <span className="aff-table-rank">#{i + 1}</span>
-              <span className="aff-table-name">{a.name}</span>
-              <span className="aff-table-gross">{formatEur(a.gross)}</span>
-              <span className={`status-badge ${a.status.toLowerCase()}`}>
-                {a.status}
-              </span>
-            </div>
-          ))}
+          {data.slice(0, 8).map((a, i) => {
+            const ranking: AffiliateRanking = rankings?.get(a.name)?.ranking ?? "Inativo";
+            return (
+              <div
+                key={a.name}
+                className={`aff-table-row${onSelectAffiliate ? " clickable" : ""}`}
+                onClick={() => onSelectAffiliate?.(a)}
+              >
+                <span className="aff-table-rank">#{i + 1}</span>
+                <span className="aff-table-name">{a.name}</span>
+                <span className="aff-table-gross">{formatEur(a.gross)}</span>
+                <span className={`tier-badge ${RANKING_CLASS[ranking]}`} style={{ fontSize: 10 }}>
+                  {ranking}
+                </span>
+              </div>
+            );
+          })}
           <div className="aff-table-legend">
-            <span className="status-badge scale">Scale</span> Meta superada &nbsp;·&nbsp;
-            <span className="status-badge watch">Watch</span> Em observação &nbsp;·&nbsp;
-            <span className="status-badge probation">Probation</span> Abaixo da meta
+            <span className="tier-badge tier-1" style={{ fontSize: 10 }}>Tier 1</span> ≥€15k &nbsp;·&nbsp;
+            <span className="tier-badge tier-2" style={{ fontSize: 10 }}>Tier 2</span> ≥€5k &nbsp;·&nbsp;
+            <span className="tier-badge tier-3" style={{ fontSize: 10 }}>Tier 3</span> ≥€1k &nbsp;·&nbsp;
+            <span className="tier-badge tier-ativo" style={{ fontSize: 10 }}>Ativo</span> ≥10 vendas
           </div>
         </>
       ) : (

@@ -15,12 +15,16 @@ import { GrossEvolutionChart, ProductMixChart, RefundByProductChart, PRODUCT_COL
 import { ProductSummaryTable, BundlePerformanceTable, AffiliateTable } from "../components/ProductTable";
 import {
   type TransactionRow,
+  type AffiliateRow,
+  type AffiliateRankingInfo,
   type PeriodMetrics,
   computeFromFiltered,
+  computeAffiliateRankings,
   formatEur,
   formatPct,
   formatInt,
 } from "../lib/transactions";
+import AffiliateDrawer from "../components/AffiliateDrawer";
 
 // ─── Maileonardo identifier ───────────────────────────────────────────────────
 function isMaileonardo(affiliate: string): boolean {
@@ -29,6 +33,7 @@ function isMaileonardo(affiliate: string): boolean {
 
 interface DashboardProps {
   filteredRows: TransactionRow[];
+  allRows:      TransactionRow[];
   periodDays:   number | undefined;
   loading:      boolean;
   error:        string | null;
@@ -36,11 +41,13 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({
   filteredRows,
+  allRows,
   periodDays,
   loading,
   error,
 }) => {
   const [productFilter, setProductFilter] = useState<string>("all");
+  const [drawerAffiliate, setDrawerAffiliate] = useState<AffiliateRow | null>(null);
 
   const metrics: PeriodMetrics | null = useMemo(() => {
     if (filteredRows.length === 0) return null;
@@ -52,6 +59,14 @@ const Dashboard: React.FC<DashboardProps> = ({
     if (!metrics) return [];
     return metrics.topAffiliates.filter((a) => !isMaileonardo(a.name));
   }, [metrics]);
+
+  const rankings = useMemo(
+    () => computeAffiliateRankings(allRows.filter((r) => !isMaileonardo(r.affiliate))),
+    [allRows]
+  );
+
+  const drawerRanking: AffiliateRankingInfo | null =
+    drawerAffiliate ? (rankings.get(drawerAffiliate.name) ?? null) : null;
 
   const filteredProductSummary = useMemo(() => {
     if (!metrics) return [];
@@ -145,7 +160,11 @@ const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           <div className="scorecard-row">
-            <AffiliateTable data={affiliatesWithoutMail} />
+            <AffiliateTable
+              data={affiliatesWithoutMail}
+              rankings={rankings}
+              onSelectAffiliate={setDrawerAffiliate}
+            />
             <div className="scorecard-card">
               <RefundByProductChart data={metrics.refundByProduct} />
             </div>
@@ -203,6 +222,12 @@ const Dashboard: React.FC<DashboardProps> = ({
       <BundlePerformanceTable data={filteredBundles} />
 
       <div className="footer">AFFILIVIEW by OG GROUP · 2026</div>
+
+      <AffiliateDrawer
+        affiliate={drawerAffiliate}
+        rankingInfo={drawerRanking}
+        onClose={() => setDrawerAffiliate(null)}
+      />
     </>
   );
 };

@@ -80,6 +80,7 @@ const App: React.FC = () => {
           {page === "dashboard" ? (
             <Dashboard
               filteredRows={filteredRows}
+              allRows={rows}
               periodDays={periodDays}
               loading={loading}
               error={error}
@@ -87,6 +88,7 @@ const App: React.FC = () => {
           ) : page === "affiliates" ? (
             <AffiliatesPage
               filteredRows={filteredRows}
+              allRows={rows}
               periodDays={periodDays}
               loading={loading}
             />
