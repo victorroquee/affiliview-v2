@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { BarChart2 } from "lucide-react";
+import LoadingDot from "../components/LoadingDot";
 import type { TransactionRow } from "../lib/transactions";
 import type { VariantResult } from "../lib/cpa/types";
 import { useCPACalculator } from "../hooks/useCPACalculator";
@@ -56,7 +57,10 @@ const CpaCalculator: React.FC<CpaCalculatorProps> = ({
     >
       {filteredRows.length === 0 && (
         <div className="empty-state">
-          <BarChart2 size={36} strokeWidth={1.4} />
+          <div className="empty-state-icon-row">
+            <BarChart2 size={36} strokeWidth={1.4} />
+            {loading && <LoadingDot />}
+          </div>
           <h3>{loading ? "Buscando transações..." : "Nenhum dado carregado"}</h3>
           <p>
             {loading

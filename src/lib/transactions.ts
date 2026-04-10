@@ -95,6 +95,153 @@ export interface AffiliateDetail {
   affiliateAmt: number;   // sum of affiliate_amount paid (for CPA calculation)
 }
 
+// ─── Affiliate Ranking ────────────────────────────────────────────────────────
+
+export type AffiliateRanking = "Tier 1" | "Tier 2" | "Tier 3" | "Ativo" | "Inativo";
+
+export interface AffiliateDayDetail {
+  date: string;        // "2026-04-01"
+  gross: number;       // gross total do dia (pagamentos)
+  frontSales: number;  // vendas front neste dia
+  t1: boolean;         // gross >= 15000
+  t2: boolean;         // gross >= 5000
+  t3: boolean;         // gross >= 1000
+}
+
+export interface AffiliateRankingInfo {
+  ranking: AffiliateRanking;
+  days: AffiliateDayDetail[];     // 7 dias, mais antigo primeiro
+  frontSalesInWindow: number;     // total vendas front na janela de 7 dias
+  windowStart: string;            // data ISO do primeiro dia da janela
+  windowEnd: string;              // data ISO do último dia da janela
+}
+
+const TIER_THRESHOLDS: { tier: AffiliateRanking; min: number }[] = [
+  { tier: "Tier 1", min: 15000 },
+  { tier: "Tier 2", min: 5000 },
+  { tier: "Tier 3", min: 1000 },
+];
+
+export const TIER_MIN: Record<string, number> = {
+  "Tier 1": 15000,
+  "Tier 2": 5000,
+  "Tier 3": 1000,
+};
+
+const ATIVO_MIN_SALES = 10; // front sales em 7 dias
+
+/**
+ * Verifica se os 7 valores diários atendem à regra de consistência do tier:
+ *   - Os 3 primeiros dias devem estar TODOS acima do threshold.
+ *   - Dos 4 dias seguintes, pelo menos 3 devem estar acima (aceita 1 dia ruim).
+ * dailyValues: ordenado do dia mais antigo para o mais recente (7 elementos).
+ */
+function isTierConsistent(dailyValues: number[], threshold: number): boolean {
+  if (dailyValues.length < 7) return false;
+  const first3OK = dailyValues[0]! >= threshold &&
+                   dailyValues[1]! >= threshold &&
+                   dailyValues[2]! >= threshold;
+  if (!first3OK) return false;
+  const last4Above = dailyValues.slice(3, 7).filter((v) => v >= threshold).length;
+  return last4Above >= 3;
+}
+
+/**
+ * Calcula o ranking atual de cada afiliado com base nos últimos 7 dias disponíveis
+ * no conjunto de dados (independente do filtro de período selecionado).
+ * Retorna dados detalhados para cada afiliado (breakdown diário + tier).
+ */
+export function computeAffiliateRankings(
+  allRows: TransactionRow[]
+): Map<string, AffiliateRankingInfo> {
+  const payRows = allRows.filter(isPayment);
+  if (payRows.length === 0) return new Map();
+
+  // Data mais recente no dataset
+  let maxDate = payRows[0]!.date;
+  for (const t of payRows) {
+    if (t.date > maxDate) maxDate = t.date;
+  }
+
+  // Janela de 7 dias: de maxDate-6 até maxDate
+  const windowEnd = new Date(Date.UTC(
+    maxDate.getUTCFullYear(), maxDate.getUTCMonth(), maxDate.getUTCDate(),
+    23, 59, 59, 999
+  ));
+  const windowStart = new Date(Date.UTC(
+    maxDate.getUTCFullYear(), maxDate.getUTCMonth(), maxDate.getUTCDate() - 6,
+    0, 0, 0, 0
+  ));
+
+  // Gera as 7 chaves de data em ordem cronológica
+  const dateKeys: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(windowStart);
+    d.setUTCDate(d.getUTCDate() + i);
+    dateKeys.push(d.toISOString().split("T")[0]!);
+  }
+
+  // Acumula gross diário e vendas front por afiliado dentro da janela
+  const affData = new Map<string, {
+    dailyGross: Map<string, number>;
+    dailyFrontSales: Map<string, number>;
+    frontSales: number;
+  }>();
+  for (const t of payRows) {
+    const dateKey = t.date.toISOString().split("T")[0]!;
+    if (dateKey < dateKeys[0]! || dateKey > dateKeys[6]!) continue;
+    const name = t.affiliate.trim();
+    if (!name) continue;
+    const d = affData.get(name) ?? {
+      dailyGross: new Map(), dailyFrontSales: new Map(), frontSales: 0,
+    };
+    d.dailyGross.set(dateKey, (d.dailyGross.get(dateKey) ?? 0) + t.grossAmount);
+    if (t.upsellNo === 0) {
+      d.dailyFrontSales.set(dateKey, (d.dailyFrontSales.get(dateKey) ?? 0) + 1);
+      d.frontSales += 1;
+    }
+    affData.set(name, d);
+  }
+
+  // Determina o ranking e monta o breakdown diário de cada afiliado
+  const rankings = new Map<string, AffiliateRankingInfo>();
+  for (const [name, data] of affData) {
+    const dailyValues = dateKeys.map((dk) => data.dailyGross.get(dk) ?? 0);
+    let assigned: AffiliateRanking | null = null;
+    for (const { tier, min } of TIER_THRESHOLDS) {
+      if (isTierConsistent(dailyValues, min)) {
+        assigned = tier;
+        break;
+      }
+    }
+    if (!assigned) {
+      assigned = data.frontSales >= ATIVO_MIN_SALES ? "Ativo" : "Inativo";
+    }
+
+    const days: AffiliateDayDetail[] = dateKeys.map((dk) => {
+      const gross = data.dailyGross.get(dk) ?? 0;
+      return {
+        date: dk,
+        gross,
+        frontSales: data.dailyFrontSales.get(dk) ?? 0,
+        t1: gross >= 15000,
+        t2: gross >= 5000,
+        t3: gross >= 1000,
+      };
+    });
+
+    rankings.set(name, {
+      ranking: assigned,
+      days,
+      frontSalesInWindow: data.frontSales,
+      windowStart: dateKeys[0]!,
+      windowEnd: dateKeys[6]!,
+    });
+  }
+
+  return rankings;
+}
+
 // ─── Classification Functions ─────────────────────────────────────────────────
 
 export function isUpsellByName(productName: string): boolean {
@@ -171,10 +318,10 @@ export function computePeriod(
   const cbAmt     = cbRows.reduce((s, t)     => s + t.grossAmount, 0);
 
   // ── Gross ──────────────────────────────────────────────────────────────────
-  // grossBruto = soma dos pagamentos aprovados (denominador interno para taxas)
-  // gross = grossBruto − reembolsos − chargebacks, alinhado com o "Gross" da Digistore
+  // grossBruto = soma dos pagamentos aprovados (inclui reembolsos e chargebacks no bruto total)
+  // gross = grossBruto (valor bruto total sem descontar devoluções)
   const grossBruto = payTxs.reduce((s, t) => s + t.grossAmount, 0);
-  const gross = grossBruto - refundAmt - cbAmt;
+  const gross = grossBruto;
 
   // Rates: value-based (gross do reembolso/CB ÷ grossBruto × 100)
   const rPct = grossBruto > 0 ? (refundAmt / grossBruto) * 100 : 0;

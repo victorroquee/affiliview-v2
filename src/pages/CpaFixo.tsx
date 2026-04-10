@@ -10,6 +10,7 @@ import {
   Minus,
   Plus,
 } from "lucide-react";
+import LoadingDot from "../components/LoadingDot";
 import type { TransactionRow } from "../lib/transactions";
 import { isPayment, isRefund, isChargeback } from "../lib/transactions";
 import { getFrontVariant } from "../lib/cpa/parseHelpers";
@@ -255,7 +256,10 @@ const CpaFixo: React.FC<CpaFixoProps> = ({ filteredRows, loading }) => {
       <div className="cpaf-page">
         <CpaFixoHeader />
         <div className="empty-state">
-          <DollarSign size={36} strokeWidth={1.4} />
+          <div className="empty-state-icon-row">
+            <DollarSign size={36} strokeWidth={1.4} />
+            {loading && <LoadingDot />}
+          </div>
           <h3>{loading ? "Buscando transações..." : "Nenhum dado carregado"}</h3>
           <p>
             {loading
@@ -272,9 +276,16 @@ const CpaFixo: React.FC<CpaFixoProps> = ({ filteredRows, loading }) => {
       <div className="cpaf-page">
         <CpaFixoHeader />
         <div className="empty-state">
-          <Users size={36} strokeWidth={1.4} />
-          <h3>Sem afiliados com front orders M1/M2/M3</h3>
-          <p>Nenhum produto M1/M2/M3 encontrado no período selecionado. Ajuste o filtro de período.</p>
+          <div className="empty-state-icon-row">
+            <Users size={36} strokeWidth={1.4} />
+            {loading && <LoadingDot />}
+          </div>
+          <h3>{loading ? "Buscando transações..." : "Sem afiliados com front orders M1/M2/M3"}</h3>
+          <p>
+            {loading
+              ? "Aguarde enquanto os dados são carregados da API Digistore24."
+              : "Nenhum produto M1/M2/M3 encontrado no período selecionado. Ajuste o filtro de período."}
+          </p>
         </div>
       </div>
     );
@@ -524,15 +535,15 @@ const CpaFixo: React.FC<CpaFixoProps> = ({ filteredRows, loading }) => {
                   <span className="cpaf-margin-control-label">Margem mínima alvo</span>
                   <div className="cpaf-margin-stepper">
                     <button
-                      onClick={() => setMargemMinima((m) => Math.max(15, m - 5))}
-                      disabled={margemMinima <= 15}
+                      onClick={() => setMargemMinima((m) => Math.max(1, m - 1))}
+                      disabled={margemMinima <= 1}
                     >
                       <Minus size={12} strokeWidth={2} />
                     </button>
                     <span>{fmt(margemMinima, 0)}</span>
                     <button
-                      onClick={() => setMargemMinima((m) => Math.min(50, m + 5))}
-                      disabled={margemMinima >= 50}
+                      onClick={() => setMargemMinima((m) => Math.min(100, m + 1))}
+                      disabled={margemMinima >= 100}
                     >
                       <Plus size={12} strokeWidth={2} />
                     </button>
@@ -542,7 +553,7 @@ const CpaFixo: React.FC<CpaFixoProps> = ({ filteredRows, loading }) => {
                 {/* CPA scenario cards */}
                 <div className="cpaf-cpa-result-grid">
                   {[margemMinima - 5, margemMinima, margemMinima + 5]
-                    .filter((m) => m >= 15 && m <= 50)
+                    .filter((m) => m >= 1 && m <= 100)
                     .map((m) => {
                       const cpa       = calc.margem_final - m;
                       const pctGross  = calc.aov_gross > 0 ? cpa / calc.aov_gross : 0;
