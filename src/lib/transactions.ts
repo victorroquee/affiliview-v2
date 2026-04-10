@@ -164,10 +164,6 @@ export function computeAffiliateRankings(
   }
 
   // Janela de 7 dias: de maxDate-6 até maxDate
-  const windowEnd = new Date(Date.UTC(
-    maxDate.getUTCFullYear(), maxDate.getUTCMonth(), maxDate.getUTCDate(),
-    23, 59, 59, 999
-  ));
   const windowStart = new Date(Date.UTC(
     maxDate.getUTCFullYear(), maxDate.getUTCMonth(), maxDate.getUTCDate() - 6,
     0, 0, 0, 0
