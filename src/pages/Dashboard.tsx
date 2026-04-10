@@ -21,16 +21,12 @@ import {
   type PeriodMetrics,
   computeFromFiltered,
   computeAffiliateRankings,
+  isMaileonardo,
   formatEur,
   formatPct,
   formatInt,
 } from "../lib/transactions";
 import AffiliateDrawer from "../components/AffiliateDrawer";
-
-// ─── Maileonardo identifier ───────────────────────────────────────────────────
-function isMaileonardo(affiliate: string): boolean {
-  return affiliate.toLowerCase().includes("maileonardo");
-}
 
 interface DashboardProps {
   filteredRows: TransactionRow[];

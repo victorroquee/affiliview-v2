@@ -26,8 +26,9 @@ function nextTier(r: AffiliateRanking): AffiliateRanking | null {
 }
 
 function fmtDay(iso: string): string {
+  if (!iso || !iso.includes("-")) return "?";
   const [, m, d] = iso.split("-");
-  return `${parseInt(d ?? "1", 10)}/${parseInt(m ?? "1", 10)}`;
+  return `${Number(d ?? 1)}/${Number(m ?? 1)}`;
 }
 
 function fmtK(v: number): string {
@@ -53,13 +54,15 @@ interface AffiliateDrawerProps {
 
 const AffiliateDrawer: React.FC<AffiliateDrawerProps> = ({ affiliate, rankingInfo, onClose }) => {
   const open = affiliate !== null;
+  const onCloseRef = React.useRef(onClose);
+  onCloseRef.current = onClose;
 
   React.useEffect(() => {
     if (!open) return;
-    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onCloseRef.current(); };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [open, onClose]);
+  }, [open]);
 
   if (!affiliate) return null;
 

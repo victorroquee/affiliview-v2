@@ -264,6 +264,10 @@ export function isChargeback(t: TransactionRow): boolean {
   return t.transactionType === "chargeback";
 }
 
+export function isMaileonardo(affiliate: string): boolean {
+  return affiliate.toLowerCase().includes("maileonardo");
+}
+
 /**
  * Returns true if this is a front (non-upsell) payment.
  * Uses upsellNo (0 = front) from the API; falls back to name-based detection for CSV data.

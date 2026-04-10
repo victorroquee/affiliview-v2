@@ -96,7 +96,11 @@ export function normalizeDigiTransaction(t: DigiAPITransaction): TransactionRow 
 
   // ── Transaction type ──────────────────────────────────────────────────────
   const transactionType = str("transaction_type");
-  const isPaymentTx = transactionType === "payment";
+  const isPaymentTx = (
+    transactionType === "payment" ||
+    transactionType === "sale" ||
+    transactionType === "upsell"
+  );
 
   // ── Amounts ───────────────────────────────────────────────────────────────
   // grossAmount: always stores the raw `amount` from the API (positive for all types).

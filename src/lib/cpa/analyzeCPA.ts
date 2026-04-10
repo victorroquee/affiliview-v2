@@ -2,7 +2,7 @@ import type { TransactionRow } from "../transactions";
 import type { AffiliateAccumulator, AffiliateResult, VariantResult } from "./types";
 import { CPA_DEFAULTS, OP_AVG, VARIANT_BOTTLES } from "./constants";
 import { getBottles, getFrontVariant, getCogs } from "./parseHelpers";
-import { isPayment } from "../transactions";
+import { isPayment, isRefund, isChargeback } from "../transactions";
 
 function makeAcc(name: string): AffiliateAccumulator {
   return {
@@ -37,12 +37,8 @@ export function analyzeCPA(
 ): AffiliateResult[] {
   // Use isPayment() para alinhar com a lógica do dashboard (captura "sale", "upsell", "" e grossAmount > 0)
   const payments   = rows.filter(isPayment);
-  const refunds    = rows.filter(r =>
-    r.transactionType === "refund" ||
-    r.transactionType === "return"  ||
-    r.transactionType === "reversal"
-  );
-  const cbs        = rows.filter(r => r.transactionType === "chargeback");
+  const refunds    = rows.filter(isRefund);
+  const cbs        = rows.filter(isChargeback);
 
   // ── 1. Mapear buyerId → variant (para atribuir upsells ao funil correto) ──
   const buyerFront: Record<string, number> = {};

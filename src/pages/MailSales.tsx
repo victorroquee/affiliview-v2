@@ -15,16 +15,12 @@ import {
   isPayment,
   isRefund,
   isChargeback,
+  isMaileonardo,
   getProductBase,
   formatEur,
   formatPct,
   formatInt,
 } from "../lib/transactions";
-
-// ─── Maileonardo identifier ───────────────────────────────────────────────────
-function isMaileonardo(affiliate: string): boolean {
-  return affiliate.toLowerCase().includes("maileonardo");
-}
 
 // ─── Metrics ──────────────────────────────────────────────────────────────────
 type MailMetrics = {

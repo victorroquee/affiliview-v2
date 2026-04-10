@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import type { TransactionRow } from "../lib/transactions";
+import { isMaileonardo } from "../lib/transactions";
 import type { AffiliateResult, VariantResult } from "../lib/cpa/types";
 import { analyzeCPA } from "../lib/cpa/analyzeCPA";
 
@@ -7,10 +8,6 @@ interface UseCPACalculatorReturn {
   results:         AffiliateResult[] | null;
   marginTarget:    number;
   setMarginTarget: (v: number) => void;
-}
-
-function isMaileonardo(affiliate: string): boolean {
-  return affiliate.toLowerCase().includes("maileonardo");
 }
 
 export function useCPACalculator(rows: TransactionRow[]): UseCPACalculatorReturn {

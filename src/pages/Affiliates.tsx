@@ -6,6 +6,7 @@ import {
   type AffiliateRankingInfo,
   computeFromFiltered,
   computeAffiliateRankings,
+  isMaileonardo,
   formatEur,
   formatPct,
   formatInt,
@@ -14,10 +15,6 @@ import { Users } from "lucide-react";
 import LoadingDot from "../components/LoadingDot";
 import InfoTooltip from "../components/InfoTooltip";
 import AffiliateDrawer from "../components/AffiliateDrawer";
-
-function isMaileonardo(affiliate: string): boolean {
-  return affiliate.toLowerCase().includes("maileonardo");
-}
 
 interface AffiliatesPageProps {
   filteredRows: TransactionRow[];

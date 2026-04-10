@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import LoadingDot from "../components/LoadingDot";
 import type { TransactionRow } from "../lib/transactions";
-import { isPayment, isRefund, isChargeback } from "../lib/transactions";
+import { isPayment, isRefund, isChargeback, isMaileonardo } from "../lib/transactions";
 import { getFrontVariant } from "../lib/cpa/parseHelpers";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -50,10 +50,6 @@ const VARIANT_COLORS: Record<string, string> = {
 };
 
 // ─── Data Aggregation ─────────────────────────────────────────────────────────
-
-function isMaileonardo(affiliate: string): boolean {
-  return affiliate.toLowerCase().includes("maileonardo");
-}
 
 function aggregateAffiliates(rows: TransactionRow[]): AffiliateData[] {
   const map = new Map<
@@ -219,7 +215,7 @@ const CpaFixo: React.FC<CpaFixoProps> = ({ filteredRows, loading }) => {
     return affiliates.filter((a) => a.name.toLowerCase().includes(search.toLowerCase()));
   }, [affiliates, search]);
 
-  const selectedAff = affiliates.find((a) => a.name === selected) ?? null;
+  const selectedAff = filtered.find((a) => a.name === selected) ?? null;
 
   const calc = useMemo(() => {
     if (!selectedAff) return null;
@@ -237,7 +233,7 @@ const CpaFixo: React.FC<CpaFixoProps> = ({ filteredRows, loading }) => {
   }, [calc, netRate, margemMinima, selectedAff]);
 
   const maxSensCpa = useMemo(
-    () => Math.max(...sensitivity.map((r) => r.cpa_max), 1),
+    () => sensitivity.reduce((max, r) => Math.max(max, r.cpa_max), 1),
     [sensitivity]
   );
 
@@ -595,9 +591,13 @@ const CpaFixo: React.FC<CpaFixoProps> = ({ filteredRows, loading }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {sensitivity.map((row) => {
-                      const isActive    = Math.abs(row.aov - calc.aov_gross) <
-                        Math.min(...sensitivity.map((r) => Math.abs(r.aov - calc.aov_gross))) + 1;
+                    {(() => {
+                    const closestDiff = sensitivity.reduce(
+                      (min, r) => Math.min(min, Math.abs(r.aov - calc.aov_gross)),
+                      Infinity
+                    );
+                    return sensitivity.map((row) => {
+                      const isActive = Math.abs(row.aov - calc.aov_gross) < closestDiff + 1;
                       const isBelowMin  = row.aov < aovMinimo;
                       const barPct      = Math.max(0, (row.cpa_max / maxSensCpa) * 100);
                       return (
@@ -623,7 +623,8 @@ const CpaFixo: React.FC<CpaFixoProps> = ({ filteredRows, loading }) => {
                           </td>
                         </tr>
                       );
-                    })}
+                    });
+                  })()}
                   </tbody>
                 </table>
               </div>
