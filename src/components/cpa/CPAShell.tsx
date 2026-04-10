@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, Calculator } from "lucide-react";
+import { Search, Calculator, Lock } from "lucide-react";
 import type { AffiliateResult, VariantResult } from "../../lib/cpa/types";
 
 type FilterStatus = "all" | VariantResult["cpaStatus"];
@@ -85,6 +85,11 @@ const CPAShell: React.FC<CPAShellProps> = ({
             />
           </div>
         )}
+
+        <div className="cpa-locked-feature" title="Funcionalidade em desenvolvimento">
+          <Lock size={13} strokeWidth={2} />
+          <span>Por Parte</span>
+        </div>
 
         {results && (
           <div className="cpa-filter-group">

@@ -8,6 +8,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import KPICard from "../components/KPICard";
+import LoadingDot from "../components/LoadingDot";
 import { GrossEvolutionChart, PRODUCT_COLORS } from "../components/Charts";
 import {
   type TransactionRow,
@@ -115,12 +116,11 @@ const MailSalesPage: React.FC<MailSalesProps> = ({ filteredRows, loading }) => {
   if (filteredRows.length === 0 || mailMetrics.frontOrders === 0) {
     return (
       <div className="empty-state">
-        <Mail size={36} strokeWidth={1.4} />
-        <h3>
-          {loading
-            ? "Buscando transações..."
-            : "Sem dados do Maileonardo"}
-        </h3>
+        <div className="empty-state-icon-row">
+          <Mail size={36} strokeWidth={1.4} />
+          {loading && <LoadingDot />}
+        </div>
+        <h3>{loading ? "Buscando transações..." : "Sem dados do Maileonardo"}</h3>
         <p>
           {loading
             ? "Aguarde enquanto os dados são carregados da API Digistore24."

@@ -11,6 +11,7 @@ import {
   BarChart2,
 } from "lucide-react";
 import KPICard from "../components/KPICard";
+import LoadingDot from "../components/LoadingDot";
 import { GrossEvolutionChart, ProductMixChart, RefundByProductChart, PRODUCT_COLORS } from "../components/Charts";
 import { ProductSummaryTable, BundlePerformanceTable, AffiliateTable } from "../components/ProductTable";
 import {
@@ -88,13 +89,16 @@ const Dashboard: React.FC<DashboardProps> = ({
   if (!metrics) {
     return (
       <div className="empty-state">
-        <BarChart2 size={36} strokeWidth={1.4} />
-        <h3>Nenhum dado carregado</h3>
+        <div className="empty-state-icon-row">
+          <BarChart2 size={36} strokeWidth={1.4} />
+          {loading && <LoadingDot />}
+        </div>
+        <h3>{loading ? "Buscando transações..." : "Nenhum dado carregado"}</h3>
         <p>
           {error
             ? "Verifique a conexão com a API Digistore24 e tente novamente."
             : loading
-            ? "Buscando transações..."
+            ? "Aguarde enquanto os dados são carregados da API Digistore24."
             : `Clique em "Conectar" para carregar os dados da sua conta Digistore24.`}
         </p>
       </div>
@@ -111,7 +115,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 icon={CircleDollarSign}
                 label="Gross Revenue"
                 value={formatEur(metrics.gross)}
-                info="Receita bruta dos pagamentos aprovados menos o valor bruto de reembolsos e chargebacks. Alinhado com o 'Gross' do dashboard interno da Digistore."
+                info="Receita bruta total dos pagamentos aprovados, incluindo o valor bruto de reembolsos e chargebacks (sem descontar devoluções). Representa o volume total faturado antes de devoluções."
                 color="green"
               />
               <KPICard

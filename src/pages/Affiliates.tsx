@@ -11,6 +11,7 @@ import {
   formatInt,
 } from "../lib/transactions";
 import { Users } from "lucide-react";
+import LoadingDot from "../components/LoadingDot";
 import InfoTooltip from "../components/InfoTooltip";
 import AffiliateDrawer from "../components/AffiliateDrawer";
 
@@ -64,11 +65,14 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
   if (affiliates.length === 0) {
     return (
       <div className="empty-state">
-        <Users size={36} strokeWidth={1.4} />
-        <h3>Sem dados de afiliados</h3>
+        <div className="empty-state-icon-row">
+          <Users size={36} strokeWidth={1.4} />
+          {loading && <LoadingDot />}
+        </div>
+        <h3>{loading ? "Buscando transações..." : "Sem dados de afiliados"}</h3>
         <p>
           {loading
-            ? "Buscando transações da API Digistore24..."
+            ? "Aguarde enquanto os dados são carregados da API Digistore24."
             : "Aguarde o carregamento dos dados ou ajuste o período de busca."}
         </p>
       </div>

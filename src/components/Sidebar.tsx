@@ -44,11 +44,12 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, onNavigate }) => {
           Afiliados
         </button>
         <button
-          className={`sidebar-link ${activePage === "calculator" ? "active" : ""}`}
-          onClick={() => onNavigate("calculator")}
+          className="sidebar-link sidebar-link--locked"
+          disabled
+          title="Funcionalidade em desenvolvimento"
         >
           <Calculator size={15} strokeWidth={1.4} />
-          Calculadora CPA
+          CPA Variável
         </button>
         <button
           className={`sidebar-link ${activePage === "cpa-fixo" ? "active" : ""}`}

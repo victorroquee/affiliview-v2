@@ -318,10 +318,10 @@ export function computePeriod(
   const cbAmt     = cbRows.reduce((s, t)     => s + t.grossAmount, 0);
 
   // ── Gross ──────────────────────────────────────────────────────────────────
-  // grossBruto = soma dos pagamentos aprovados (denominador interno para taxas)
-  // gross = grossBruto − reembolsos − chargebacks, alinhado com o "Gross" da Digistore
+  // grossBruto = soma dos pagamentos aprovados (inclui reembolsos e chargebacks no bruto total)
+  // gross = grossBruto (valor bruto total sem descontar devoluções)
   const grossBruto = payTxs.reduce((s, t) => s + t.grossAmount, 0);
-  const gross = grossBruto - refundAmt - cbAmt;
+  const gross = grossBruto;
 
   // Rates: value-based (gross do reembolso/CB ÷ grossBruto × 100)
   const rPct = grossBruto > 0 ? (refundAmt / grossBruto) * 100 : 0;
