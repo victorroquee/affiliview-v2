@@ -183,11 +183,10 @@ export const ProductMixChart: React.FC<{ data: MixData[] }> = ({ data }) => {
             )}
           />
           <Tooltip
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            formatter={((value: any) => [
+            formatter={(value) => [
               `€${Number(value).toLocaleString("de-DE", { minimumFractionDigits: 2 })}`,
               "Gross",
-            ]) as any}
+            ]}
             contentStyle={PieTooltipStyle}
           />
         </PieChart>
