@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowLeft } from "lucide-react";
-import type { SimulatedAffiliateResult } from "../../lib/cpa/types";
+import type { AffiliateResult, SimulatedAffiliateResult } from "../../lib/cpa/types";
 import { formatEur as fmtEur, formatPct as fmtPct, formatInt as fmtInt } from "../../lib/transactions";
 import VariantCard from "./VariantCard";
 import InfoTooltip from "../InfoTooltip";
@@ -24,9 +24,9 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ label, value, color, info }) 
 );
 
 interface AffiliateDetailProps {
-  aff:          SimulatedAffiliateResult;
+  aff:          AffiliateResult | SimulatedAffiliateResult;
   marginTarget: number;
-  setCustomCpa: (affName: string, variant: number, value: number | null) => void;
+  setCustomCpa?: (affName: string, variant: number, value: number | null) => void;
   onBack:       () => void;
 }
 
@@ -109,7 +109,7 @@ const AffiliateDetail: React.FC<AffiliateDetailProps> = ({ aff, marginTarget, se
             key={v.variant}
             v={v}
             affName={aff.name}
-            setCustomCpa={setCustomCpa}
+            setCustomCpa={setCustomCpa ?? undefined}
           />
         ))}
       </div>
