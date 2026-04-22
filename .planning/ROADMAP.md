@@ -26,7 +26,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. Sidebar shows a "CPA Variavel" entry with an icon alongside existing tabs
   2. Clicking the tab renders the CPA Variavel page (no broken routes)
   3. The page does not break or error-boundary when navigating to/from it
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 01-01-PLAN.md — Wire CPA Variavel page into sidebar navigation and App.tsx routing
 **UI hint**: yes
 
 ### Phase 2: Data Display
@@ -55,10 +57,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3
+Phases execute in numeric order: 1 -> 2 -> 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Page Scaffold | 0/TBD | Not started | - |
+| 1. Page Scaffold | 0/1 | Not started | - |
 | 2. Data Display | 0/TBD | Not started | - |
 | 3. Simulation Engine | 0/TBD | Not started | - |
