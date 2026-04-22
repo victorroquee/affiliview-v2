@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: ready_to_plan
-stopped_at: "Paused at checkpoint — Task 3: Visual verification of CPA Variavel page"
-last_updated: "2026-04-22T21:00:00.000Z"
+status: planning
+stopped_at: "Checkpoint — Task 3: Visual verification of CPA Variavel page"
+last_updated: "2026-04-22T20:52:21.358Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 3
-  completed_phases: 3
-  total_plans: 3
+  completed_phases: 2
+  total_plans: 5
   completed_plans: 3
-  percent: 100
+  percent: 60
 ---
 
 # AffiliView — State
@@ -93,4 +93,4 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 **Requirements:** .planning/REQUIREMENTS.md
 **Summary:** .planning/phases/01-page-scaffold/01-01-SUMMARY.md
 
-**Planned Phase:** 2 (Data Display) — 2 plans — 2026-04-22T20:24:02.785Z
+**Planned Phase:** 3 (Simulation Engine) — 2 plans — 2026-04-22T20:52:21.344Z
