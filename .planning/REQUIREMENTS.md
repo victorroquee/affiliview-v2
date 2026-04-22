@@ -50,21 +50,21 @@ Requirements for CPA Variavel milestone. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DATA-01 | -- | Pending |
-| DATA-02 | -- | Pending |
-| DATA-03 | -- | Pending |
-| SIM-01 | -- | Pending |
-| SIM-02 | -- | Pending |
-| SIM-03 | -- | Pending |
-| UX-01 | -- | Pending |
-| UX-02 | -- | Pending |
-| UX-03 | -- | Pending |
+| DATA-01 | Phase 2 | Pending |
+| DATA-02 | Phase 2 | Pending |
+| DATA-03 | Phase 2 | Pending |
+| SIM-01 | Phase 3 | Pending |
+| SIM-02 | Phase 3 | Pending |
+| SIM-03 | Phase 3 | Pending |
+| UX-01 | Phase 1 | Pending |
+| UX-02 | Phase 2 | Pending |
+| UX-03 | Phase 2 | Pending |
 
 **Coverage:**
 - v1.0 requirements: 9 total
-- Mapped to phases: 0
-- Unmapped: 9
+- Mapped to phases: 9
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-22*
-*Last updated: 2026-04-22 after initial definition*
+*Last updated: 2026-04-22 after roadmap creation*
