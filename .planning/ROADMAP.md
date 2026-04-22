@@ -41,7 +41,7 @@ Plans:
   3. User can see summary KPI cards at the top of the page showing total affiliates, average margin, and average AOV
   4. User can expand or open a drawer for any affiliate to see a full per-pot breakdown with line-item detail
   5. User can type in a search/filter field to narrow the affiliate table by name
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
 - [x] 02-01-PLAN.md — Data layer extension (AOV in analyzeCPA) + useCpaVariavel hook
 - [x] 02-02-PLAN.md — CPA Variavel page UI: KPI cards, table, search, detail navigation
@@ -57,8 +57,8 @@ Plans:
   3. User can see the current default CPA alongside the proposed CPA with the delta (difference) clearly visible for each pot
 **Plans:** 2 plans
 Plans:
-- [ ] 02-01-PLAN.md — Data layer extension (AOV in analyzeCPA) + useCpaVariavel hook
-- [ ] 02-02-PLAN.md — CPA Variavel page UI: KPI cards, table, search, detail navigation
+- [x] 02-01-PLAN.md — Data layer extension (AOV in analyzeCPA) + useCpaVariavel hook
+- [x] 02-02-PLAN.md — CPA Variavel page UI: KPI cards, table, search, detail navigation
 
 ## Progress
 
@@ -68,5 +68,5 @@ Phases execute in numeric order: 1 -> 2 -> 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Page Scaffold | 1/1 | Complete    | 2026-04-22 |
-| 2. Data Display | 2/2 | Complete | 2026-04-22 |
+| 2. Data Display | 2/2 | Complete    | 2026-04-22 |
 | 3. Simulation Engine | 0/TBD | Not started | - |
