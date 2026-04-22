@@ -9,9 +9,12 @@ Requirements for CPA Variavel milestone. Each maps to roadmap phases.
 
 ### Dados & Calculo
 
-- [ ] **DATA-01**: User pode ver tabela de afiliados com margem LTV por pote (M1/M2/M3) — front + upsell earnings - COGS - refunds
-- [ ] **DATA-02**: User pode ver AOV real por funil calculado automaticamente dos dados Digistore (upsell rate por afiliado)
-- [ ] **DATA-03**: User pode ver KPIs resumo no topo (total afiliados, margem media, AOV medio)
+- [x] **DATA-01
+**: User pode ver tabela de afiliados com margem LTV por pote (M1/M2/M3) — front + upsell earnings - COGS - refunds
+- [x] **DATA-02
+**: User pode ver AOV real por funil calculado automaticamente dos dados Digistore (upsell rate por afiliado)
+- [x] **DATA-03
+**: User pode ver KPIs resumo no topo (total afiliados, margem media, AOV medio)
 
 ### Simulacao CPA
 
@@ -23,7 +26,8 @@ Requirements for CPA Variavel milestone. Each maps to roadmap phases.
 
 - [x] **UX-01**: Nova aba "CPA Variavel" na sidebar com icone
 - [ ] **UX-02**: Detalhe por afiliado (expandir ou drawer) com breakdown detalhado por pote
-- [ ] **UX-03**: Filtro por nome e busca de afiliados
+- [x] **UX-03
+**: Filtro por nome e busca de afiliados
 
 ## Future Requirements
 

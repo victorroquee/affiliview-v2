@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Plan 01-01 complete
-last_updated: "2026-04-22T20:24:02.797Z"
+stopped_at: Completed 02-01-PLAN.md — data layer extended with aovGross, useCpaVariavel hook created
+last_updated: "2026-04-22T20:28:48.418Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 3
-  completed_plans: 1
-  percent: 33
+  completed_plans: 2
+  percent: 67
 ---
 
 # AffiliView — State
@@ -24,7 +24,7 @@ Status: Ready to plan
 Last activity: 2026-04-22
 
 ```
-Progress: [###-------] 33% — Phase 1 of 3 complete
+Progress: [███████░░░] 67%
 ```
 
 ## Project Reference
@@ -62,6 +62,7 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 | Simulacao session-only | Simplicidade, sem backend adicional | Pending |
 | LTV completo para margem | Front + upsells da imagem real de rentabilidade | Pending |
 | Dados reais Digistore (sem input manual) | Precisao e automatizacao | Pending |
+| Phase 02-data-display P01 | 78s | 2 tasks | 3 files |
 
 ### Key Decisions (Confirmed)
 
@@ -82,7 +83,7 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 ## Session Continuity
 
 **Last completed:** Phase 01-page-scaffold Plan 01 — 2026-04-22T20:12:30Z
-**Stopped at:** Plan 01-01 complete
+**Stopped at:** Completed 02-01-PLAN.md — data layer extended with aovGross, useCpaVariavel hook created
 **To resume:** Run `/gsd-execute-phase 02` to execute Phase 2.
 
 **Roadmap:** .planning/ROADMAP.md
