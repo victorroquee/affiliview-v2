@@ -21,7 +21,7 @@ Requirements for CPA Variavel milestone. Each maps to roadmap phases.
 
 ### UX & Navegacao
 
-- [ ] **UX-01**: Nova aba "CPA Variavel" na sidebar com icone
+- [x] **UX-01**: Nova aba "CPA Variavel" na sidebar com icone
 - [ ] **UX-02**: Detalhe por afiliado (expandir ou drawer) com breakdown detalhado por pote
 - [ ] **UX-03**: Filtro por nome e busca de afiliados
 
@@ -56,7 +56,7 @@ Requirements for CPA Variavel milestone. Each maps to roadmap phases.
 | SIM-01 | Phase 3 | Pending |
 | SIM-02 | Phase 3 | Pending |
 | SIM-03 | Phase 3 | Pending |
-| UX-01 | Phase 1 | Pending |
+| UX-01 | Phase 1 | Complete (01-01) |
 | UX-02 | Phase 2 | Pending |
 | UX-03 | Phase 2 | Pending |
 

@@ -2,28 +2,28 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-last_updated: "2026-04-22T19:55:32.536Z"
-last_activity: 2026-04-22 — Roadmap created for v1.0 CPA Variavel
+status: executing
+last_updated: "2026-04-22T20:12:30Z"
+last_activity: 2026-04-22 — Phase 01-page-scaffold Plan 01 completed
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 1
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 33
 ---
 
 # AffiliView — State
 
 ## Current Position
 
-Phase: Phase 1 (not started)
-Plan: --
-Status: Roadmap defined — ready to plan Phase 1
-Last activity: 2026-04-22 — Roadmap created for v1.0 CPA Variavel
+Phase: 01-page-scaffold (1) — COMPLETE
+Plan: 1 of 1 — COMPLETE
+Status: Phase 1 complete — ready for Phase 2 execution
+Last activity: 2026-04-22 — Phase 01-page-scaffold Plan 01 completed
 
 ```
-Progress: [----------] 0% — Phase 1 of 3
+Progress: [###-------] 33% — Phase 1 of 3 complete
 ```
 
 ## Project Reference
@@ -31,13 +31,13 @@ Progress: [----------] 0% — Phase 1 of 3
 See: .planning/PROJECT.md (updated 2026-04-22)
 
 **Core value:** Know exactly how much margin each affiliate generates per product variant, so CPA can be optimized per-affiliate to maximize profitability.
-**Current focus:** CPA Variavel — nova aba com CPA personalizado por pote por afiliado
+**Current focus:** Phase 02 — CPA Variavel table and simulation UI
 
 ## Performance Metrics
 
-- Phases complete: 0 / 3
+- Phases complete: 1 / 3
 - Requirements mapped: 9 / 9
-- Requirements complete: 0 / 9
+- Requirements complete: 1 / 9
 
 ## Accumulated Context
 
@@ -62,19 +62,28 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 | LTV completo para margem | Front + upsells da imagem real de rentabilidade | Pending |
 | Dados reais Digistore (sem input manual) | Precisao e automatizacao | Pending |
 
+### Key Decisions (Confirmed)
+
+| Decision | Rationale | Outcome |
+|----------|-----------|---------|
+| Placeholder page body minimal | Phase 2 replaces content — scaffold only needed for routing | Confirmed 01-01 |
+| Calculator icon on sidebar button | Matches original locked button design intent | Confirmed 01-01 |
+| New page Props: filteredRows + loading | Consistent with CpaFixo pattern — all pages receive filtered data | Confirmed 01-01 |
+
 ### Active Todos
 
-- (none yet — start with `/gsd-plan-phase 1`)
+- Execute Phase 02 — CPA Variavel table and simulation UI
 
 ### Blockers
 
-- (none)
+- Pre-existing: `src/pages/MailSales.tsx` line 46 unused variable `frontGross` causes `npm run build` (tsc -b) to fail. Does not affect `tsc --noEmit`. Logged in deferred-items.md.
 
 ## Session Continuity
 
-**To resume:** Run `/gsd-plan-phase 1` to plan Phase 1: Page Scaffold.
+**Last completed:** Phase 01-page-scaffold Plan 01 — 2026-04-22T20:12:30Z
+**Stopped at:** Plan 01-01 complete
+**To resume:** Run `/gsd-execute-phase 02` to execute Phase 2.
 
 **Roadmap:** .planning/ROADMAP.md
 **Requirements:** .planning/REQUIREMENTS.md
-
-**Planned Phase:** 1 (Page Scaffold) — 1 plans — 2026-04-22T19:55:32.477Z
+**Summary:** .planning/phases/01-page-scaffold/01-01-SUMMARY.md

@@ -12,7 +12,7 @@ Three phases deliver the CPA Variavel feature: first the page is scaffolded and 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Page Scaffold** - New CPA Variavel page wired into sidebar navigation
+- [x] **Phase 1: Page Scaffold** - New CPA Variavel page wired into sidebar navigation
 - [ ] **Phase 2: Data Display** - Affiliate table with LTV margins, AOV per funnel, KPI cards, detail drawer, and search
 - [ ] **Phase 3: Simulation Engine** - Bidirectional CPA/margin simulation with live delta comparison
 
@@ -28,7 +28,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The page does not break or error-boundary when navigating to/from it
 **Plans:** 1 plan
 Plans:
-- [ ] 01-01-PLAN.md — Wire CPA Variavel page into sidebar navigation and App.tsx routing
+- [x] 01-01-PLAN.md — Wire CPA Variavel page into sidebar navigation and App.tsx routing
 **UI hint**: yes
 
 ### Phase 2: Data Display
@@ -61,6 +61,6 @@ Phases execute in numeric order: 1 -> 2 -> 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Page Scaffold | 0/1 | Not started | - |
+| 1. Page Scaffold | 1/1 | Complete | 2026-04-22 |
 | 2. Data Display | 0/TBD | Not started | - |
 | 3. Simulation Engine | 0/TBD | Not started | - |
