@@ -1,7 +1,7 @@
 import React from "react";
 import { LayoutDashboard, Users, Calculator, TrendingUp, DollarSign, Mail } from "lucide-react";
 
-type Page = "dashboard" | "affiliates" | "calculator" | "cpa-fixo" | "mail";
+type Page = "dashboard" | "affiliates" | "calculator" | "cpa-fixo" | "cpa-variavel" | "mail";
 
 interface SidebarProps {
   activePage: Page;
@@ -44,12 +44,11 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, onNavigate }) => {
           Afiliados
         </button>
         <button
-          className="sidebar-link sidebar-link--locked"
-          disabled
-          title="Funcionalidade em desenvolvimento"
+          className={`sidebar-link ${activePage === "cpa-variavel" ? "active" : ""}`}
+          onClick={() => onNavigate("cpa-variavel")}
         >
           <Calculator size={15} strokeWidth={1.4} />
-          CPA Variável
+          CPA Variavel
         </button>
         <button
           className={`sidebar-link ${activePage === "cpa-fixo" ? "active" : ""}`}
