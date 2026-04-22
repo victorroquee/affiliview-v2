@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Page Scaffold** - New CPA Variavel page wired into sidebar navigation
 - [x] **Phase 2: Data Display** - Affiliate table with LTV margins, AOV per funnel, KPI cards, detail drawer, and search
-- [ ] **Phase 3: Simulation Engine** - Bidirectional CPA/margin simulation with live delta comparison
+- [x] **Phase 3: Simulation Engine** - Bidirectional CPA/margin simulation with live delta comparison (completed 2026-04-22)
 
 ## Phase Details
 
@@ -55,10 +55,10 @@ Plans:
   1. User can enter a margin target percentage and see the maximum CPA calculated for each pot (M1/M2/M3) per affiliate in real time
   2. User can enter a custom CPA value for any pot per affiliate and see the resulting margin percentage immediately
   3. User can see the current default CPA alongside the proposed CPA with the delta (difference) clearly visible for each pot
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 03-01-PLAN.md — Simulation data layer: extend useCpaVariavel hook with marginTarget, customCpa state, and computed simMaxCpa/customMargin/cpaDelta
-- [ ] 03-02-PLAN.md — Simulation UI: margin slider on page, sim columns in table, custom CPA input with delta in detail view
+- [x] 03-01-PLAN.md — Simulation data layer: extend useCpaVariavel hook with marginTarget, customCpa state, and computed simMaxCpa/customMargin/cpaDelta
+- [x] 03-02-PLAN.md — Simulation UI: margin slider on page, sim columns in table, custom CPA input with delta in detail view
 **UI hint**: yes
 
 ## Progress
@@ -70,4 +70,4 @@ Phases execute in numeric order: 1 -> 2 -> 3
 |-------|----------------|--------|-----------|
 | 1. Page Scaffold | 1/1 | Complete    | 2026-04-22 |
 | 2. Data Display | 2/2 | Complete    | 2026-04-22 |
-| 3. Simulation Engine | 0/2 | Not started | - |
+| 3. Simulation Engine | 2/2 | Complete    | 2026-04-22 |

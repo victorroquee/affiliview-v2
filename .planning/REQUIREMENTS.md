@@ -60,9 +60,9 @@ Requirements for CPA Variavel milestone. Each maps to roadmap phases.
 | DATA-01 | Phase 2 | Complete |
 | DATA-02 | Phase 2 | Complete |
 | DATA-03 | Phase 2 | Complete |
-| SIM-01 | Phase 3 | Pending |
-| SIM-02 | Phase 3 | Pending |
-| SIM-03 | Phase 3 | Pending |
+| SIM-01 | Phase 3 | Complete |
+| SIM-02 | Phase 3 | Complete |
+| SIM-03 | Phase 3 | Complete |
 | UX-01 | Phase 1 | Complete (01-01) |
 | UX-02 | Phase 2 | Complete |
 | UX-03 | Phase 2 | Complete |
