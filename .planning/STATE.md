@@ -1,3 +1,18 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: planning
+last_updated: "2026-04-22T19:55:32.536Z"
+last_activity: 2026-04-22 — Roadmap created for v1.0 CPA Variavel
+progress:
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 1
+  completed_plans: 0
+  percent: 0
+---
+
 # AffiliView — State
 
 ## Current Position
@@ -61,3 +76,5 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 
 **Roadmap:** .planning/ROADMAP.md
 **Requirements:** .planning/REQUIREMENTS.md
+
+**Planned Phase:** 1 (Page Scaffold) — 1 plans — 2026-04-22T19:55:32.477Z
