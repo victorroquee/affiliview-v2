@@ -18,9 +18,12 @@ Requirements for CPA Variavel milestone. Each maps to roadmap phases.
 
 ### Simulacao CPA
 
-- [ ] **SIM-01**: User pode definir margem target (%) e ver CPA maximo calculado por pote por afiliado
-- [ ] **SIM-02**: User pode definir CPA custom por pote por afiliado e ver margem resultante
-- [ ] **SIM-03**: User pode comparar CPA atual (default) vs CPA proposto com delta visivel
+- [x] **SIM-01
+**: User pode definir margem target (%) e ver CPA maximo calculado por pote por afiliado
+- [x] **SIM-02
+**: User pode definir CPA custom por pote por afiliado e ver margem resultante
+- [x] **SIM-03
+**: User pode comparar CPA atual (default) vs CPA proposto com delta visivel
 
 ### UX & Navegacao
 
