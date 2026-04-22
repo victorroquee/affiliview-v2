@@ -13,7 +13,7 @@ Three phases deliver the CPA Variavel feature: first the page is scaffolded and 
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Page Scaffold** - New CPA Variavel page wired into sidebar navigation
-- [ ] **Phase 2: Data Display** - Affiliate table with LTV margins, AOV per funnel, KPI cards, detail drawer, and search
+- [x] **Phase 2: Data Display** - Affiliate table with LTV margins, AOV per funnel, KPI cards, detail drawer, and search
 - [ ] **Phase 3: Simulation Engine** - Bidirectional CPA/margin simulation with live delta comparison
 
 ## Phase Details
@@ -43,8 +43,8 @@ Plans:
   5. User can type in a search/filter field to narrow the affiliate table by name
 **Plans:** 2 plans
 Plans:
-- [ ] 02-01-PLAN.md — Data layer extension (AOV in analyzeCPA) + useCpaVariavel hook
-- [ ] 02-02-PLAN.md — CPA Variavel page UI: KPI cards, table, search, detail navigation
+- [x] 02-01-PLAN.md — Data layer extension (AOV in analyzeCPA) + useCpaVariavel hook
+- [x] 02-02-PLAN.md — CPA Variavel page UI: KPI cards, table, search, detail navigation
 **UI hint**: yes
 
 ### Phase 3: Simulation Engine
@@ -68,5 +68,5 @@ Phases execute in numeric order: 1 -> 2 -> 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Page Scaffold | 1/1 | Complete    | 2026-04-22 |
-| 2. Data Display | 0/2 | Planned | - |
+| 2. Data Display | 2/2 | Complete | 2026-04-22 |
 | 3. Simulation Engine | 0/TBD | Not started | - |

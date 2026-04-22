@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-01-PLAN.md — data layer extended with aovGross, useCpaVariavel hook created
-last_updated: "2026-04-22T20:28:48.418Z"
+stopped_at: "Paused at checkpoint — Task 3: Visual verification of CPA Variavel page"
+last_updated: "2026-04-22T21:00:00.000Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
-  completed_plans: 2
-  percent: 67
+  completed_plans: 3
+  percent: 100
 ---
 
 # AffiliView — State
@@ -19,12 +19,12 @@ progress:
 ## Current Position
 
 Phase: 2
-Plan: Not started
-Status: Ready to plan
+Plan: 02 — paused at checkpoint (Task 3: visual verification)
+Status: Awaiting human verification
 Last activity: 2026-04-22
 
 ```
-Progress: [███████░░░] 67%
+Progress: [█████████░] 90%
 ```
 
 ## Project Reference
@@ -71,6 +71,9 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 | Placeholder page body minimal | Phase 2 replaces content — scaffold only needed for routing | Confirmed 01-01 |
 | Calculator icon on sidebar button | Matches original locked button design intent | Confirmed 01-01 |
 | New page Props: filteredRows + loading | Consistent with CpaFixo pattern — all pages receive filtered data | Confirmed 01-01 |
+| marginTarget=0 passed to AffiliateDetail | Phase 2 shows real margins, no simulation — Phase 3 will add slider | Confirmed 02-02 |
+| Variant badges use inline styles | Avoids adding new CSS classes; reuses existing bg-secondary variable | Confirmed 02-02 |
+| No CPAShell wrapper on CpaVariavel | Phase 2 has no margin slider or CPA status filter — header inlined | Confirmed 02-02 |
 
 ### Active Todos
 
@@ -82,9 +85,9 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 
 ## Session Continuity
 
-**Last completed:** Phase 01-page-scaffold Plan 01 — 2026-04-22T20:12:30Z
-**Stopped at:** Completed 02-01-PLAN.md — data layer extended with aovGross, useCpaVariavel hook created
-**To resume:** Run `/gsd-execute-phase 02` to execute Phase 2.
+**Last completed:** Phase 02-data-display Plan 02 tasks 1-2 — 2026-04-22
+**Stopped at:** Checkpoint — Task 3: Visual verification of CPA Variavel page
+**To resume:** Approve or describe issues at the checkpoint prompt, then run `/gsd-execute-phase 02` to continue.
 
 **Roadmap:** .planning/ROADMAP.md
 **Requirements:** .planning/REQUIREMENTS.md
