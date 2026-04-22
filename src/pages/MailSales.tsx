@@ -43,10 +43,6 @@ function computeMailMetrics(rows: TransactionRow[], totalGross: number): MailMet
   const gross = payRows.reduce((s, t) => s + t.grossAmount, 0);
   const refundAmt = refRows.reduce((s, t) => s + t.grossAmount, 0);
   const frontOrders = payRows.filter((t) => t.upsellNo === 0).length;
-  const frontGross = payRows
-    .filter((t) => t.upsellNo === 0)
-    .reduce((s, t) => s + t.grossAmount, 0);
-
   // Product mix (front orders only)
   const prodMap = new Map<string, { gross: number; orders: number }>();
   for (const t of payRows.filter((t) => t.upsellNo === 0)) {

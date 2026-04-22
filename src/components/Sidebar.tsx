@@ -51,6 +51,13 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, onNavigate }) => {
           CPA Variavel
         </button>
         <button
+          className={`sidebar-link ${activePage === "calculator" ? "active" : ""}`}
+          onClick={() => onNavigate("calculator")}
+        >
+          <TrendingUp size={15} strokeWidth={1.4} />
+          CPA Calculator
+        </button>
+        <button
           className={`sidebar-link ${activePage === "cpa-fixo" ? "active" : ""}`}
           onClick={() => onNavigate("cpa-fixo")}
         >

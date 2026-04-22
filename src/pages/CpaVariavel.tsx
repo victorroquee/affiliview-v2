@@ -2,7 +2,7 @@ import React from "react";
 import { Calculator, Search, BarChart2, Users, TrendingUp, DollarSign } from "lucide-react";
 import LoadingDot from "../components/LoadingDot";
 import type { TransactionRow } from "../lib/transactions";
-import { formatEur, formatPct } from "../lib/transactions";
+import { formatEur } from "../lib/transactions";
 import { useCpaVariavel } from "../hooks/useCpaVariavel";
 import CpaVariavelTable from "../components/cpa/CpaVariavelTable";
 import AffiliateDetail from "../components/cpa/AffiliateDetail";
