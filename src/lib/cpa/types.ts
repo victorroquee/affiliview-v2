@@ -53,3 +53,22 @@ export interface AffiliateResult {
   refundRate:         number;  // percentual
   upsellConvOverall:  number;  // percentual
 }
+
+// ─── Variant with simulation overlay ─────────────────────────────────────────
+export interface SimulatedVariant extends VariantResult {
+  /** maxCpa computed from marginTarget — only set when marginTarget > 0 */
+  simMaxCpa:        number;
+  simCpaStatus:     'increase' | 'ok' | 'reduce';
+  simRoom:          number;   // simMaxCpa - cpaDefault
+  /** Custom CPA entered by user — undefined means "not overridden" */
+  customCpa?:       number;
+  /** Margin resulting from customCpa: ltvProfit + cpaDefault - customCpa */
+  customMargin?:    number;
+  /** Delta: (customCpa ?? cpaDefault) - cpaDefault */
+  cpaDelta:         number;
+}
+
+// ─── Affiliate result with simulated variants ────────────────────────────────
+export interface SimulatedAffiliateResult extends AffiliateResult {
+  variants: SimulatedVariant[];
+}
