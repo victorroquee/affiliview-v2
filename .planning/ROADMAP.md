@@ -57,8 +57,9 @@ Plans:
   3. User can see the current default CPA alongside the proposed CPA with the delta (difference) clearly visible for each pot
 **Plans:** 2 plans
 Plans:
-- [x] 02-01-PLAN.md — Data layer extension (AOV in analyzeCPA) + useCpaVariavel hook
-- [x] 02-02-PLAN.md — CPA Variavel page UI: KPI cards, table, search, detail navigation
+- [ ] 03-01-PLAN.md — Simulation data layer: extend useCpaVariavel hook with marginTarget, customCpa state, and computed simMaxCpa/customMargin/cpaDelta
+- [ ] 03-02-PLAN.md — Simulation UI: margin slider on page, sim columns in table, custom CPA input with delta in detail view
+**UI hint**: yes
 
 ## Progress
 
@@ -69,4 +70,4 @@ Phases execute in numeric order: 1 -> 2 -> 3
 |-------|----------------|--------|-----------|
 | 1. Page Scaffold | 1/1 | Complete    | 2026-04-22 |
 | 2. Data Display | 2/2 | Complete    | 2026-04-22 |
-| 3. Simulation Engine | 0/TBD | Not started | - |
+| 3. Simulation Engine | 0/2 | Not started | - |
