@@ -41,7 +41,10 @@ Plans:
   3. User can see summary KPI cards at the top of the page showing total affiliates, average margin, and average AOV
   4. User can expand or open a drawer for any affiliate to see a full per-pot breakdown with line-item detail
   5. User can type in a search/filter field to narrow the affiliate table by name
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 02-01-PLAN.md — Data layer extension (AOV in analyzeCPA) + useCpaVariavel hook
+- [ ] 02-02-PLAN.md — CPA Variavel page UI: KPI cards, table, search, detail navigation
 **UI hint**: yes
 
 ### Phase 3: Simulation Engine
@@ -52,7 +55,10 @@ Plans:
   1. User can enter a margin target percentage and see the maximum CPA calculated for each pot (M1/M2/M3) per affiliate in real time
   2. User can enter a custom CPA value for any pot per affiliate and see the resulting margin percentage immediately
   3. User can see the current default CPA alongside the proposed CPA with the delta (difference) clearly visible for each pot
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 02-01-PLAN.md — Data layer extension (AOV in analyzeCPA) + useCpaVariavel hook
+- [ ] 02-02-PLAN.md — CPA Variavel page UI: KPI cards, table, search, detail navigation
 
 ## Progress
 
@@ -62,5 +68,5 @@ Phases execute in numeric order: 1 -> 2 -> 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Page Scaffold | 1/1 | Complete    | 2026-04-22 |
-| 2. Data Display | 0/TBD | Not started | - |
+| 2. Data Display | 0/2 | Planned | - |
 | 3. Simulation Engine | 0/TBD | Not started | - |
