@@ -26,7 +26,7 @@ export const ProductSummaryTable: React.FC<ProductSummaryTableProps> = ({ data }
             <th style={{ textAlign: "right" }}>Gross Revenue <InfoTooltip text="Soma de amount de todas as vendas frontais do produto. Não desconta reembolsos nem chargebacks — é a receita bruta gerada." /></th>
             <th style={{ textAlign: "right" }}>Net Revenue <InfoTooltip text="Gross Revenue menos o valor de reembolsos e chargebacks. Receita efetivamente retida após devoluções no período." /></th>
             <th style={{ textAlign: "right" }}>Earnings <InfoTooltip text="Soma de earned_amount (margem da plataforma) nas vendas frontais, já líquido de estornos negativos de reembolsos e CB." /></th>
-            <th style={{ textAlign: "right" }}>Ticket Médio <InfoTooltip text="Gross frontal ÷ nº de vendas front. Valor médio por pedido inicial neste produto, excluindo upsells." /></th>
+            <th style={{ textAlign: "right" }}>Ticket Médio <InfoTooltip text="Gross total (front + upsells + bumps) ÷ nº de vendas front. Valor médio total por pedido neste produto, incluindo upsells e bumps." /></th>
             <th style={{ textAlign: "right" }}>Vendas Front <InfoTooltip text="Contagem de pagamentos aprovados com upsell_no=0 atribuídos a este produto no período." /></th>
             <th style={{ textAlign: "right" }}>Total Vendas <InfoTooltip text="Vendas frontais + upsells atribuídos a este produto. Inclui todos os tipos de transação do produto." /></th>
             <th style={{ textAlign: "right" }}>Reembolso % <InfoTooltip text="Value-based: valor dos reembolsos ÷ gross revenue front. Laranja >5%, vermelho >10%. Impacta diretamente o Net Revenue." /></th>

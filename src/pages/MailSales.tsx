@@ -80,7 +80,7 @@ function computeMailMetrics(rows: TransactionRow[], totalGross: number): MailMet
     gross,
     grossPct: totalGross > 0 ? gross / totalGross : 0,
     frontOrders,
-    aovPerOrder: frontOrders > 0 ? frontGross / frontOrders : 0,
+    aovPerOrder: frontOrders > 0 ? gross / frontOrders : 0,
     refundAmt,
     refundPct: gross > 0 ? refundAmt / gross : 0,
     productMix,
@@ -163,7 +163,7 @@ const MailSalesPage: React.FC<MailSalesProps> = ({ filteredRows, loading }) => {
             icon={BadgeDollarSign}
             label="Valor Médio por Venda"
             value={formatEur(m.aovPerOrder)}
-            info="Gross médio por venda frontal recuperada pelo Maileonardo. Indica o ticket médio dos carrinhos abandonados convertidos."
+            info="Gross total (front + upsells + bumps) por pedido recuperado pelo Maileonardo. Indica o ticket médio completo dos carrinhos abandonados convertidos."
           />
           <KPICard
             icon={RotateCcw}

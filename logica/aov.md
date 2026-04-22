@@ -1,25 +1,25 @@
 # KPI: AOV (Average Order Value — Ticket Médio)
 
 ## O que é
-O valor médio por pedido frontal. Mede quanto, em média, cada cliente gasta na compra do produto principal (`upsell_no === 0`), excluindo upsells. É uma métrica fundamental para entender o poder de compra do tráfego que cada afiliado traz.
+O valor médio total por pedido, incluindo o produto principal, upsells e order bumps. Mede quanto, em média, cada cliente gasta no pedido completo (front + upsells + bumps). É uma métrica fundamental para entender o valor real que cada pedido gera.
 
 ---
 
 ## Origem e Extração
 - **Fonte**: API Digistore24 — endpoint `listTransactions`
-- **Numerador**: `amount` das transações com `transaction_type === "payment"` e `upsell_no === 0` (apenas vendas frontais)
-- **Denominador**: Contagem de transações com `transaction_type === "payment"` e `upsell_no === 0`
+- **Numerador**: `amount` de **todas** as transações com `transaction_type === "payment"` (front + upsells + bumps)
+- **Denominador**: Contagem de transações com `transaction_type === "payment"` e `upsell_no === 0` (pedidos únicos)
 
 ---
 
 ## Fórmula
 
 ```
-AOV = SUM(amount WHERE payment AND upsell_no === 0) / COUNT(payment WHERE upsell_no === 0)
-    = frontGross / frontSales
+AOV = SUM(amount WHERE payment) / COUNT(payment WHERE upsell_no === 0)
+    = grossBruto / frontSales
 ```
 
-> O AOV usa apenas o gross das vendas frontais (`upsell_no === 0`) — upsells aceitos pelo cliente **não** entram no cálculo. Mede o ticket médio da compra principal.
+> O AOV usa o gross total de todos os pagamentos (front + upsells + bumps) dividido pelo número de pedidos frontais (únicos). Isso reflete o valor real médio que cada pedido gera, incluindo receita de upsells e bumps.
 
 ---
 
@@ -38,7 +38,8 @@ O campo `upsell_no` da API Digistore24 indica a posição do produto no funil:
 
 ## Regras
 
-- Numerador e denominador usam apenas transações com `upsell_no === 0` (vendas frontais)
+- **Numerador**: usa todas as transações `payment` (front + upsells + bumps)
+- **Denominador**: usa apenas transações com `upsell_no === 0` (pedidos únicos)
 - Refunds e chargebacks **não** entram no cálculo (apenas `transaction_type === "payment"`)
 - Inclui os três produtos: **Erectus X**, **Slimjara** e **Memoguard**
 - O período filtrado segue horário **UTC** (00:00 até 23:59 UTC)
@@ -50,15 +51,15 @@ O campo `upsell_no` da API Digistore24 indica a posição do produto no funil:
 | Tipo | upsell_no | amount | Entra no AOV? |
 |------|-----------|--------|--------------|
 | Erectus X - 6 Bottles (payment) | 0 | €150,00 | ✅ Numerador + Denominador |
-| Slimjara - 3 frascos (payment, upsell) | 1 | €80,00 | ❌ Excluído |
+| Slimjara - 3 frascos (payment, upsell) | 1 | €80,00 | ✅ Numerador apenas |
 | Memoguard - 3 frascos (payment) | 0 | €90,00 | ✅ Numerador + Denominador |
 | Slimjara - 6 frascos (payment) | 0 | €120,00 | ✅ Numerador + Denominador |
 | Refund Erectus X | refund | — | ❌ Excluído (não é payment) |
 
 ```
-frontGross = €150 + €90 + €120 = €360,00
+totalGross = €150 + €80 + €90 + €120 = €440,00
 frontSales = 3
-AOV = €360 / 3 = €120,00
+AOV = €440 / 3 = €146,67
 ```
 
 ---
@@ -71,8 +72,8 @@ AOV = €360 / 3 = €120,00
 ---
 
 ## Observações
-- AOV alto indica preferência por pacotes maiores (mais frascos)
-- Um AOV mais baixo pode indicar que o afiliado traz clientes que preferem pacotes menores
+- AOV alto indica preferência por pacotes maiores e boa taxa de aceitação de upsells/bumps
+- Um AOV mais baixo pode indicar que o afiliado traz clientes que não aceitam upsells
 - O AOV não é afetado por refunds — apenas conta pedidos realizados (`payment`)
 - A identificação via `upsell_no` é mais precisa que a detecção por nome de produto (usada como fallback somente no CSV)
 
@@ -83,13 +84,12 @@ AOV = €360 / 3 = €120,00
 **Arquivo**: `src/lib/transactions.ts` — função `computePeriod()`
 
 ```typescript
-// Front payments = pagamentos com upsell_no === 0
+// Front payments = pagamentos com upsell_no === 0 (pedidos únicos)
 const frontPayments = payTxs.filter((t) => t.upsellNo === 0);
 const frontSales    = frontPayments.length;
 
-// AOV = gross das vendas frontais / quantidade de vendas frontais
-const frontGross = frontPayments.reduce((s, t) => s + t.grossAmount, 0);
-const aov = frontSales > 0 ? frontGross / frontSales : 0;
+// AOV = gross total (front + upsells + bumps) / pedidos únicos
+const aov = frontSales > 0 ? grossBruto / frontSales : 0;
 ```
 
 **Arquivo**: `src/utils/digiNormalizer.ts` — campo `upsell_no` normalizado
@@ -106,4 +106,4 @@ return {
 
 > Para dados de CSV (fallback), `upsellNo` é inferido pelo nome do produto via `isUpsellByName()`. Para dados da API, usa-se diretamente o campo `upsell_no`.
 
-**Exibido em**: `src/pages/Index.tsx` — cartão "AOV" no topo do dashboard, e na tabela de produtos em `ProductSummaryTable`
+**Exibido em**: `src/pages/Dashboard.tsx` — cartão "AOV" no topo do dashboard, e na tabela de produtos em `ProductSummaryTable`

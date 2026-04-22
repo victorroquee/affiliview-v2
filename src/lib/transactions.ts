@@ -339,9 +339,9 @@ export function computePeriod(
   const frontSales    = frontPayments.length;
 
   // ── AOV ────────────────────────────────────────────────────────────────────
-  // Average order value of front offers (upsell_no === 0)
-  const frontGross = frontPayments.reduce((s, t) => s + t.grossAmount, 0);
-  const aov = frontSales > 0 ? frontGross / frontSales : 0;
+  // Average order value per unique order (front + upsells + bumps)
+  // Numerator: total gross of all payments; Denominator: front sales (unique orders)
+  const aov = frontSales > 0 ? grossBruto / frontSales : 0;
 
   // ── Valor Líquido ──────────────────────────────────────────────────────────
   // valorLiq = SUM(earned_amount all types) − SUM(COGS for payments)
@@ -475,7 +475,7 @@ export function computePeriod(
     e.frontSales += 1;
     prodSumMap.set(base, e);
   }
-  // totalSales += upsells por produto (fronts já foram incrementados acima)
+  // totalSales += upsells por produto e acumula gross de upsells para AOV
   for (const t of payTxs) {
     if (t.upsellNo === 0) continue; // fronts já foram contados
     const base = getProductBase(t.productName);
@@ -483,6 +483,7 @@ export function computePeriod(
     const e = prodSumMap.get(base);
     if (!e) continue; // só conta upsells de produtos que tiveram front no período
     e.totalSales += 1;
+    e.gross      += t.grossAmount; // upsell/bump gross included in AOV numerator
   }
 
   for (const t of frontRefCbTxs) {
@@ -502,7 +503,7 @@ export function computePeriod(
       grossRevenue: d.gross,
       netRevenue:   d.gross - d.refAmt - d.cbAmt,  // gross − valor de reembolsos e CB (o que foi efetivamente retido)
       earnings:     d.earnings,
-      aov:          d.frontSales > 0 ? d.grossBruto / d.frontSales : 0,
+      aov:          d.frontSales > 0 ? d.gross / d.frontSales : 0,
       frontSales:   d.frontSales,
       totalSales:   d.totalSales,
       returnPct:    d.grossBruto > 0 ? (d.refAmt / d.grossBruto) * 100 : 0,
@@ -620,7 +621,7 @@ export function computePeriod(
         sales:        d.sales,
         refundCbPct:  rcPct,
         status:       statusFromPct(rcPct),
-        aov:          d.sales > 0 ? d.frontGross / d.sales : 0,
+        aov:          d.sales > 0 ? d.gross / d.sales : 0,
         cpa,
         margem:       d.gross > 0 ? (d.liq / d.gross) * 100 : 0,
       };
