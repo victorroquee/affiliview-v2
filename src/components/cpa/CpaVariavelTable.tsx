@@ -1,14 +1,18 @@
 import React from "react";
-import type { AffiliateResult } from "../../lib/cpa/types";
+import type { SimulatedAffiliateResult } from "../../lib/cpa/types";
 import { formatEur, formatPct, formatInt } from "../../lib/transactions";
 import InfoTooltip from "../InfoTooltip";
+import StatusBadge from "./StatusBadge";
 
 interface CpaVariavelTableProps {
-  results: AffiliateResult[];
+  results: SimulatedAffiliateResult[];
+  marginTarget: number;
   onSelect: (name: string) => void;
 }
 
-const CpaVariavelTable: React.FC<CpaVariavelTableProps> = ({ results, onSelect }) => {
+const CpaVariavelTable: React.FC<CpaVariavelTableProps> = ({ results, marginTarget, onSelect }) => {
+  const showSim = marginTarget > 0;
+
   if (results.length === 0) {
     return (
       <div className="cpa-table-empty">
@@ -36,6 +40,17 @@ const CpaVariavelTable: React.FC<CpaVariavelTableProps> = ({ results, onSelect }
             <th style={{ textAlign: "right" }}>Conv. upsell</th>
             <th style={{ textAlign: "right" }}>Kit dom.</th>
             <th style={{ textAlign: "right" }}>M1/M2/M3</th>
+            {showSim && (
+              <th style={{ textAlign: "right" }}>
+                CPA max (sim)
+                <InfoTooltip text="CPA maximo calculado para a margem alvo definida. Por variante dominante." />
+              </th>
+            )}
+            {showSim && (
+              <th style={{ textAlign: "right" }}>
+                Status
+              </th>
+            )}
             <th />
           </tr>
         </thead>
@@ -87,6 +102,19 @@ const CpaVariavelTable: React.FC<CpaVariavelTableProps> = ({ results, onSelect }
                     </span>
                   ))}
                 </td>
+                {showSim && (() => {
+                  const domSV = aff.variants.find(v => v.variant === aff.domVariant);
+                  return (
+                    <>
+                      <td className="num" style={{ fontWeight: 600 }}>
+                        {domSV ? formatEur(domSV.simMaxCpa) : "—"}
+                      </td>
+                      <td>
+                        {domSV ? <StatusBadge status={domSV.simCpaStatus} compact /> : "—"}
+                      </td>
+                    </>
+                  );
+                })()}
                 <td>
                   <button
                     className="cpa-ver-btn"

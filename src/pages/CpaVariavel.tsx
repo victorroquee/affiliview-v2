@@ -1,5 +1,5 @@
 import React from "react";
-import { Calculator, Search, BarChart2, Users, TrendingUp, DollarSign } from "lucide-react";
+import { Calculator, Search, BarChart2, Users, TrendingUp, DollarSign, RotateCcw } from "lucide-react";
 import LoadingDot from "../components/LoadingDot";
 import type { TransactionRow } from "../lib/transactions";
 import { formatEur } from "../lib/transactions";
@@ -25,6 +25,11 @@ const CpaVariavel: React.FC<Props> = ({ filteredRows, loading }) => {
     displayResults,
     selectedAff,
     setSelected,
+    marginTarget,
+    setMarginTarget,
+    customCpas,
+    setCustomCpa,
+    clearSimulation,
   } = useCpaVariavel(filteredRows);
 
   return (
@@ -71,9 +76,28 @@ const CpaVariavel: React.FC<Props> = ({ filteredRows, loading }) => {
         </div>
       )}
 
-      {/* Search bar */}
+      {/* Search bar and simulation controls */}
       {results && (
         <div className="cpa-controls">
+          <div className="cpa-margin-group">
+            <label className="cpa-margin-label">
+              Margem alvo: <strong>{marginTarget}%</strong>
+            </label>
+            <input
+              type="range"
+              min={0}
+              max={50}
+              step={1}
+              value={marginTarget}
+              onChange={e => setMarginTarget(Number(e.target.value))}
+              className="cpa-margin-slider"
+            />
+            <div className="cpa-margin-bounds">
+              <span>0%</span>
+              <span>50%</span>
+            </div>
+          </div>
+
           <div className="cpa-search-wrap">
             <Search size={14} strokeWidth={1.4} className="cpa-search-icon" />
             <input
@@ -84,6 +108,23 @@ const CpaVariavel: React.FC<Props> = ({ filteredRows, loading }) => {
               onChange={e => setSearch(e.target.value)}
             />
           </div>
+
+          {(marginTarget > 0 || Object.keys(customCpas).length > 0) && (
+            <button
+              className="cpa-reset-btn"
+              onClick={clearSimulation}
+              title="Limpar simulacao"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 4,
+                padding: "6px 12px", borderRadius: 6,
+                background: "var(--bg-secondary)", border: "1px solid var(--border)",
+                color: "var(--text-2)", cursor: "pointer", fontSize: 12, fontWeight: 500,
+              }}
+            >
+              <RotateCcw size={13} strokeWidth={1.6} />
+              Limpar simulacao
+            </button>
+          )}
         </div>
       )}
 
@@ -127,7 +168,8 @@ const CpaVariavel: React.FC<Props> = ({ filteredRows, loading }) => {
       {results && selectedAff && (
         <AffiliateDetail
           aff={selectedAff}
-          marginTarget={0}
+          marginTarget={marginTarget}
+          setCustomCpa={setCustomCpa}
           onBack={() => setSelected(null)}
         />
       )}
@@ -136,6 +178,7 @@ const CpaVariavel: React.FC<Props> = ({ filteredRows, loading }) => {
       {results && !selectedAff && results.length > 0 && (
         <CpaVariavelTable
           results={displayResults}
+          marginTarget={marginTarget}
           onSelect={(name) => {
             setSelected(name);
             window.scrollTo({ top: 0, behavior: "smooth" });
