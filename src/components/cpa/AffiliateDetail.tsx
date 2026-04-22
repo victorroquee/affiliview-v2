@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowLeft } from "lucide-react";
-import type { AffiliateResult } from "../../lib/cpa/types";
+import type { SimulatedAffiliateResult } from "../../lib/cpa/types";
 import { formatEur as fmtEur, formatPct as fmtPct, formatInt as fmtInt } from "../../lib/transactions";
 import VariantCard from "./VariantCard";
 import InfoTooltip from "../InfoTooltip";
@@ -24,12 +24,13 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ label, value, color, info }) 
 );
 
 interface AffiliateDetailProps {
-  aff:          AffiliateResult;
+  aff:          SimulatedAffiliateResult;
   marginTarget: number;
+  setCustomCpa: (affName: string, variant: number, value: number | null) => void;
   onBack:       () => void;
 }
 
-const AffiliateDetail: React.FC<AffiliateDetailProps> = ({ aff, marginTarget, onBack }) => {
+const AffiliateDetail: React.FC<AffiliateDetailProps> = ({ aff, marginTarget, setCustomCpa, onBack }) => {
   const refundHigh = aff.refundRate > 10;
   const refundMid  = aff.refundRate > 5;
 
@@ -104,7 +105,12 @@ const AffiliateDetail: React.FC<AffiliateDetailProps> = ({ aff, marginTarget, on
       </div>
       <div className="aff-variants-grid">
         {aff.variants.map(v => (
-          <VariantCard key={v.variant} v={v} />
+          <VariantCard
+            key={v.variant}
+            v={v}
+            affName={aff.name}
+            setCustomCpa={setCustomCpa}
+          />
         ))}
       </div>
     </div>
