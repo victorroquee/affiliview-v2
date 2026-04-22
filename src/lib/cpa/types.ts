@@ -2,10 +2,10 @@
 export interface AffiliateAccumulator {
   name: string;
   fronts: {
-    [variant: number]: { count: number; earn: number; cogs: number };
+    [variant: number]: { count: number; earn: number; cogs: number; gross: number };
   };
   upsells: {
-    [variant: number]: { count: number; earn: number; cogs: number };
+    [variant: number]: { count: number; earn: number; cogs: number; gross: number };
   };
   refundEarn:       number;
   cbEarn:           number;
@@ -31,6 +31,7 @@ export interface VariantResult {
   ltvEarn:          number;
   ltvProfit:        number;
   upsellConv:       number;   // percentual
+  aovGross?:        number;   // gross revenue per front order (front + upsell gross / front count)
   cpaDefault:       number;
   maxCpa:           number;
   cpaStatus:        'increase' | 'ok' | 'reduce';

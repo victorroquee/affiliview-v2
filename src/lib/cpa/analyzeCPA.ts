@@ -68,20 +68,22 @@ export function analyzeCPA(
       // Front offer — determine M-variant from product name
       const v = getFrontVariant(r.productName);
       if (v === null || v === 4) continue; // ignorar M4 e produtos sem variante
-      if (!acc.fronts[v]) acc.fronts[v] = { count: 0, earn: 0, cogs: 0 };
+      if (!acc.fronts[v]) acc.fronts[v] = { count: 0, earn: 0, cogs: 0, gross: 0 };
       acc.fronts[v].count++;
       acc.fronts[v].earn += r.earnings;
       acc.fronts[v].cogs += getCogs(getBottles(r.productName), r.country, true);
+      acc.fronts[v].gross += r.grossAmount;
       acc.grossBruto += r.grossAmount;  // grossAmount is correctly set for payments
 
     } else {
       // Upsell (upsellNo > 0)
       const v = r.buyerId ? buyerFront[r.buyerId] : undefined;
       if (!v) continue;
-      if (!acc.upsells[v]) acc.upsells[v] = { count: 0, earn: 0, cogs: 0 };
+      if (!acc.upsells[v]) acc.upsells[v] = { count: 0, earn: 0, cogs: 0, gross: 0 };
       acc.upsells[v].count++;
       acc.upsells[v].earn += r.earnings;
       acc.upsells[v].cogs += getCogs(getBottles(r.productName), r.country, false);
+      acc.upsells[v].gross += r.grossAmount;
       acc.grossBruto += r.grossAmount;
       if (r.buyerId) acc.buyersWithUpsell.add(r.buyerId);
     }
@@ -125,7 +127,7 @@ export function analyzeCPA(
       if (f.count === 0) continue;
 
       const bottles       = VARIANT_BOTTLES[v] ?? 2;
-      const ups           = acc.upsells[v] ?? { count: 0, earn: 0, cogs: 0 };
+      const ups           = acc.upsells[v] ?? { count: 0, earn: 0, cogs: 0, gross: 0 };
       const frontEarnPer  = f.earn / f.count;
       const frontCogsPer  = f.cogs / f.count;
       const upsellEarnPer = ups.earn / f.count; // ← divide por fronts
@@ -133,6 +135,7 @@ export function analyzeCPA(
       const ltvEarn       = frontEarnPer + upsellEarnPer;
       const ltvProfit     = ltvEarn - frontCogsPer - upsellCogsPer;
       const upsellConv    = (ups.count / f.count) * 100;
+      const aovGross      = (f.gross + (ups.gross ?? 0)) / f.count;
       const cpaDefault    = CPA_DEFAULTS[bottles] ?? 0;
       const maxCpaRaw     = Math.max(0, cpaDefault + ltvProfit - marginTarget);
       const cpaStatus: VariantResult["cpaStatus"] =
@@ -151,6 +154,7 @@ export function analyzeCPA(
         ltvEarn,
         ltvProfit,
         upsellConv,
+        aovGross,
         cpaDefault,
         maxCpa:           Math.round(maxCpaRaw),
         cpaStatus,
