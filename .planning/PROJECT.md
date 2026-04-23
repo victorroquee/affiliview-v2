@@ -8,16 +8,17 @@ AffiliView is an internal analytics dashboard for managing affiliate performance
 
 Know exactly how much margin each affiliate generates per product variant, so CPA can be optimized per-affiliate to maximize profitability.
 
-## Current Milestone: v1.0 CPA Variavel
+## Current Milestone: v1.1 Melhorias Dashboard
 
-**Goal:** Nova aba "CPA Variavel" que permite definir CPA personalizado por pote e por afiliado, calcular margens reais (LTV completo: front + upsells - COGS - refunds), e simular cenarios de CPA maximo por margem target.
+**Goal:** Corrigir logica de status de afiliados, melhorar visualizacao de dados, integrar resultados de backend/upsell, e adicionar sistema de tags para afiliados.
 
 **Target features:**
-- Tabela de afiliados com margem por pote (M1/M2/M3) individual — considerando LTV completo (front + upsells)
-- AOV real por funil calculado dos dados Digistore (upsell rate e upsell earnings automaticos)
-- Modo bidirecional: definir CPA → ver margem, ou definir margem target → ver CPA maximo por pote
-- CPA customizavel por pote por afiliado (simulacao ao vivo, sem persistencia)
-- Visualizacao de quanto pode subir cada pote baseado na margem desejada
+- Status de afiliados (Ativo/Em Rampa/Inativo) com contagem e listagem
+- Ajustes visuais: cores de margem/reembolso, remover colunas desnecessarias
+- Dados de backend (upsells, downsells) por produto e contribuicao no AOV
+- Tags manuais de afiliados com filtro
+- Produto mais rodado por afiliado nos ultimos 7 dias
+- Detalhes de upsell por afiliado no drawer lateral
 
 ## Requirements
 
@@ -31,13 +32,26 @@ Know exactly how much margin each affiliate generates per product variant, so CP
 - Integracao Digistore24 API com filtros de periodo
 - COGS por zona de shipping (Z1-Z7, UK)
 - Upsell tracking por afiliado/variante
+- CPA Variavel — nova aba com CPA personalizado por pote por afiliado (v1.0)
+- Margem LTV completa por pote: front + upsells - COGS - refunds (v1.0)
+- AOV real por funil com upsell rate automatico (v1.0)
+- Simulacao bidirecional CPA/margem (v1.0)
 
 ### Active
 
-- [ ] CPA Variavel — nova aba com CPA personalizado por pote por afiliado
-- [ ] Margem LTV completa por pote (front + upsells - COGS - refunds)
-- [ ] AOV real por funil com upsell rate automatico
-- [ ] Simulacao bidirecional (CPA → margem / margem → CPA max)
+- [ ] Corrigir logica "Ativo" (10+ vendas em 7 dias) e discrepancia 21 vs 4
+- [ ] Novo status "Em Rampa" (1-9 vendas em 7 dias)
+- [ ] Status "Inativo" com contagem e listagem (5 dias sem vendas)
+- [ ] Remover coluna R+CB (TOTAL)
+- [ ] Cores de reembolso: laranja ate 8%, vermelho acima
+- [ ] Coluna Reembolso % na tabela Performance por kit (Front)
+- [ ] Remover prefixo M3/M2/M1 antes do SKU
+- [ ] Cores de margem: verde >=10%, amarelo 5-10%, vermelho <5%
+- [ ] Integrar resultados backend (up1-3, down1-3) por produto
+- [ ] Upsells vendidos por afiliado no drawer (quantidades + contribuicao AOV)
+- [ ] Produto mais rodado por afiliado nos ultimos 7 dias
+- [ ] Tags manuais por afiliado (origem/source tracking)
+- [ ] Filtrar lista de afiliados por tags
 
 ### Out of Scope
 
@@ -89,4 +103,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-22 after Phase 1 completion (Page Scaffold)*
+*Last updated: 2026-04-22 after milestone v1.1 start*
