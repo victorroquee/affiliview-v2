@@ -318,26 +318,28 @@ export function computePeriod(
   const refundAmt = refundRows.reduce((s, t) => s + t.grossAmount, 0);
   const cbAmt     = cbRows.reduce((s, t)     => s + t.grossAmount, 0);
 
-  // ── Gross ──────────────────────────────────────────────────────────────────
-  // grossBruto = soma dos pagamentos aprovados (inclui reembolsos e chargebacks no bruto total)
-  // gross = grossBruto (valor bruto total sem descontar devoluções)
-  const grossBruto = payTxs.reduce((s, t) => s + t.grossAmount, 0);
-  const gross = grossBruto;
-
-  // Rates: value-based (gross do reembolso/CB ÷ grossBruto × 100)
-  const rPct = grossBruto > 0 ? (refundAmt / grossBruto) * 100 : 0;
-  const cPct = grossBruto > 0 ? (cbAmt     / grossBruto) * 100 : 0;
-
-  // ── Earnings ───────────────────────────────────────────────────────────────
-  // SUM(earned_amount) for ALL transaction types.
-  // earned_amount is negative for refunds/CB — they naturally reduce earnings.
-  const earningsTotal =
-    payTxs.reduce((s, t) => s + t.earnings, 0) +
-    refCbTxs.reduce((s, t) => s + t.earnings, 0);
-
   // ── Front sales (upsellNo === 0) ───────────────────────────────────────────
   const frontPayments = payTxs.filter((t) => t.upsellNo === 0);
   const frontSales    = frontPayments.length;
+
+  // ── Gross ──────────────────────────────────────────────────────────────────
+  // grossBruto = soma de TODOS os pagamentos (front + upsells + bumps) — usado
+  // internamente para taxas de reembolso/CB e AOV.
+  // gross = soma apenas dos pagamentos frontais (upsellNo === 0) — alinhado com
+  // o dashboard da Digistore24 que mostra gross por pedido único.
+  const grossBruto = payTxs.reduce((s, t) => s + t.grossAmount, 0);
+  const gross = frontPayments.reduce((s, t) => s + t.grossAmount, 0);
+
+  // Rates: value-based (gross do reembolso/CB ÷ gross frontal × 100)
+  const rPct = gross > 0 ? (refundAmt / gross) * 100 : 0;
+  const cPct = gross > 0 ? (cbAmt     / gross) * 100 : 0;
+
+  // ── Earnings ───────────────────────────────────────────────────────────────
+  // Front-only payment earnings + refund/CB deductions (negative).
+  // Matches Digistore's "Your Earnings" which shows front-order earnings only.
+  const earningsTotal =
+    frontPayments.reduce((s, t) => s + t.earnings, 0) +
+    refCbTxs.reduce((s, t) => s + t.earnings, 0);
 
   // ── AOV ────────────────────────────────────────────────────────────────────
   // Average order value per unique order (front + upsells + bumps), VAT-excluded.
@@ -348,14 +350,13 @@ export function computePeriod(
   const aov = frontSales > 0 ? netTotal / frontSales : 0;
 
   // ── Valor Líquido ──────────────────────────────────────────────────────────
-  // valorLiq = SUM(earned_amount all types) − SUM(COGS for payments)
-  // COGS applied only to payments (product already shipped; refunds don't incur new COGS)
+  // valorLiq = front earnings − front COGS (consistent with front-only metrics)
+  // COGS applied only to front payments (product shipped; upsells are digital/no fulfillment)
   let productCostTotal = 0;
   let shippingCostTotal = 0;
   let cogsTotal = 0;
-  for (const t of payTxs) {
-    const front = t.upsellNo === 0;
-    const b = getFulfillmentBreakdown(t.productName, t.country, front);
+  for (const t of frontPayments) {
+    const b = getFulfillmentBreakdown(t.productName, t.country, true);
     productCostTotal  += b.product;
     shippingCostTotal += b.shipping;
     cogsTotal         += b.total;
@@ -402,9 +403,9 @@ export function computePeriod(
   );
 
   // ── Daily Gross ───────────────────────────────────────────────────────────
-  // Only payment rows — gross is not affected by refund/CB per logica2.md
+  // Front-only payment rows — aligned with gross KPI (Digistore definition)
   const dailyMap = new Map<string, number>();
-  for (const t of payTxs) {
+  for (const t of frontPayments) {
     const dateKey = t.date.toISOString().split("T")[0]!;
     dailyMap.set(dateKey, (dailyMap.get(dateKey) ?? 0) + t.grossAmount);
   }

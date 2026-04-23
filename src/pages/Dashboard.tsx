@@ -111,14 +111,14 @@ const Dashboard: React.FC<DashboardProps> = ({
                 icon={CircleDollarSign}
                 label="Gross Revenue"
                 value={formatEur(metrics.gross)}
-                info="Receita bruta total dos pagamentos aprovados, incluindo o valor bruto de reembolsos e chargebacks (sem descontar devoluções). Representa o volume total faturado antes de devoluções."
+                info="Receita bruta dos pedidos frontais (upsell_no=0). Alinhado com o gross do dashboard Digistore24. Upsells e bumps são contabilizados no AOV mas não inflam este KPI."
                 color="green"
               />
               <KPICard
                 icon={TrendingUp}
                 label="Earnings"
                 value={formatEur(metrics.earnings)}
-                info="Soma de earned_amount de todas as transações, incluindo estornos negativos de reembolsos e chargebacks. Representa a receita líquida da plataforma após devoluções."
+                info="Earned amount dos pedidos frontais (upsell_no=0) + estornos de reembolsos/chargebacks. Alinhado com 'Your Earnings' do Digistore24."
               />
               <KPICard
                 icon={Wallet}

@@ -96,7 +96,7 @@ const MailSalesPage: React.FC<MailSalesProps> = ({ filteredRows, loading }) => {
   const totalGrossBruto = useMemo(
     () =>
       filteredRows
-        .filter(isPayment)
+        .filter((t) => isPayment(t) && t.upsellNo === 0)
         .reduce((s, t) => s + t.grossAmount, 0),
     [filteredRows]
   );
