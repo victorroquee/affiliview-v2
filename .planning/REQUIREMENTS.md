@@ -3,34 +3,59 @@
 **Defined:** 2026-04-22
 **Core Value:** Know exactly how much margin each affiliate generates per product variant, so CPA can be optimized per-affiliate to maximize profitability.
 
-## v1.0 Requirements
+## v1.0 Requirements (Complete)
 
-Requirements for CPA Variavel milestone. Each maps to roadmap phases.
+All v1.0 requirements delivered. See MILESTONES.md for details.
 
-### Dados & Calculo
-
-- [x] **DATA-01
-**: User pode ver tabela de afiliados com margem LTV por pote (M1/M2/M3) — front + upsell earnings - COGS - refunds
-- [x] **DATA-02
-**: User pode ver AOV real por funil calculado automaticamente dos dados Digistore (upsell rate por afiliado)
-- [x] **DATA-03
-**: User pode ver KPIs resumo no topo (total afiliados, margem media, AOV medio)
-
-### Simulacao CPA
-
-- [x] **SIM-01
-**: User pode definir margem target (%) e ver CPA maximo calculado por pote por afiliado
-- [x] **SIM-02
-**: User pode definir CPA custom por pote por afiliado e ver margem resultante
-- [x] **SIM-03
-**: User pode comparar CPA atual (default) vs CPA proposto com delta visivel
-
-### UX & Navegacao
-
+- [x] **DATA-01**: User pode ver tabela de afiliados com margem LTV por pote (M1/M2/M3)
+- [x] **DATA-02**: User pode ver AOV real por funil calculado automaticamente dos dados Digistore
+- [x] **DATA-03**: User pode ver KPIs resumo no topo (total afiliados, margem media, AOV medio)
+- [x] **SIM-01**: User pode definir margem target (%) e ver CPA maximo calculado por pote por afiliado
+- [x] **SIM-02**: User pode definir CPA custom por pote por afiliado e ver margem resultante
+- [x] **SIM-03**: User pode comparar CPA atual (default) vs CPA proposto com delta visivel
 - [x] **UX-01**: Nova aba "CPA Variavel" na sidebar com icone
 - [x] **UX-02**: Detalhe por afiliado (expandir ou drawer) com breakdown detalhado por pote
-- [x] **UX-03
-**: Filtro por nome e busca de afiliados
+- [x] **UX-03**: Filtro por nome e busca de afiliados
+
+## v1.1 Requirements
+
+Requirements for milestone v1.1 — Melhorias Dashboard.
+
+### Status de Afiliados
+
+- [ ] **STAT-01**: User can see affiliates correctly classified as "Ativo" (10+ vendas em 7 dias) with verified logic
+- [ ] **STAT-02**: User can see consistent active affiliate count between activity menu and ranking views (fix 21 vs 4 discrepancy)
+- [ ] **STAT-03**: User can see how many affiliates became inactive in the selected period (5 dias sem vendas)
+- [ ] **STAT-04**: User can see which specific affiliates are inactive in the selected period
+- [ ] **STAT-05**: User can see affiliates classified as "Em Rampa" (1-9 vendas em 7 dias)
+
+### Ajustes Visuais
+
+- [ ] **VIS-01**: User sees refund percentage in orange when <= 8% and red when > 8%
+- [ ] **VIS-02**: User sees margin colors as green >= 10%, yellow 5-10%, red < 5% on affiliate results screen
+- [ ] **VIS-03**: User no longer sees the R+CB (TOTAL) column (removed)
+- [ ] **VIS-04**: User no longer sees M3/M2/M1 prefix before SKU names
+- [ ] **VIS-05**: User can see a Reembolso % column in the Performance por kit (Front) table
+
+### Dados de Backend e Upsell
+
+- [ ] **BKND-01**: User can see backend results (up1, up2, up3, down1, down2, down3) per product
+- [ ] **BKND-02**: User can see which upsells an affiliate sold in the selected period with quantities (in drawer)
+- [ ] **BKND-03**: User can see how much each upsell kit contributed to an affiliate's overall AOV (in drawer)
+- [ ] **BKND-04**: User can see which product each affiliate is running the most in the last 7 days
+
+### Tags de Afiliados
+
+- [ ] **TAG-01**: User can assign manual tags to affiliates (e.g., source/origin like "chris")
+- [ ] **TAG-02**: User can filter the affiliate list by tags
+
+## Open Questions
+
+| Question | Impact | Resolve Before |
+|----------|--------|----------------|
+| Dados up1-3/down1-3 vem da Digistore API ou outro sistema? | BKND-01: define fonte de dados e integracao | Phase execution |
+| Tags persistem em localStorage ou backend? | TAG-01: define implementacao | Phase execution |
+| Discrepancia 21 vs 4 afiliados ativos — bug ou logica diferente? | STAT-02: define se e fix ou redesign | Phase execution |
 
 ## Future Requirements
 
@@ -38,40 +63,52 @@ Requirements for CPA Variavel milestone. Each maps to roadmap phases.
 
 - **PERS-01**: Salvar CPA custom por afiliado em localStorage
 - **PERS-02**: Exportar tabela de CPA custom para CSV
+- **PERS-03**: Tags de afiliados persistidas em backend (compartilhadas entre usuarios)
 
 ### Visualizacao
 
 - **VIZ-01**: Grafico de margem por afiliado
 - **VIZ-02**: Historico de simulacoes
 
+### Automacao
+
+- **AUTO-01**: Deteccao automatica de origem de afiliado (sem tag manual)
+
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Persistencia de CPA custom (localStorage/servidor) | So simulacao ao vivo neste milestone |
-| Substituir abas Calculator ou CPA Fixo | Nova aba separada — cada uma serve proposito diferente |
-| Input manual de upsell rate | Dados vem automaticamente da Digistore |
+| Persistencia de CPA custom (localStorage/servidor) | Session-only por design (v1.0 decision) |
 | Mobile app | Web-first |
+| Substituicao de abas Calculator/CPA Fixo | Servem propositos diferentes |
+| Deteccao automatica de origem de afiliado | Complexidade alta, tag manual suficiente para v1.1 |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DATA-01 | Phase 2 | Complete |
-| DATA-02 | Phase 2 | Complete |
-| DATA-03 | Phase 2 | Complete |
-| SIM-01 | Phase 3 | Complete |
-| SIM-02 | Phase 3 | Complete |
-| SIM-03 | Phase 3 | Complete |
-| UX-01 | Phase 1 | Complete (01-01) |
-| UX-02 | Phase 2 | Complete |
-| UX-03 | Phase 2 | Complete |
+| STAT-01 | TBD | Pending |
+| STAT-02 | TBD | Pending |
+| STAT-03 | TBD | Pending |
+| STAT-04 | TBD | Pending |
+| STAT-05 | TBD | Pending |
+| VIS-01 | TBD | Pending |
+| VIS-02 | TBD | Pending |
+| VIS-03 | TBD | Pending |
+| VIS-04 | TBD | Pending |
+| VIS-05 | TBD | Pending |
+| BKND-01 | TBD | Pending |
+| BKND-02 | TBD | Pending |
+| BKND-03 | TBD | Pending |
+| BKND-04 | TBD | Pending |
+| TAG-01 | TBD | Pending |
+| TAG-02 | TBD | Pending |
 
 **Coverage:**
-- v1.0 requirements: 9 total
-- Mapped to phases: 9
-- Unmapped: 0
+- v1.1 requirements: 16 total
+- Mapped to phases: 0
+- Unmapped: 16
 
 ---
 *Requirements defined: 2026-04-22*
-*Last updated: 2026-04-22 after roadmap creation*
+*Last updated: 2026-04-22 after v1.1 milestone definition*
