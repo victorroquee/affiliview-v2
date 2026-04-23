@@ -95,11 +95,18 @@ export function normalizeDigiTransaction(t: DigiAPITransaction): TransactionRow 
     : new Date(0);
 
   // ── Transaction type ──────────────────────────────────────────────────────
-  const transactionType = str("transaction_type");
+  // Lowercase to avoid case-sensitivity bugs — Digistore may return mixed casing
+  const transactionType = str("transaction_type").toLowerCase();
   const isPaymentTx = (
     transactionType === "payment" ||
     transactionType === "sale" ||
     transactionType === "upsell"
+  );
+  const isRefundCbTx = (
+    transactionType === "refund" ||
+    transactionType === "return" ||
+    transactionType === "chargeback" ||
+    transactionType === "reversal"
   );
 
   // ── Amounts ───────────────────────────────────────────────────────────────
@@ -114,10 +121,13 @@ export function normalizeDigiTransaction(t: DigiAPITransaction): TransactionRow 
 
   // earned_amount: correctly signed by the API — positive for payments,
   // NEGATIVE for refunds and chargebacks. Fallback to merchant_amount if absent.
-  const earnedAmount =
+  const rawEarned =
     raw["earned_amount"] !== undefined && raw["earned_amount"] !== null && raw["earned_amount"] !== ""
       ? parseMoney(raw["earned_amount"])
       : parseMoney(raw["merchant_amount"]);
+  // Ensure refunds/CB always have non-positive earnings — if the fallback
+  // returned a positive value for a refund, negate it.
+  const earnedAmount = isRefundCbTx && rawEarned > 0 ? -rawEarned : rawEarned;
 
   // affiliateAmount: actual CPA paid to the affiliate for this transaction
   const affiliateAmount = parseMoney(raw["affiliate_amount"]);

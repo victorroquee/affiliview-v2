@@ -247,13 +247,13 @@ export function isUpsellByName(productName: string): boolean {
 }
 
 export function isPayment(t: TransactionRow): boolean {
+  // Strict whitelist — only known payment types. The catch-all was causing
+  // refunds/CB with non-standard casing or unknown types to be classified as
+  // payments, inflating gross revenue and transaction counts.
   return (
     t.transactionType === "payment" ||
     t.transactionType === "sale" ||
-    t.transactionType === "upsell" ||
-    t.transactionType === "" ||
-    (t.grossAmount > 0 &&
-      !["return", "refund", "chargeback", "reversal"].includes(t.transactionType))
+    t.transactionType === "upsell"
   );
 }
 
