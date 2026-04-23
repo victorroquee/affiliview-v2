@@ -41,6 +41,7 @@ function computeMailMetrics(rows: TransactionRow[], totalGross: number): MailMet
   const refRows = mailRows.filter((t) => isRefund(t) || isChargeback(t));
 
   const gross = payRows.reduce((s, t) => s + t.grossAmount, 0);
+  const netTotal = payRows.reduce((s, t) => s + t.netAmount, 0);
   const refundAmt = refRows.reduce((s, t) => s + t.grossAmount, 0);
   const frontOrders = payRows.filter((t) => t.upsellNo === 0).length;
   // Product mix (front orders only)
@@ -76,7 +77,7 @@ function computeMailMetrics(rows: TransactionRow[], totalGross: number): MailMet
     gross,
     grossPct: totalGross > 0 ? gross / totalGross : 0,
     frontOrders,
-    aovPerOrder: frontOrders > 0 ? gross / frontOrders : 0,
+    aovPerOrder: frontOrders > 0 ? netTotal / frontOrders : 0,
     refundAmt,
     refundPct: gross > 0 ? refundAmt / gross : 0,
     productMix,
@@ -159,7 +160,7 @@ const MailSalesPage: React.FC<MailSalesProps> = ({ filteredRows, loading }) => {
             icon={BadgeDollarSign}
             label="Valor Médio por Venda"
             value={formatEur(m.aovPerOrder)}
-            info="Gross total (front + upsells + bumps) por pedido recuperado pelo Maileonardo. Indica o ticket médio completo dos carrinhos abandonados convertidos."
+            info="Total líquido sem IVA (front + upsells + bumps) por pedido recuperado pelo Maileonardo. Indica o ticket médio completo dos carrinhos abandonados convertidos."
           />
           <KPICard
             icon={RotateCcw}

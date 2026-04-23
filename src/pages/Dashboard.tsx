@@ -131,7 +131,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 icon={ShoppingCart}
                 label="Ticket Médio (AOV)"
                 value={formatEur(metrics.aov)}
-                info="Gross total (front + upsells + bumps) dividido pelo número de pedidos front. Mede o valor médio total por pedido, incluindo upsells e bump orders."
+                info="Total líquido sem IVA (front + upsells + bumps) dividido pelo número de pedidos front. Mede o valor médio total por pedido, excluindo IVA."
               />
               <KPICard
                 icon={RotateCcw}

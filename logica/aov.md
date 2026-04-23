@@ -15,11 +15,11 @@ O valor médio total por pedido, incluindo o produto principal, upsells e order 
 ## Fórmula
 
 ```
-AOV = SUM(amount WHERE payment) / COUNT(payment WHERE upsell_no === 0)
-    = grossBruto / frontSales
+AOV = SUM((amount − vat_amount) WHERE payment) / COUNT(payment WHERE upsell_no === 0)
+    = netTotal / frontSales
 ```
 
-> O AOV usa o gross total de todos os pagamentos (front + upsells + bumps) dividido pelo número de pedidos frontais (únicos). Isso reflete o valor real médio que cada pedido gera, incluindo receita de upsells e bumps.
+> O AOV usa o valor líquido sem IVA de todos os pagamentos (front + upsells + bumps) dividido pelo número de pedidos frontais (únicos). Usa `amount − vat_amount` (netAmount) porque o campo `amount` da API inclui IVA, que inflava o AOV vs. a métrica real de negócio.
 
 ---
 
@@ -38,7 +38,7 @@ O campo `upsell_no` da API Digistore24 indica a posição do produto no funil:
 
 ## Regras
 
-- **Numerador**: usa todas as transações `payment` (front + upsells + bumps)
+- **Numerador**: usa `netAmount` (amount − vat_amount) de todas as transações `payment` (front + upsells + bumps), excluindo IVA
 - **Denominador**: usa apenas transações com `upsell_no === 0` (pedidos únicos)
 - Refunds e chargebacks **não** entram no cálculo (apenas `transaction_type === "payment"`)
 - Inclui os três produtos: **Erectus X**, **Slimjara** e **Memoguard**
@@ -88,8 +88,9 @@ AOV = €440 / 3 = €146,67
 const frontPayments = payTxs.filter((t) => t.upsellNo === 0);
 const frontSales    = frontPayments.length;
 
-// AOV = gross total (front + upsells + bumps) / pedidos únicos
-const aov = frontSales > 0 ? grossBruto / frontSales : 0;
+// AOV = net total sem IVA (front + upsells + bumps) / pedidos únicos
+const netTotal = payTxs.reduce((s, t) => s + t.netAmount, 0);
+const aov = frontSales > 0 ? netTotal / frontSales : 0;
 ```
 
 **Arquivo**: `src/utils/digiNormalizer.ts` — campo `upsell_no` normalizado

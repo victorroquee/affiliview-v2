@@ -86,6 +86,7 @@ export interface AffiliateDetail {
   gross: number;
   grossBruto: number;
   frontGross: number;     // SUM(grossAmount WHERE upsellNo === 0) — for AOV calculation
+  net: number;            // SUM(netAmount) all payments — VAT-excluded, used for AOV
   earnings: number;
   liq: number;
   sales: number;
@@ -339,9 +340,12 @@ export function computePeriod(
   const frontSales    = frontPayments.length;
 
   // ── AOV ────────────────────────────────────────────────────────────────────
-  // Average order value per unique order (front + upsells + bumps)
-  // Numerator: total gross of all payments; Denominator: front sales (unique orders)
-  const aov = frontSales > 0 ? grossBruto / frontSales : 0;
+  // Average order value per unique order (front + upsells + bumps), VAT-excluded.
+  // Numerator: total net of all payments (amount − VAT); Denominator: front sales (unique orders)
+  // Uses netAmount (amount − vat_amount) because grossAmount includes VAT which
+  // inflates AOV vs. the real business metric (Digistore amount field = VAT-inclusive).
+  const netTotal = payTxs.reduce((s, t) => s + t.netAmount, 0);
+  const aov = frontSales > 0 ? netTotal / frontSales : 0;
 
   // ── Valor Líquido ──────────────────────────────────────────────────────────
   // valorLiq = SUM(earned_amount all types) − SUM(COGS for payments)
@@ -483,7 +487,8 @@ export function computePeriod(
     const e = prodSumMap.get(base);
     if (!e) continue; // só conta upsells de produtos que tiveram front no período
     e.totalSales += 1;
-    e.gross      += t.grossAmount; // upsell/bump gross included in AOV numerator
+    e.gross      += t.grossAmount; // upsell/bump gross included in gross totals
+    e.net        += t.netAmount;   // upsell/bump net included in AOV numerator
   }
 
   for (const t of frontRefCbTxs) {
@@ -503,7 +508,7 @@ export function computePeriod(
       grossRevenue: d.gross,
       netRevenue:   d.gross - d.refAmt - d.cbAmt,  // gross − valor de reembolsos e CB (o que foi efetivamente retido)
       earnings:     d.earnings,
-      aov:          d.frontSales > 0 ? d.gross / d.frontSales : 0,
+      aov:          d.frontSales > 0 ? d.net / d.frontSales : 0,
       frontSales:   d.frontSales,
       totalSales:   d.totalSales,
       returnPct:    d.grossBruto > 0 ? (d.refAmt / d.grossBruto) * 100 : 0,
@@ -575,11 +580,12 @@ export function computePeriod(
     const n = t.affiliate.trim();
     if (!n) continue;
     const e = affMap.get(n) ?? {
-      gross: 0, grossBruto: 0, frontGross: 0, earnings: 0, liq: 0, sales: 0,
+      gross: 0, grossBruto: 0, frontGross: 0, net: 0, earnings: 0, liq: 0, sales: 0,
       refundAmt: 0, cbAmt: 0, totalTx: 0, affiliateAmt: 0,
     };
     e.gross          += t.grossAmount;
     e.grossBruto     += t.grossAmount;
+    e.net            += t.netAmount;    // VAT-excluded amount for AOV
     e.earnings       += t.earnings;
     e.affiliateAmt   += t.affiliateAmount;
     e.totalTx        += 1;
@@ -594,8 +600,8 @@ export function computePeriod(
     const n = t.affiliate.trim();
     if (!n) continue;
     const e = affMap.get(n) ?? {
-      gross: 0, grossBruto: 0, earnings: 0, liq: 0, sales: 0,
-      refundAmt: 0, cbAmt: 0, totalTx: 0, affiliateAmt: 0, frontGross: 0,
+      gross: 0, grossBruto: 0, frontGross: 0, net: 0, earnings: 0, liq: 0, sales: 0,
+      refundAmt: 0, cbAmt: 0, totalTx: 0, affiliateAmt: 0,
     };
     e.earnings += t.earnings;  // negative — reduces earnings
     e.liq      += t.earnings;  // refund: only earnings returned (fulfillment is sunk cost)
@@ -621,7 +627,7 @@ export function computePeriod(
         sales:        d.sales,
         refundCbPct:  rcPct,
         status:       statusFromPct(rcPct),
-        aov:          d.sales > 0 ? d.gross / d.sales : 0,
+        aov:          d.sales > 0 ? d.net / d.sales : 0,
         cpa,
         margem:       d.gross > 0 ? (d.liq / d.gross) * 100 : 0,
       };
