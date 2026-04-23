@@ -53,9 +53,9 @@ Requirements for milestone v1.1 — Melhorias Dashboard.
 
 | Question | Impact | Resolve Before |
 |----------|--------|----------------|
-| Dados up1-3/down1-3 vem da Digistore API ou outro sistema? | BKND-01: define fonte de dados e integracao | Phase execution |
-| Tags persistem em localStorage ou backend? | TAG-01: define implementacao | Phase execution |
-| Discrepancia 21 vs 4 afiliados ativos — bug ou logica diferente? | STAT-02: define se e fix ou redesign | Phase execution |
+| Dados up1-3/down1-3 vem da Digistore API ou outro sistema? | BKND-01: define fonte de dados e integracao | Phase 6 execution |
+| Tags persistem em localStorage ou backend? | TAG-01: define implementacao | Phase 7 execution |
+| Discrepancia 21 vs 4 afiliados ativos — bug ou logica diferente? | STAT-02: define se e fix ou redesign | Phase 4 execution |
 
 ## Future Requirements
 
@@ -87,28 +87,28 @@ Requirements for milestone v1.1 — Melhorias Dashboard.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| STAT-01 | TBD | Pending |
-| STAT-02 | TBD | Pending |
-| STAT-03 | TBD | Pending |
-| STAT-04 | TBD | Pending |
-| STAT-05 | TBD | Pending |
-| VIS-01 | TBD | Pending |
-| VIS-02 | TBD | Pending |
-| VIS-03 | TBD | Pending |
-| VIS-04 | TBD | Pending |
-| VIS-05 | TBD | Pending |
-| BKND-01 | TBD | Pending |
-| BKND-02 | TBD | Pending |
-| BKND-03 | TBD | Pending |
-| BKND-04 | TBD | Pending |
-| TAG-01 | TBD | Pending |
-| TAG-02 | TBD | Pending |
+| STAT-01 | Phase 4 | Pending |
+| STAT-02 | Phase 4 | Pending |
+| STAT-03 | Phase 4 | Pending |
+| STAT-04 | Phase 4 | Pending |
+| STAT-05 | Phase 4 | Pending |
+| VIS-01 | Phase 5 | Pending |
+| VIS-02 | Phase 5 | Pending |
+| VIS-03 | Phase 5 | Pending |
+| VIS-04 | Phase 5 | Pending |
+| VIS-05 | Phase 5 | Pending |
+| BKND-01 | Phase 6 | Pending |
+| BKND-02 | Phase 6 | Pending |
+| BKND-03 | Phase 6 | Pending |
+| BKND-04 | Phase 6 | Pending |
+| TAG-01 | Phase 7 | Pending |
+| TAG-02 | Phase 7 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 16 total
-- Mapped to phases: 0
-- Unmapped: 16
+- Mapped to phases: 16
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-22*
-*Last updated: 2026-04-22 after v1.1 milestone definition*
+*Last updated: 2026-04-22 after v1.1 roadmap creation*

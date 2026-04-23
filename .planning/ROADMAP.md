@@ -1,22 +1,14 @@
-# Roadmap: AffiliView — v1.0 CPA Variavel
+# Roadmap: AffiliView
 
-## Overview
+## Milestones
 
-Three phases deliver the CPA Variavel feature: first the page is scaffolded and wired into navigation, then the data layer shows each affiliate's real LTV margins and AOV per pot variant with full detail access, and finally the simulation engine enables bidirectional CPA/margin modeling so users can find the optimal CPA per affiliate per pot.
+- **v1.0 CPA Variavel** - Phases 1-3 (shipped 2026-04-22)
+- **v1.1 Melhorias Dashboard** - Phases 4-7 (in progress)
 
 ## Phases
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
-
-Decimal phases appear between their surrounding integers in numeric order.
-
-- [x] **Phase 1: Page Scaffold** - New CPA Variavel page wired into sidebar navigation
-- [x] **Phase 2: Data Display** - Affiliate table with LTV margins, AOV per funnel, KPI cards, detail drawer, and search
-- [x] **Phase 3: Simulation Engine** - Bidirectional CPA/margin simulation with live delta comparison (completed 2026-04-22)
-
-## Phase Details
+<details>
+<summary>v1.0 CPA Variavel (Phases 1-3) — SHIPPED 2026-04-22</summary>
 
 ### Phase 1: Page Scaffold
 **Goal**: Users can navigate to the CPA Variavel page from the sidebar
@@ -61,13 +53,71 @@ Plans:
 - [x] 03-02-PLAN.md — Simulation UI: margin slider on page, sim columns in table, custom CPA input with delta in detail view
 **UI hint**: yes
 
+</details>
+
+### v1.1 Melhorias Dashboard (In Progress)
+
+**Milestone Goal:** Corrigir logica de status de afiliados, melhorar visualizacao de dados, integrar resultados de backend/upsell, e adicionar sistema de tags para afiliados.
+
+#### Phase 4: Status de Afiliados
+**Goal**: Users can see affiliates correctly classified by activity status with consistent counts across all views
+**Depends on**: Phase 3
+**Requirements**: STAT-01, STAT-02, STAT-03, STAT-04, STAT-05
+**Success Criteria** (what must be TRUE):
+  1. User can see affiliates classified as "Ativo" only when they have 10 or more sales in the last 7 days, and the count matches between the activity menu and ranking views
+  2. User can see affiliates classified as "Em Rampa" when they have 1-9 sales in the last 7 days
+  3. User can see the count of affiliates who became inactive (0 sales for 5+ days) in the selected period
+  4. User can see the specific list of affiliates currently classified as inactive
+**Plans**: TBD
+**UI hint**: yes
+
+#### Phase 5: Ajustes Visuais
+**Goal**: Users see data presented with correct visual encoding (colors, columns, labels) that matches business thresholds
+**Depends on**: Phase 4
+**Requirements**: VIS-01, VIS-02, VIS-03, VIS-04, VIS-05
+**Success Criteria** (what must be TRUE):
+  1. User sees refund percentage in orange when at or below 8% and in red when above 8%
+  2. User sees margin values color-coded as green (>=10%), yellow (5-10%), or red (<5%) on the affiliate results screen
+  3. User no longer sees the R+CB (TOTAL) column in any table
+  4. User no longer sees M3/M2/M1 prefix text before SKU names
+  5. User can see a Reembolso % column in the Performance por kit (Front) table
+**Plans**: TBD
+**UI hint**: yes
+
+#### Phase 6: Dados de Backend e Upsell
+**Goal**: Users can see per-product backend results and per-affiliate upsell detail including AOV contribution and top product
+**Depends on**: Phase 5
+**Requirements**: BKND-01, BKND-02, BKND-03, BKND-04
+**Success Criteria** (what must be TRUE):
+  1. User can see backend product results (up1, up2, up3, down1, down2, down3) broken down per product
+  2. User can open an affiliate drawer and see which upsells that affiliate sold in the selected period with quantities
+  3. User can see how much each upsell kit contributed to the affiliate's overall AOV inside the drawer
+  4. User can see which product each affiliate is running the most in the last 7 days
+**Plans**: TBD
+**UI hint**: yes
+
+#### Phase 7: Tags de Afiliados
+**Goal**: Users can organize affiliates with manual tags and filter the list by tag
+**Depends on**: Phase 6
+**Requirements**: TAG-01, TAG-02
+**Success Criteria** (what must be TRUE):
+  1. User can assign one or more manual tags (e.g., "chris", "facebook") to any affiliate and see the tag displayed on that affiliate's row
+  2. User can select a tag and filter the affiliate list to show only affiliates with that tag
+  3. User can clear the tag filter to return to the full affiliate list
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3
+Phases execute in numeric order: 4 -> 5 -> 6 -> 7
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Page Scaffold | 1/1 | Complete    | 2026-04-22 |
-| 2. Data Display | 2/2 | Complete    | 2026-04-22 |
-| 3. Simulation Engine | 2/2 | Complete    | 2026-04-22 |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Page Scaffold | v1.0 | 1/1 | Complete | 2026-04-22 |
+| 2. Data Display | v1.0 | 2/2 | Complete | 2026-04-22 |
+| 3. Simulation Engine | v1.0 | 2/2 | Complete | 2026-04-22 |
+| 4. Status de Afiliados | v1.1 | 0/TBD | Not started | - |
+| 5. Ajustes Visuais | v1.1 | 0/TBD | Not started | - |
+| 6. Dados de Backend e Upsell | v1.1 | 0/TBD | Not started | - |
+| 7. Tags de Afiliados | v1.1 | 0/TBD | Not started | - |
