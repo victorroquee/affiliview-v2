@@ -1,6 +1,6 @@
 # Lógica dos KPIs — AffiliView
 
-Documentação completa de como cada KPI principal é extraído da planilha e calculado no sistema. Os arquivos explicam a lógica de negócio sem detalhes técnicos de implementação.
+Documentação completa de como cada KPI é extraído da API Digistore24 e calculado no sistema. Os arquivos explicam a lógica de negócio e mapeiam para o código fonte.
 
 ---
 
@@ -8,12 +8,12 @@ Documentação completa de como cada KPI principal é extraído da planilha e ca
 
 Abaixo o progresso de implementação de cada componente lógico documentado nesta pasta.
 
-### ✅ Etapa 1 — Estrutura de Dados e Parsing CSV
+### ✅ Etapa 1 — Estrutura de Dados e API Digistore24
 - **Arquivo criado**: `src/lib/transactions.ts`
-- Parsing do CSV Digistore24 (delimitador `;`, formato `="valor"`)
-- Extração de campos: Date, Time, Order ID, Transaction type, Gross amount, Net amount, Your earnings, Affiliate, Product name, Country
-- Conversão de datas para UTC
-- Classificação de transações: `isPayment()`, `isRefund()`, `isChargeback()`
+- Dados via API Digistore24 (endpoint `listTransactions`)
+- Proxy serverless: `api/digistore.ts` (Vercel)
+- Normalizacao: `src/utils/digiNormalizer.ts` — transactionType lowercase, sign enforcement para refunds
+- Classificacao de transacoes: `isPayment()` (whitelist strict), `isRefund()`, `isChargeback()`
 
 ### ✅ Etapa 2 — Classificação de Produtos (Produto M vs Upsell)
 - **Lógica documentada em**: `vendas.md`
@@ -40,13 +40,14 @@ Abaixo o progresso de implementação de cada componente lógico documentado nes
 ### ✅ Etapa 5 — Gross Revenue
 - **Lógica documentada em**: `gross_revenue.md`
 - **Implementado em**: `src/lib/transactions.ts` → `computePeriod()` (`gross`, `grossBruto`)
-- Gross = soma de todos os valores da coluna H (positivos + negativos)
-- Gross Bruto = soma apenas dos pagamentos positivos (denominador para AOV e Refund%)
+- `gross` = soma de pagamentos frontais (upsell_no=0) — alinhado com Digistore
+- `grossBruto` = soma de TODOS os pagamentos (front + upsells) — usado para AOV e taxas
 
 ### ✅ Etapa 6 — Earnings
 - **Lógica documentada em**: `earnings.md`
 - **Implementado em**: `src/lib/transactions.ts` → `computePeriod()` (`earningsTotal`)
-- Earnings = soma de todos os valores de "Your earnings" (positivos + negativos de estornos)
+- Earnings = earned_amount de pagamentos frontais (upsell_no=0) + estornos de refunds/CB
+- Alinhado com "Your Earnings" do Digistore24
 
 ### ✅ Etapa 7 — Valor Líquido (LIA)
 - **Lógica documentada em**: `valor_liquido.md`
@@ -58,8 +59,8 @@ Abaixo o progresso de implementação de cada componente lógico documentado nes
 ### ✅ Etapa 8 — AOV (Ticket Médio)
 - **Lógica documentada em**: `aov.md`
 - **Implementado em**: `src/lib/transactions.ts` → `computePeriod()` (`aov`)
-- AOV = Gross Bruto (positivos) / Quantidade de Produtos M
-- Numerador inclui upsells, denominador apenas vendas frontais
+- AOV = net total sem IVA (front + upsells + bumps) / pedidos frontais
+- Usa `netAmount` (amount - vat_amount) para excluir IVA
 
 ### ✅ Etapa 9 — Refund % e Chargeback %
 - **Lógica documentada em**: `refund_chargeback.md`
@@ -143,11 +144,11 @@ O sistema contempla três produtos:
 
 | Arquivo | KPI | Tipo | Fonte |
 |---------|-----|------|-------|
-| [gross_revenue.md](./gross_revenue.md) | Gross Revenue (Receita Bruta) | Extraído da planilha | Coluna H (Gross Total) — soma incluindo negativos |
-| [earnings.md](./earnings.md) | Earnings (Ganhos) | Extraído da planilha | Coluna Earnings — soma incluindo negativos de refunds/CB |
-| [valor_liquido.md](./valor_liquido.md) | Valor Líquido (LIA) | Calculado | Earnings − Custo Produto − Custo Frete |
-| [aov.md](./aov.md) | AOV (Ticket Médio) | Calculado | Gross positivos / Quantidade de Produtos M |
-| [vendas.md](./vendas.md) | Vendas (Sales Count) | Extraído | Contagem de Produtos M na planilha |
+| [gross_revenue.md](./gross_revenue.md) | Gross Revenue (Receita Bruta) | API | Soma grossAmount de pagamentos frontais (upsell_no=0) |
+| [earnings.md](./earnings.md) | Earnings (Ganhos) | API | earned_amount frontais + estornos refunds/CB |
+| [valor_liquido.md](./valor_liquido.md) | Valor Líquido (LIA) | Calculado | Front Earnings − Front COGS |
+| [aov.md](./aov.md) | AOV (Ticket Médio) | Calculado | Net total (sem IVA) / Pedidos frontais |
+| [vendas.md](./vendas.md) | Vendas (Sales Count) | API | Contagem de payments com upsell_no=0 |
 | [refund_chargeback.md](./refund_chargeback.md) | Refund % e Chargeback % | Calculado | Soma devoluções / Gross Bruto × 100 |
 | [custo_produto.md](./custo_produto.md) | Custo de Produto | Calculado | Frascos detectados × €3,26 |
 | [custo_frete.md](./custo_frete.md) | Custo de Frete | Tabela | Tabela por zona geográfica × frascos |
@@ -162,26 +163,29 @@ O sistema contempla três produtos:
 ## Fluxo Geral dos Dados
 
 ```
-Planilha Digistore24 (CSV export)
+API Digistore24 (listTransactions)
          │
          ▼
-Leitura linha a linha
+digiNormalizer.ts (normaliza campos, lowercase type, sign enforcement)
          │
-         ├── Coluna H (Gross Total)
-         │    └── Soma de todos os valores (pos. e neg.) → Gross Revenue
-         │    └── Soma apenas positivos → Gross Bruto (denominador de Refund%)
+         ▼
+transactions.ts → computePeriod()
          │
-         ├── Coluna Earnings
-         │    └── Soma de todos os valores (pos. e neg.) → Earnings
+         ├── frontPayments (upsell_no === 0)
+         │    └── Soma grossAmount → Gross Revenue (KPI)
+         │    └── Soma earnings → Earnings base
          │
-         ├── Classificação das linhas
-         │    ├── Produto M (frontal) → conta como venda
-         │    ├── Upsell/Bump/Down → NÃO conta como venda
-         │    └── Refund/Chargeback → entra no numerador de Refund%
+         ├── payTxs (todos os pagamentos)
+         │    └── Soma grossAmount → grossBruto (para AOV e taxas)
+         │    └── Soma netAmount → AOV numerador (sem IVA)
          │
-         └── Por transação:
-              └── Earnings[i] − (frascos × €3,26) − frete[frascos][zona]
-                  └── Soma → Valor Líquido
+         ├── refCbTxs (refunds + chargebacks)
+         │    └── Soma earnings (negativos) → reduz Earnings
+         │    └── Soma grossAmount → numerador de Refund%
+         │
+         └── frontPayments por transacao:
+              └── Earnings − (frascos × €3,26) − frete[frascos][zona]
+                  └── Soma → Valor Liquido
 ```
 
 ---

@@ -1,114 +1,105 @@
 # KPI: Earnings (Ganhos)
 
-## O que é
-O valor que o produtor (vendedor) efetivamente recebe após o Digistore descontar automaticamente a comissão do afiliado, as taxas e reservas da plataforma, e o IVA/VAT. É o dinheiro que "entra na conta" antes de pagar os custos de fulfillment (produto + frete).
+## O que e
+
+O valor que o produtor (vendedor) efetivamente recebe apos o Digistore descontar automaticamente a comissao do afiliado, as taxas e reservas da plataforma, e o IVA/VAT. Contabiliza apenas pedidos frontais (upsell_no=0) mais estornos de reembolsos/chargebacks. Alinhado com "Your Earnings" do Digistore24.
 
 ---
 
-## Origem e Extração
+## Origem e Extracao
 - **Fonte**: API Digistore24 — endpoint `listTransactions`
-- **Campo utilizado**: `earned_amount` — ganho líquido do produtor por transação
-- `earned_amount` é **positivo** para pagamentos e **negativo** para refunds e chargebacks
-- Ao somar todos os registros do período (pagamentos + refunds + chargebacks), os negativos já reduzem o total automaticamente
+- **Campo utilizado**: `earned_amount` — ganho liquido do produtor por transacao
+- `earned_amount` e **positivo** para pagamentos e **negativo** para refunds e chargebacks
+- Normalizado para lowercase e com sign enforcement para refunds
 
 ---
 
-## Fórmula
+## Formula
 
 ```
-Earnings = SUM(earned_amount) para TODOS os tipos de transação
-           (pagamentos positivos + refunds/CB negativos)
+Earnings = SUM(earned_amount WHERE payment AND upsell_no === 0)
+         + SUM(earned_amount WHERE refund/chargeback)
 ```
+
+- Pagamentos frontais: earned_amount positivo
+- Upsells: **nao incluidos** (alinhamento com Digistore)
+- Refunds/CB: earned_amount negativo (reduz o total)
 
 ---
 
-## O que está dentro do Earnings
+## O que esta dentro do Earnings
 
-O Digistore calcula automaticamente, para cada transação:
+O Digistore calcula automaticamente, para cada transacao:
 
 ```
 earned_amount = amount - affiliate_amount - taxa_digistore - reserva_digistore - IVA/VAT
 ```
 
-Para refunds e chargebacks, `earned_amount` é o valor estornado de volta (negativo), representando a reversão do que havia sido ganho.
+Para refunds e chargebacks, `earned_amount` e o valor estornado (negativo).
 
 ---
 
 ## Regras
 
-- A soma inclui vendas frontais (`upsell_no === 0`), upsells (`upsell_no >= 1`) e os três produtos: **Erectus X**, **Slimjara** e **Memoguard**
-- Refunds e chargebacks têm `earned_amount` negativo na API e são incluídos na soma (reduzindo o total automaticamente)
-- O período filtrado segue horário **UTC**: do início do dia (00:00 UTC) até o fim do dia (23:59 UTC) da janela selecionada
+- Inclui apenas pagamentos frontais (`upsell_no === 0`) — upsells nao inflam este KPI
+- Refunds e chargebacks (negativos) sao incluidos na soma, reduzindo o total
+- Inclui os tres produtos: **Erectus X**, **Slimjara** e **Memoguard**
+- O periodo filtrado segue horario **UTC**
 
 ---
 
-## Exemplo Prático
+## Exemplo Pratico
 
-| Tipo | transaction_type | earned_amount (API) |
-|------|-----------------|---------------------|
-| Venda frontal Erectus X | payment | +€65,00 |
-| Upsell Slimjara | payment | +€34,00 |
-| Venda frontal Memoguard | payment | +€39,00 |
-| Refund Erectus X | refund | -€65,00 |
-| Chargeback Slimjara | chargeback | -€34,00 |
+| Tipo | transaction_type | upsell_no | earned_amount |
+|------|-----------------|-----------|---------------|
+| Venda frontal Erectus X | payment | 0 | +€65,00 |
+| Upsell Slimjara | payment | 1 | +€34,00 |
+| Venda frontal Memoguard | payment | 0 | +€39,00 |
+| Refund Erectus X | refund | 0 | -€65,00 |
 
 ```
-Earnings = €65 + €34 + €39 + (-€65) + (-€34) = €39,00
+Earnings = €65 + €39 + (-€65) = €39,00
+(upsell de €34 nao incluido — contabilizado apenas no AOV)
 ```
 
 ---
 
-## Relação com Outras Métricas
+## Relacao com Outras Metricas
 
-| Relação | Fórmula |
+| Relacao | Formula |
 |---------|---------|
-| Diferença Gross vs Earnings | Gross − Earnings = custo afiliado + plataforma + IVA |
-| CPA | affiliate_amount / Vendas Frontais (ou Gross − Earnings quando affiliate_amount indisponível) |
-| Valor Líquido | Earnings − Custo Produto − Custo Frete |
+| Diferenca Gross vs Earnings | Gross - Earnings = custo afiliado + plataforma + IVA |
+| Valor Liquido | Earnings - COGS (custo produto + frete) |
 
 ---
 
-## Onde é Exibido
-- Cartão KPI no topo do dashboard
-- Detalhamento dentro do componente "Valor Líquido" como ponto de partida
+## Onde e Exibido
+- Cartao KPI "Earnings" no topo do dashboard
 
 ---
 
-## Observações
-- Earnings é o **ponto de partida** para o cálculo do Valor Líquido — após este passo, ainda é necessário descontar os custos de fulfillment
-- Em períodos com muitos refunds/chargebacks, o Earnings pode ser significativamente menor que o Gross
-- O campo `earned_amount` na API Digistore24 equivale ao campo `merchant_amount` — o normalizador usa `earned_amount` com fallback para `merchant_amount`
+## Implementacao no Codigo
 
----
-
-## Implementação no Código
-
-**Arquivo**: `src/utils/digiNormalizer.ts` — normalização do campo `earned_amount`
+**Arquivo**: `src/utils/digiNormalizer.ts` — normalizacao do `earned_amount`
 
 ```typescript
-// earned_amount: positivo para pagamentos, NEGATIVO para refunds/CB
-const earnedAmount =
-  raw["earned_amount"] !== undefined && raw["earned_amount"] !== null && raw["earned_amount"] !== ""
-    ? parseMoney(raw["earned_amount"])
-    : parseMoney(raw["merchant_amount"]);  // fallback
+const transactionType = str("transaction_type").toLowerCase();
+const isRefundCbTx = transactionType === "refund" || transactionType === "chargeback" || ...;
 
-return {
-  // ...
-  earnings: earnedAmount,
-};
+const rawEarned = raw["earned_amount"] ? parseMoney(raw["earned_amount"]) : parseMoney(raw["merchant_amount"]);
+// Garante sign correto para refunds
+const earnedAmount = isRefundCbTx && rawEarned > 0 ? -rawEarned : rawEarned;
 ```
 
-**Arquivo**: `src/lib/transactions.ts` — função `computePeriod()`
+**Arquivo**: `src/lib/transactions.ts` — funcao `computePeriod()`
 
 ```typescript
-// Earnings = SUM(earned_amount) para todos os tipos (pagamentos + refunds/CB)
+const frontPayments = payTxs.filter((t) => t.upsellNo === 0);
+
+// Earnings = front payments + refund/CB deductions
 const earningsTotal =
-  payTxs.reduce((s, t) => s + t.earnings, 0) +
+  frontPayments.reduce((s, t) => s + t.earnings, 0) +
   refCbTxs.reduce((s, t) => s + t.earnings, 0);
 ```
 
-- `payTxs` — transações com `transaction_type === "payment"` (earnings positivos)
-- `refCbTxs` — transações de refund/chargeback (earnings negativos)
-- A soma direta de ambos os grupos produz o earnings líquido automaticamente
-
-**Exibido em**: `src/pages/Index.tsx` — cartão "Earnings" no topo do dashboard, e como ponto de partida no breakdown do Valor Líquido
+**Exibido em**: `src/pages/Dashboard.tsx` — cartao "Earnings"

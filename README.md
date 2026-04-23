@@ -1,73 +1,63 @@
-# React + TypeScript + Vite
+# AffiliView
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Dashboard de analytics para gestao de afiliados Digistore24. Monitoriza transacoes, calcula margens CPA por afiliado e variante de produto, acompanha taxas de reembolso e simula cenarios de otimizacao de CPA.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Frontend**: React 19 + TypeScript + Vite 5
+- **Charts**: Recharts
+- **Styling**: CSS custom (design system OG Group)
+- **Deploy**: Vercel (serverless functions para API proxy)
+- **Data**: Digistore24 API (listTransactions)
 
-## React Compiler
+## Setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+cp .env.example .env.local   # adicionar DIGISTORE_API_KEY
+npm run dev                   # http://localhost:5173
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Paginas
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Pagina | Descricao |
+|--------|-----------|
+| Dashboard | KPIs de receita, vendas, reembolsos, grafico diario, mix de produtos |
+| Affiliates | Tabela de afiliados com gross, earnings, margem, CPA, status |
+| CPA Calculator | Analise de margem LTV por variante (M1/M2/M3) por afiliado |
+| CPA Fixo | Simulacao de valores CPA fixos por variante com sensibilidade AOV |
+| CPA Variavel | CPA personalizado por pote por afiliado com simulacao bidirecional |
+| Mail Sales | Tracking de vendas recuperadas pelo Maileonardo |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Metricas Principais
+
+- **Gross Revenue**: Receita bruta dos pedidos frontais (upsell_no=0), alinhado com Digistore
+- **Earnings**: earned_amount dos pedidos frontais + estornos de reembolsos/chargebacks
+- **AOV**: Valor medio por pedido (net total sem IVA / pedidos frontais)
+- **Valor Liquido**: Earnings - COGS (custo produto + frete)
+- **CPA**: Custo por aquisicao por afiliado
+
+## Estrutura
+
 ```
+src/
+  components/    # Componentes reutilizaveis (KPICard, Sidebar, tables, drawers)
+  hooks/         # useDigistoreAPI, useFilters, useCpaVariavel
+  lib/           # transactions.ts (core), costTable.ts, cpa/
+  pages/         # Dashboard, Affiliates, CpaCalculator, CpaFixo, CpaVariavel, MailSales
+  styles/        # CSS por pagina
+api/             # Vercel serverless proxy para Digistore24
+logica/          # Documentacao de logica de negocio por KPI
+.planning/       # GSD project planning (roadmap, requirements, state)
+```
+
+## Documentacao
+
+A pasta `logica/` contem a documentacao detalhada de cada KPI:
+
+- Como cada metrica e calculada
+- Regras de negocio e edge cases
+- Exemplos praticos
+- Mapeamento para o codigo fonte
+
+Ver `logica/README.md` para o indice completo.

@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Melhorias Dashboard
 status: ready_to_plan
-stopped_at: Roadmap created for v1.1 — ready to plan Phase 4
-last_updated: "2026-04-22"
-last_activity: 2026-04-22
+stopped_at: Data accuracy fixes applied — ready to plan Phase 4
+last_updated: "2026-04-23"
+last_activity: 2026-04-23
 progress:
   total_phases: 4
   completed_phases: 0
@@ -21,7 +21,7 @@ progress:
 Phase: 4 of 7 (Status de Afiliados) — Not started
 Plan: —
 Status: Ready to plan
-Last activity: 2026-04-22 — Roadmap created for v1.1 (4 phases, 16 requirements)
+Last activity: 2026-04-23 — Data accuracy audit and fixes (AOV, Gross, Earnings alignment with Digistore24)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -37,6 +37,25 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 - Phases complete: 0 / 4 (v1.1)
 - Requirements mapped: 16 / 16
 - Requirements complete: 0 / 16
+
+## Recent Data Accuracy Fixes (2026-04-23)
+
+### AOV — VAT exclusion
+- AOV now uses `netAmount` (amount - vat_amount) instead of `grossAmount`
+- Fixes ~12% inflation from VAT inclusion
+
+### Gross Revenue — Front-only alignment
+- `gross` now sums only front payments (upsell_no=0), matching Digistore dashboard
+- `grossBruto` kept as total (front + upsells) for AOV and rate calculations
+
+### Earnings — Front-only alignment
+- `earningsTotal` now sums front payment earnings + refund/CB deductions
+- Matches Digistore's "Your Earnings" which shows front-order earnings
+
+### Transaction type safety
+- `transactionType` normalized to lowercase in normalizer
+- `isPayment()` changed from catch-all to strict whitelist (payment, sale, upsell)
+- `earned_amount` fallback enforces negative sign for refunds/CB
 
 ## Accumulated Context
 
@@ -57,12 +76,8 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 - Persistencia das tags de afiliados (localStorage vs backend?) — blocks TAG-01
 - Causa da discrepancia 21 vs 4 afiliados ativos (bug a investigar) — blocks STAT-02
 
-### Blockers
-
-- Pre-existing: `src/pages/MailSales.tsx` line 46 unused variable `frontGross` causes `npm run build` (tsc -b) to fail. Does not affect `tsc --noEmit`. Logged in deferred-items.md.
-
 ## Session Continuity
 
-Last completed: Roadmap v1.1 created (4 phases, 16 requirements mapped)
+Last completed: Data accuracy audit — AOV, Gross, Earnings aligned with Digistore24
 Stopped at: Ready to plan Phase 4
 To resume: `/gsd-plan-phase 4`

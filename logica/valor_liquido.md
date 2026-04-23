@@ -8,16 +8,16 @@ O lucro real por período após descontar todos os custos operacionais de cada v
 ## Fórmula
 
 ```
-Valor Líquido = SUM(earned_amount para TODOS os tipos) − SUM(COGS para pagamentos)
+Valor Líquido = SUM(earned_amount para front payments + refunds/CB) − SUM(COGS para front payments)
 ```
 
-Onde COGS (custo de fulfillment) = custo de produto + custo de frete, calculado por transação:
+Onde COGS (custo de fulfillment) = custo de produto + custo de frete, calculado por transação frontal:
 
 ```
-Valor Líquido Total = SUM(earned_amount) − SUM(product_cost + shipping_cost) para payTxs
+Valor Líquido = frontEarnings + refundEarnings − SUM(product_cost + shipping_cost) para frontPayments
 ```
 
-> COGS é aplicado **somente** a transações de pagamento — o produto já foi fabricado e enviado; refunds não geram novo COGS.
+> COGS é aplicado **somente** a transações de pagamento frontais (upsell_no=0). Upsells não geram COGS (são digitais). Refunds não geram novo COGS (sunk cost).
 
 ---
 
@@ -120,7 +120,7 @@ O cartão de Valor Líquido no dashboard mostra o detalhamento:
 ---
 
 ## Onde é Exibido
-- Cartão dedicado com breakdown expansível em `Index.tsx`
+- Cartão dedicado com breakdown expansível em `Dashboard.tsx`
 - Por afiliado na página de Afiliados (campo `valorLiq`)
 - Usado no cálculo da **Margem %**
 
@@ -131,19 +131,18 @@ O cartão de Valor Líquido no dashboard mostra o detalhamento:
 **Arquivo**: `src/lib/transactions.ts` — função `computePeriod()`
 
 ```typescript
-// COGS acumulado apenas para payTxs (refunds não geram novo COGS)
+// COGS acumulado apenas para frontPayments (upsells são digitais, sem COGS)
 let productCostTotal = 0;
 let shippingCostTotal = 0;
 let cogsTotal = 0;
-for (const t of payTxs) {
-  const front = t.upsellNo === 0;  // true = produto M
-  const b = getFulfillmentBreakdown(t.productName, t.country, front);
+for (const t of frontPayments) {
+  const b = getFulfillmentBreakdown(t.productName, t.country, true);
   productCostTotal  += b.product;
   shippingCostTotal += b.shipping;
   cogsTotal         += b.total;
 }
 
-// Valor Líquido = SUM(earned_amount para todos os tipos) - COGS
+// Valor Líquido = front earnings + refund/CB deductions - front COGS
 const valorLiq = earningsTotal - cogsTotal;
 ```
 
@@ -176,4 +175,4 @@ export function getFulfillmentBreakdown(
 }
 ```
 
-**Exibido em**: `src/pages/Index.tsx` — cartão "Valor Líquido" com breakdown expansível, e por afiliado em `src/pages/Affiliates.tsx`
+**Exibido em**: `src/pages/Dashboard.tsx` — cartão "Valor Líquido" com breakdown expansível, e por afiliado em `src/pages/Affiliates.tsx`
