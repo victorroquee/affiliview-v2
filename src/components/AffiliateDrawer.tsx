@@ -12,13 +12,13 @@ import {
 
 const RANKING_LABEL: Record<AffiliateRanking, string> = {
   "Tier 1": "Tier 1", "Tier 2": "Tier 2", "Tier 3": "Tier 3",
-  "Ativo": "Ativo", "Inativo": "Inativo",
+  "Ativo": "Ativo", "Em Rampa": "Em Rampa", "Inativo": "Inativo",
 };
 const RANKING_CLASS: Record<AffiliateRanking, string> = {
   "Tier 1": "tier-1", "Tier 2": "tier-2", "Tier 3": "tier-3",
-  "Ativo": "tier-ativo", "Inativo": "tier-inativo",
+  "Ativo": "tier-ativo", "Em Rampa": "tier-em-rampa", "Inativo": "tier-inativo",
 };
-const TIER_ORDER: AffiliateRanking[] = ["Tier 1", "Tier 2", "Tier 3", "Ativo", "Inativo"];
+const TIER_ORDER: AffiliateRanking[] = ["Tier 1", "Tier 2", "Tier 3", "Ativo", "Em Rampa", "Inativo"];
 
 function nextTier(r: AffiliateRanking): AffiliateRanking | null {
   const idx = TIER_ORDER.indexOf(r);
@@ -29,6 +29,19 @@ function fmtDay(iso: string): string {
   if (!iso || !iso.includes("-")) return "?";
   const [, m, d] = iso.split("-");
   return `${Number(d ?? 1)}/${Number(m ?? 1)}`;
+}
+
+function daysAgo(iso: string): number {
+  const then = new Date(iso + "T00:00:00Z").getTime();
+  const now  = Date.now();
+  return Math.floor((now - then) / 86400000);
+}
+
+function formatDaysAgo(iso: string): string {
+  const d = daysAgo(iso);
+  if (d === 0) return "hoje";
+  if (d === 1) return "ontem";
+  return `${d} dias atrás`;
 }
 
 function fmtK(v: number): string {
@@ -201,6 +214,30 @@ const AffiliateDrawer: React.FC<AffiliateDrawerProps> = ({ affiliate, rankingInf
                     </div>
                   );
                 })()}
+
+                {/* Em Rampa row */}
+                {(() => {
+                  const sales  = rankingInfo.frontSalesInWindow;
+                  const passes = sales >= 1 && sales < 10;
+                  const pct    = Math.min(Math.round((sales / 9) * 100), 100);
+                  const isActive = ranking === "Em Rampa";
+                  return (
+                    <div className={`tier-bar-row${isActive ? " active" : ""}`}>
+                      <div className="tier-bar-left">
+                        <span className="tier-badge tier-em-rampa">Em Rampa</span>
+                        <span className="tier-bar-threshold">1–9 vendas</span>
+                      </div>
+                      <div className="tier-bar-track">
+                        <div className={`tier-bar-fill ${passes ? "pass" : "fail"}`} style={{ width: `${pct}%` }} />
+                        <div className="tier-bar-min-marker" style={{ left: "100%" }} />
+                      </div>
+                      <div className={`tier-bar-result ${passes ? "pass" : "fail"}`}>
+                        <span className="tier-bar-result-icon">{passes ? "✓" : "✗"}</span>
+                        <span className="tier-bar-result-count">{sales}/9</span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Next tier */}
@@ -213,6 +250,13 @@ const AffiliateDrawer: React.FC<AffiliateDrawerProps> = ({ affiliate, rankingInf
                       ? `Faltam ${Math.max(0, 10 - (rankingInfo.frontSalesInWindow))} vendas em 7 dias`
                       : `≥${formatEur(nextMin)}/dia consistente por 7 dias`}
                   </span>
+                </div>
+              )}
+
+              {/* Ultima venda for Inativo affiliates */}
+              {ranking === "Inativo" && rankingInfo?.lastFrontSaleDate && (
+                <div style={{ marginTop: 12, fontSize: 13, color: "var(--text-3)" }}>
+                  Última venda: {formatDaysAgo(rankingInfo.lastFrontSaleDate)}
                 </div>
               )}
             </div>
