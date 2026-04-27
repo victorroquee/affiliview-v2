@@ -44,8 +44,12 @@ Declared values (multiples of 4 — matching existing `index.css` patterns):
 Exceptions:
 - Status filter tab group: 4px gap between tabs (matching `.period-bar-presets` pattern)
 - Summary badge row: 8px gap between badges (inline row pattern)
-- KPI card padding: 14px 16px (existing `.kpi-card` — do not change)
-- Badge border-radius: 20px for pill badges, 4px for tier badges (existing `.tier-badge` / `.status-badge`)
+
+### Pre-existing non-conforming values (not changed in this phase)
+
+These values exist in the codebase prior to Phase 4. They are inherited as-is and are NOT spacing decisions introduced by this phase:
+- KPI card padding: 14px 16px (existing `.kpi-card` — inherits from index.css, not modified)
+- Badge border-radius: 20px for pill badges (existing `.tier-badge` / `.status-badge` — not modified)
 
 Source: src/index.css existing patterns
 
@@ -58,13 +62,13 @@ Inherit project base: Inter, 13px body base, 1.5 line-height.
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 13px | 400 | 1.5 |
-| Label / meta | 11px | 500 | 1.4 |
-| Badge / tag | 10–11px | 600–700 | 1 |
+| Label / meta | 11px | 400 | 1.4 |
 | Section heading | 15px | 600 | 1.2 |
+| KPI card value | clamp(18px, 1.8vw, 24px) | 600 | 1.1 |
 
-New elements for this phase follow the same scale:
-- Status filter tabs: 12px, weight 500 (matches `.period-btn`)
-- Summary badge strip text: 12px, weight 600
+New elements for this phase:
+- Status filter tabs: 11px, weight 600 (matches `.period-btn` pattern, weight consolidated from 500)
+- Summary badge strip text: 11px, weight 600 (consolidated from 12px)
 - "Ultima venda" sub-label in inactive rows: 11px, weight 400, color `var(--text-3)`
 - KPI card value (new "Inativos no Periodo"): clamp(18px, 1.8vw, 24px), weight 600 — matches existing `.kpi-card-value`
 - Tooltip sub-text on "Afiliados Ativos": 11px, weight 400, color `var(--text-3)`
@@ -89,6 +93,8 @@ Accent reserved for:
 - Active filter tab selected state (same dark fill as `.period-btn.active`)
 - Dashboard "Afiliados Ativos" KPI card value when count is healthy
 
+Primary visual anchor: the status filter tab strip, positioned above the ranking table as the entry point to all status views.
+
 ### New Status Colors (Phase 4 additions)
 
 | Status | Background | Text | Border | Token pattern |
@@ -107,17 +113,17 @@ Source: CONTEXT.md decision "Badge color for Em Rampa: amber/yellow"; src/index.
 #### 1. `tier-badge.tier-emrampa` (CSS class addition)
 - Pattern: matches existing `.tier-badge` structure in index.css
 - Styles: `background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-bd);`
-- Size: 11px, weight 700, border-radius 4px, padding 2px 8px
+- Size: 11px, weight 600, border-radius 4px, padding 2px 8px
 - Label: "Em Rampa"
 - Location: Affiliates.tsx `RANKING_CLASS` map entry + index.css new rule
 
 #### 2. Status filter tab strip (Affiliates page)
 - Pattern: matches `.period-bar-presets` / `.period-btn` button set
-- Three tabs: "Todos" | "Ativos" | "Em Rampa" | "Inativos"
+- Four tabs: "Todos" | "Ativos" | "Em Rampa" | "Inativos"
 - Active tab: `background: var(--btn-dark)` = #111418, `color: #fff`, `font-weight: 600`
 - Inactive tab: `border: 1px solid var(--border)`, `color: var(--text-2)`, transparent background
-- Border-radius: 20px (pill shape, matching period buttons)
-- Font: 12px weight 500
+- Border-radius: 20px (pill shape, matching period buttons — pre-existing value, inherited)
+- Font: 11px weight 600
 - Gap between tabs: 4px
 - Placement: in `.table-header` row, right-aligned, above the ranking table
 
