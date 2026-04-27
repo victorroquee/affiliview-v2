@@ -70,7 +70,7 @@ Plans:
   4. User can see the specific list of affiliates currently classified as inactive
 **Plans:** 3 plans
 Plans:
-- [ ] 04-01-PLAN.md — Data layer: add Em Rampa to ranking type/logic + lastFrontSaleDate + CSS foundation
+- [x] 04-01-PLAN.md — Data layer: add Em Rampa to ranking type/logic + lastFrontSaleDate + CSS foundation
 - [ ] 04-02-PLAN.md — Dashboard count fix + Inativos KPI + AffiliateDrawer Em Rampa support
 - [ ] 04-03-PLAN.md — Affiliates page: status filter tabs, summary badges, sort order, Ultima venda
 **UI hint**: yes
