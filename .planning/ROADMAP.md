@@ -104,7 +104,7 @@ Plans:
 **Plans:** 2 plans
 Plans:
 - [x] 06-01-PLAN.md — Data layer: upsell/backend aggregation functions and types
-- [ ] 06-02-PLAN.md — UI: backend products table, upsell drawer section, top product badge
+- [x] 06-02-PLAN.md — UI: backend products table, upsell drawer section, top product badge
 **UI hint**: yes
 
 #### Phase 7: Tags de Afiliados

@@ -2,26 +2,26 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Melhorias Dashboard
-status: executing
+status: ready_to_plan
 stopped_at: Ready to plan Phase 4
 last_updated: "2026-04-27T17:29:57.852Z"
 last_activity: 2026-04-27 -- Phase 06 execution started
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
   completed_plans: 3
-  percent: 43
+  percent: 40
 ---
 
 # AffiliView — State
 
 ## Current Position
 
-Phase: 06 (Dados de Backend e Upsell) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 06
-Last activity: 2026-04-27 -- Phase 06 execution started
+Phase: 08
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-04-27
 
 Progress: [░░░░░░░░░░] 0%
 
