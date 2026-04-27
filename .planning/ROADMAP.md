@@ -103,7 +103,7 @@ Plans:
   4. User can see which product each affiliate is running the most in the last 7 days
 **Plans:** 2 plans
 Plans:
-- [ ] 06-01-PLAN.md — Data layer: upsell/backend aggregation functions and types
+- [x] 06-01-PLAN.md — Data layer: upsell/backend aggregation functions and types
 - [ ] 06-02-PLAN.md — UI: backend products table, upsell drawer section, top product badge
 **UI hint**: yes
 
