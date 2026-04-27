@@ -9,6 +9,7 @@ import {
   Award,
   Users,
   BarChart2,
+  UserX,
 } from "lucide-react";
 import KPICard from "../components/KPICard";
 import LoadingDot from "../components/LoadingDot";
@@ -61,6 +62,20 @@ const Dashboard: React.FC<DashboardProps> = ({
     () => computeAffiliateRankings(allRows.filter((r) => !isMaileonardo(r.affiliate))),
     [allRows]
   );
+
+  const activosCount = useMemo(() => {
+    return [...rankings.values()].filter(r =>
+      ["Tier 1", "Tier 2", "Tier 3", "Ativo"].includes(r.ranking)
+    ).length;
+  }, [rankings]);
+
+  const emRampaCount = useMemo(() => {
+    return [...rankings.values()].filter(r => r.ranking === "Em Rampa").length;
+  }, [rankings]);
+
+  const inativoCount = useMemo(() => {
+    return [...rankings.values()].filter(r => r.ranking === "Inativo").length;
+  }, [rankings]);
 
   const drawerRanking: AffiliateRankingInfo | null =
     drawerAffiliate ? (rankings.get(drawerAffiliate.name) ?? null) : null;
@@ -146,11 +161,22 @@ const Dashboard: React.FC<DashboardProps> = ({
           {/* ── Bloco: Atividade ── */}
           <div className="kpi-group">
             <div className="kpi-group-label">Atividade</div>
-            <div className="kpi-grid-4">
+            <div className="kpi-grid-5">
               <KPICard icon={ShoppingCart} label="Vendas Totais"     value={formatInt(metrics.sales)}                     info="Contagem de pagamentos aprovados com upsell_no=0 (pedidos principais/frontais). Upsells e bump orders não são contados aqui." />
               <KPICard icon={Zap}          label="Ativados ≥ €2K"    value={formatInt(metrics.activated)}                 info="Afiliados cujo affiliate_amount acumulado no período é ≥ €2.000. Indica afiliados operando em escala ativa com alto volume de comissões." />
               <KPICard icon={Award}        label="Novos Qualificados" value={formatInt(metrics.novosQualificados)}          info="Afiliados com média diária de gross ≥ €1.000/dia no período. São candidatos a promoção de CPA ou condições especiais de parceria." />
-              <KPICard icon={Users}        label="Afiliados Ativos"  value={formatInt(metrics.affiliatesSelling.filter((n) => !isMaileonardo(n)).length)}  info="Número de afiliados distintos com ao menos um pagamento registrado no período selecionado. Maileonardo é contabilizado separadamente." />
+              <KPICard
+                icon={Users}
+                label="Afiliados Ativos"
+                value={formatInt(activosCount)}
+                info={`Afiliados com Tier 1/2/3 ou Ativo (≥10 vendas/7d). Breakdown: ${activosCount} Ativos · ${emRampaCount} Em Rampa · ${inativoCount} Inativos`}
+              />
+              <KPICard
+                icon={UserX}
+                label="Inativos no Período"
+                value={formatInt(inativoCount)}
+                info="Afiliados com 0 vendas front nos últimos 7 dias (janela de ranking). Clique em 'Inativos' na aba de afiliados para ver a lista completa."
+              />
             </div>
           </div>
 
