@@ -39,9 +39,9 @@ Know exactly how much margin each affiliate generates per product variant, so CP
 
 ### Active
 
-- [ ] Corrigir logica "Ativo" (10+ vendas em 7 dias) e discrepancia 21 vs 4
-- [ ] Novo status "Em Rampa" (1-9 vendas em 7 dias)
-- [ ] Status "Inativo" com contagem e listagem (5 dias sem vendas)
+- [x] Corrigir logica "Ativo" (10+ vendas em 7 dias) e discrepancia 21 vs 4 — Phase 4
+- [x] Novo status "Em Rampa" (1-9 vendas em 7 dias) — Phase 4
+- [x] Status "Inativo" com contagem e listagem (0 vendas em 7 dias) — Phase 4
 - [ ] Remover coluna R+CB (TOTAL)
 - [ ] Cores de reembolso: laranja ate 8%, vermelho acima
 - [ ] Coluna Reembolso % na tabela Performance por kit (Front)
@@ -103,4 +103,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-22 after milestone v1.1 start*
+*Last updated: 2026-04-27 after Phase 4 completion*
