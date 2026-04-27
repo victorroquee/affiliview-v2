@@ -16,6 +16,7 @@ import { Users } from "lucide-react";
 import LoadingDot from "../components/LoadingDot";
 import InfoTooltip from "../components/InfoTooltip";
 import AffiliateDrawer from "../components/AffiliateDrawer";
+import { useAffiliateTags } from "../hooks/useAffiliateTags";
 
 interface AffiliatesPageProps {
   filteredRows: TransactionRow[];
@@ -57,6 +58,8 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
 }) => {
   const [selectedAffiliate, setSelectedAffiliate] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<AffiliateRanking | "all">("all");
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const { getTagsFor, allTags } = useAffiliateTags();
 
   const affiliates: AffiliateRow[] = useMemo(() => {
     if (filteredRows.length === 0) return [];
@@ -98,19 +101,28 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
   }, [affiliates, rankings]);
 
   const filteredAffiliates = useMemo(() => {
-    if (statusFilter === "all") return sortedAffiliates;
-    if (statusFilter === "Ativo") {
-      // "Ativos" tab includes Tier 1/2/3 + Ativo
-      return sortedAffiliates.filter(a => {
-        const r = rankings.get(a.name)?.ranking ?? "Inativo";
-        return ["Tier 1", "Tier 2", "Tier 3", "Ativo"].includes(r);
-      });
+    let result = sortedAffiliates;
+    // Status filter (existing logic)
+    if (statusFilter !== "all") {
+      if (statusFilter === "Ativo") {
+        // "Ativos" tab includes Tier 1/2/3 + Ativo
+        result = result.filter(a => {
+          const r = rankings.get(a.name)?.ranking ?? "Inativo";
+          return ["Tier 1", "Tier 2", "Tier 3", "Ativo"].includes(r);
+        });
+      } else {
+        result = result.filter(a => {
+          const r = rankings.get(a.name)?.ranking ?? "Inativo";
+          return r === statusFilter;
+        });
+      }
     }
-    return sortedAffiliates.filter(a => {
-      const r = rankings.get(a.name)?.ranking ?? "Inativo";
-      return r === statusFilter;
-    });
-  }, [sortedAffiliates, statusFilter, rankings]);
+    // Tag filter (new)
+    if (tagFilter) {
+      result = result.filter(a => getTagsFor(a.name).includes(tagFilter));
+    }
+    return result;
+  }, [sortedAffiliates, statusFilter, rankings, tagFilter, getTagsFor]);
 
   const drawerAffiliate = affiliates.find((a) => a.name === selectedAffiliate) ?? null;
   const drawerRanking   = selectedAffiliate ? (rankings.get(selectedAffiliate) ?? null) : null;
@@ -163,6 +175,26 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
               </button>
             ))}
           </div>
+          {allTags.length > 0 && (
+            <div className="product-tabs" style={{ marginTop: 4 }}>
+              <span>Tags:</span>
+              <button
+                className={`product-tab ${tagFilter === null ? "active" : ""}`}
+                onClick={() => setTagFilter(null)}
+              >
+                Todas
+              </button>
+              {allTags.map(tag => (
+                <button
+                  key={tag}
+                  className={`product-tab ${tagFilter === tag ? "active" : ""}`}
+                  onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <table>
           <thead>
@@ -209,6 +241,18 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
                     <td style={{ color: "var(--text-3)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>{i + 1}</td>
                     <td style={{ fontWeight: 600 }}>
                       {a.name}
+                      {getTagsFor(a.name).length > 0 && (
+                        <div style={{ display: "flex", gap: 3, marginTop: 2, flexWrap: "wrap" }}>
+                          {getTagsFor(a.name).map(tag => (
+                            <span
+                              key={tag}
+                              style={{ fontSize: 10, background: "var(--bg-2)", color: "var(--text-3)", padding: "1px 6px", borderRadius: 3 }}
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                       {ranking === "Inativo" && rankingInfo?.lastFrontSaleDate && (
                         <div className="aff-last-sale">
                           Última venda: {formatDaysAgo(rankingInfo.lastFrontSaleDate)}
