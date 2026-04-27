@@ -118,7 +118,7 @@ Plans:
 **Plans:** 2 plans
 Plans:
 - [x] 07-01-PLAN.md — useAffiliateTags hook + drawer tag assignment UI
-- [ ] 07-02-PLAN.md — Tag display on rows + tag filter on Affiliates page
+- [x] 07-02-PLAN.md — Tag display on rows + tag filter on Affiliates page
 **UI hint**: yes
 
 ## Progress
