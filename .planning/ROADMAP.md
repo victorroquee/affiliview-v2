@@ -85,7 +85,10 @@ Plans:
   3. User no longer sees the R+CB (TOTAL) column in any table
   4. User no longer sees M3/M2/M1 prefix text before SKU names
   5. User can see a Reembolso % column in the Performance por kit (Front) table
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 05-01-PLAN.md — Fix refund and margin color thresholds (VIS-01, VIS-02)
+- [ ] 05-02-PLAN.md — Remove R+CB column, strip M-prefix, add Reembolso % column (VIS-03, VIS-04, VIS-05)
 **UI hint**: yes
 
 #### Phase 6: Dados de Backend e Upsell
@@ -122,7 +125,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8
 | 2. Data Display | v1.0 | 2/2 | Complete | 2026-04-22 |
 | 3. Simulation Engine | v1.0 | 2/2 | Complete | 2026-04-22 |
 | 4. Status de Afiliados | v1.1 | 0/3 | Planning complete | - |
-| 5. Ajustes Visuais | v1.1 | 0/TBD | Not started | - |
+| 5. Ajustes Visuais | v1.1 | 0/2 | Planning complete | - |
 | 6. Dados de Backend e Upsell | v1.1 | 0/TBD | Not started | - |
 | 7. Tags de Afiliados | v1.1 | 0/TBD | Not started | - |
 | 8. Auditoria Divergencia | v1.1 | 0/TBD | Not started | - |
