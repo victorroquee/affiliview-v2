@@ -96,6 +96,31 @@ export interface AffiliateDetail {
   affiliateAmt: number;   // sum of affiliate_amount paid (for CPA calculation)
 }
 
+// ─── Upsell / Backend Types ──────────────────────────────────────────────────
+
+export interface UpsellProductRow {
+  productName: string;       // raw product name (e.g., "Up1 Slimjara Extra")
+  classification: string;    // "up1" | "up2" | "up3" | "down1" | "down2" | "down3" | "other"
+  quantitySold: number;
+  gross: number;
+  net: number;
+  contributionPct: number;   // percentage of total upsell gross
+}
+
+export interface AffiliateUpsellBreakdown {
+  affiliateName: string;
+  upsells: {
+    productName: string;
+    quantity: number;
+    gross: number;
+    aovContribution: number;    // absolute: this upsell's gross / front sales count
+    aovContributionPct: number; // percentage: aovContribution / totalAOV * 100
+  }[];
+  totalUpsellGross: number;
+  frontSalesCount: number;
+  totalAOV: number;             // net total (front+upsell) / front sales
+}
+
 // ─── Affiliate Ranking ────────────────────────────────────────────────────────
 
 export type AffiliateRanking = "Tier 1" | "Tier 2" | "Tier 3" | "Ativo" | "Em Rampa" | "Inativo";
@@ -274,6 +299,160 @@ export function computeAffiliateRankings(
   }
 
   return rankings;
+}
+
+// ─── Upsell / Backend Aggregation Functions ───────────────────────────────────
+
+/**
+ * Classifies an upsell product name into a canonical category.
+ */
+function classifyUpsellProduct(productName: string): string {
+  if (/^up\s?1\b|^up\(1\)/i.test(productName)) return "up1";
+  if (/^up\s?2\b|^up\(2\)/i.test(productName)) return "up2";
+  if (/^up\s?3\b|^up\(3\)/i.test(productName)) return "up3";
+  if (/^down\s?1\b/i.test(productName)) return "down1";
+  if (/^down\s?2\b/i.test(productName)) return "down2";
+  if (/^down\s?3\b/i.test(productName)) return "down3";
+  return "other";
+}
+
+/**
+ * Aggregates all upsell/downsell transactions (upsellNo > 0) by product name.
+ * Returns sorted array by gross descending with classification and contribution %.
+ * BKND-01.
+ */
+export function computeBackendProducts(rows: TransactionRow[]): UpsellProductRow[] {
+  const upsellPayments = rows.filter((t) => isPayment(t) && t.upsellNo > 0);
+
+  const grouped = new Map<string, { gross: number; net: number; quantity: number }>();
+  for (const t of upsellPayments) {
+    const e = grouped.get(t.productName) ?? { gross: 0, net: 0, quantity: 0 };
+    e.gross    += t.grossAmount;
+    e.net      += t.netAmount;
+    e.quantity += 1;
+    grouped.set(t.productName, e);
+  }
+
+  const totalUpsellGross = Array.from(grouped.values()).reduce((s, e) => s + e.gross, 0);
+
+  const result: UpsellProductRow[] = Array.from(grouped.entries()).map(([productName, e]) => ({
+    productName,
+    classification:  classifyUpsellProduct(productName),
+    quantitySold:    e.quantity,
+    gross:           e.gross,
+    net:             e.net,
+    contributionPct: totalUpsellGross > 0 ? (e.gross / totalUpsellGross) * 100 : 0,
+  }));
+
+  return result.sort((a, b) => b.gross - a.gross);
+}
+
+/**
+ * Returns upsell breakdown for a single affiliate: per-product quantities,
+ * gross amounts, and AOV contribution figures.
+ * BKND-02, BKND-03.
+ */
+export function computeAffiliateUpsells(
+  filteredRows: TransactionRow[],
+  affiliateName: string
+): AffiliateUpsellBreakdown {
+  const affPayments = filteredRows.filter(
+    (t) => t.affiliate.trim() === affiliateName && isPayment(t)
+  );
+
+  const frontRows  = affPayments.filter((t) => t.upsellNo === 0);
+  const upsellRows = affPayments.filter((t) => t.upsellNo > 0);
+
+  const frontSalesCount = frontRows.length;
+  const totalNet        = affPayments.reduce((s, t) => s + t.netAmount, 0);
+  const totalAOV        = frontSalesCount > 0 ? totalNet / frontSalesCount : 0;
+
+  // Group upsell rows by productName
+  const upsellMap = new Map<string, { quantity: number; gross: number }>();
+  for (const t of upsellRows) {
+    const e = upsellMap.get(t.productName) ?? { quantity: 0, gross: 0 };
+    e.quantity += 1;
+    e.gross    += t.grossAmount;
+    upsellMap.set(t.productName, e);
+  }
+
+  const upsells = Array.from(upsellMap.entries())
+    .map(([productName, e]) => {
+      const aovContribution    = frontSalesCount > 0 ? e.gross / frontSalesCount : 0;
+      const aovContributionPct = totalAOV > 0 ? (aovContribution / totalAOV) * 100 : 0;
+      return { productName, quantity: e.quantity, gross: e.gross, aovContribution, aovContributionPct };
+    })
+    .sort((a, b) => b.quantity - a.quantity);
+
+  const totalUpsellGross = upsells.reduce((s, u) => s + u.gross, 0);
+
+  return {
+    affiliateName,
+    upsells,
+    totalUpsellGross,
+    frontSalesCount,
+    totalAOV,
+  };
+}
+
+/**
+ * Returns a map of affiliateName -> top front-sale product name in the 7-day window.
+ * Uses the same window logic as computeAffiliateRankings.
+ * Product names have M-prefix stripped for display (e.g., "M1 Slimjara" -> "Slimjara").
+ * BKND-04.
+ */
+export function computeTopProductPerAffiliate(
+  allRows: TransactionRow[]
+): Map<string, string> {
+  const payRows = allRows.filter(isPayment);
+  if (payRows.length === 0) return new Map();
+
+  // Find max date (same logic as computeAffiliateRankings)
+  let maxDate = payRows[0]!.date;
+  for (const t of payRows) {
+    if (t.date > maxDate) maxDate = t.date;
+  }
+
+  const windowStart = new Date(Date.UTC(
+    maxDate.getUTCFullYear(), maxDate.getUTCMonth(), maxDate.getUTCDate() - 6,
+    0, 0, 0, 0
+  ));
+  const windowStartKey = windowStart.toISOString().split("T")[0]!;
+  const windowEndKey   = maxDate.toISOString().split("T")[0]!;
+
+  // Filter to front sales within 7-day window
+  const windowRows = payRows.filter((t) => {
+    const dk = t.date.toISOString().split("T")[0]!;
+    return t.upsellNo === 0 && dk >= windowStartKey && dk <= windowEndKey;
+  });
+
+  // Count per affiliate -> productName
+  const affProdCount = new Map<string, Map<string, number>>();
+  for (const t of windowRows) {
+    const name = t.affiliate.trim();
+    if (!name) continue;
+    const prodMap = affProdCount.get(name) ?? new Map<string, number>();
+    prodMap.set(t.productName, (prodMap.get(t.productName) ?? 0) + 1);
+    affProdCount.set(name, prodMap);
+  }
+
+  // Find top product per affiliate, strip M-prefix
+  const result = new Map<string, string>();
+  for (const [affName, prodMap] of affProdCount) {
+    let topProduct = "";
+    let topCount   = 0;
+    for (const [prod, count] of prodMap) {
+      if (count > topCount) {
+        topCount   = count;
+        topProduct = prod;
+      }
+    }
+    if (topProduct) {
+      result.set(affName, topProduct.replace(/^M[123]\s*/i, ""));
+    }
+  }
+
+  return result;
 }
 
 // ─── Classification Functions ─────────────────────────────────────────────────
