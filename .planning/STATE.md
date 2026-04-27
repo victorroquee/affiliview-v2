@@ -80,6 +80,10 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 - Persistencia das tags de afiliados (localStorage vs backend?) — blocks TAG-01
 - Causa da discrepancia 21 vs 4 afiliados ativos (bug a investigar) — blocks STAT-02
 
+### Roadmap Evolution
+
+- Phase 8 added: Auditoria de Divergencia Digistore24 vs AffiliView — investigar causa raiz da divergencia de Gross (-13.4%), Earnings (-48.3%) entre painel Digistore24 e AffiliView
+
 ## Session Continuity
 
 Last completed: Data accuracy audit — AOV, Gross, Earnings aligned with Digistore24

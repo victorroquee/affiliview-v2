@@ -114,7 +114,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 4 -> 5 -> 6 -> 7
+Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -125,3 +125,21 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7
 | 5. Ajustes Visuais | v1.1 | 0/TBD | Not started | - |
 | 6. Dados de Backend e Upsell | v1.1 | 0/TBD | Not started | - |
 | 7. Tags de Afiliados | v1.1 | 0/TBD | Not started | - |
+| 8. Auditoria Divergencia | v1.1 | 0/TBD | Not started | - |
+
+### Phase 8: Auditoria de Divergencia Digistore24 vs AffiliView
+
+**Goal:** Identificar e corrigir as causas raiz da divergencia entre Gross (-13.4%), Earnings (-48.3%) e Net Amount exibidos no painel Digistore24 vs AffiliView
+**Requirements**: TBD
+**Depends on:** Phase 7
+**Success Criteria** (what must be TRUE):
+  1. Relatorio de diagnostico com hipoteses rankeadas por probabilidade
+  2. Mapeamento de campos da API Digistore24 vs campos calculados no AffiliView
+  3. Identificacao de quais filtros (timezone, order_type, status, paginacao) causam a divergencia
+  4. Gross Revenue do AffiliView alinhado com Gross Amount do painel Digistore24 (margem <1%)
+  5. Earnings do AffiliView alinhado com Your Earnings do painel Digistore24 (margem <1%)
+**Plans:** 0 plans
+**UI hint**: no
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 8 to break down)
