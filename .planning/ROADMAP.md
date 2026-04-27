@@ -68,7 +68,11 @@ Plans:
   2. User can see affiliates classified as "Em Rampa" when they have 1-9 sales in the last 7 days
   3. User can see the count of affiliates who became inactive (0 sales for 5+ days) in the selected period
   4. User can see the specific list of affiliates currently classified as inactive
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 04-01-PLAN.md — Data layer: add Em Rampa to ranking type/logic + lastFrontSaleDate + CSS foundation
+- [ ] 04-02-PLAN.md — Dashboard count fix + Inativos KPI + AffiliateDrawer Em Rampa support
+- [ ] 04-03-PLAN.md — Affiliates page: status filter tabs, summary badges, sort order, Ultima venda
 **UI hint**: yes
 
 #### Phase 5: Ajustes Visuais
@@ -117,7 +121,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7
 | 1. Page Scaffold | v1.0 | 1/1 | Complete | 2026-04-22 |
 | 2. Data Display | v1.0 | 2/2 | Complete | 2026-04-22 |
 | 3. Simulation Engine | v1.0 | 2/2 | Complete | 2026-04-22 |
-| 4. Status de Afiliados | v1.1 | 0/TBD | Not started | - |
+| 4. Status de Afiliados | v1.1 | 0/3 | Planning complete | - |
 | 5. Ajustes Visuais | v1.1 | 0/TBD | Not started | - |
 | 6. Dados de Backend e Upsell | v1.1 | 0/TBD | Not started | - |
 | 7. Tags de Afiliados | v1.1 | 0/TBD | Not started | - |
