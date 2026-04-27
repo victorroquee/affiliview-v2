@@ -71,8 +71,8 @@ Plans:
 **Plans:** 3 plans
 Plans:
 - [x] 04-01-PLAN.md — Data layer: add Em Rampa to ranking type/logic + lastFrontSaleDate + CSS foundation
-- [ ] 04-02-PLAN.md — Dashboard count fix + Inativos KPI + AffiliateDrawer Em Rampa support
-- [ ] 04-03-PLAN.md — Affiliates page: status filter tabs, summary badges, sort order, Ultima venda
+- [x] 04-02-PLAN.md — Dashboard count fix + Inativos KPI + AffiliateDrawer Em Rampa support
+- [x] 04-03-PLAN.md — Affiliates page: status filter tabs, summary badges, sort order, Ultima venda
 **UI hint**: yes
 
 #### Phase 5: Ajustes Visuais
