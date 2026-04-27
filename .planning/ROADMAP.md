@@ -115,7 +115,10 @@ Plans:
   1. User can assign one or more manual tags (e.g., "chris", "facebook") to any affiliate and see the tag displayed on that affiliate's row
   2. User can select a tag and filter the affiliate list to show only affiliates with that tag
   3. User can clear the tag filter to return to the full affiliate list
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 07-01-PLAN.md — useAffiliateTags hook + drawer tag assignment UI
+- [ ] 07-02-PLAN.md — Tag display on rows + tag filter on Affiliates page
 **UI hint**: yes
 
 ## Progress
@@ -131,7 +134,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8
 | 4. Status de Afiliados | v1.1 | 0/3 | Planning complete | - |
 | 5. Ajustes Visuais | v1.1 | 0/2 | Planning complete | - |
 | 6. Dados de Backend e Upsell | v1.1 | 0/2 | Planning complete | - |
-| 7. Tags de Afiliados | v1.1 | 0/TBD | Not started | - |
+| 7. Tags de Afiliados | v1.1 | 0/2 | Planning complete | - |
 | 8. Auditoria Divergencia | v1.1 | 0/TBD | Not started | - |
 
 ### Phase 8: Auditoria de Divergencia Digistore24 vs AffiliView
