@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { X } from "lucide-react";
 import {
   type AffiliateRow,
   type AffiliateRanking,
   type AffiliateRankingInfo,
+  type TransactionRow,
   formatEur,
   formatPct,
   formatInt,
   TIER_MIN,
+  computeAffiliateUpsells,
 } from "../lib/transactions";
 
 const RANKING_LABEL: Record<AffiliateRanking, string> = {
@@ -60,15 +62,21 @@ function dayTierClass(t1: boolean, t2: boolean, t3: boolean): string {
 }
 
 interface AffiliateDrawerProps {
-  affiliate:   AffiliateRow | null;
-  rankingInfo: AffiliateRankingInfo | null;
-  onClose:     () => void;
+  affiliate:    AffiliateRow | null;
+  rankingInfo:  AffiliateRankingInfo | null;
+  filteredRows: TransactionRow[];
+  onClose:      () => void;
 }
 
-const AffiliateDrawer: React.FC<AffiliateDrawerProps> = ({ affiliate, rankingInfo, onClose }) => {
+const AffiliateDrawer: React.FC<AffiliateDrawerProps> = ({ affiliate, rankingInfo, filteredRows, onClose }) => {
   const open = affiliate !== null;
   const onCloseRef = React.useRef(onClose);
   onCloseRef.current = onClose;
+
+  const upsellData = useMemo(() => {
+    if (!affiliate || filteredRows.length === 0) return null;
+    return computeAffiliateUpsells(filteredRows, affiliate.name);
+  }, [affiliate, filteredRows]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -263,6 +271,38 @@ const AffiliateDrawer: React.FC<AffiliateDrawerProps> = ({ affiliate, rankingInf
           ) : (
             <div className="aff-drawer-section">
               <p style={{ color: "var(--text-3)", fontSize: 13 }}>Sem dados para os últimos 7 dias.</p>
+            </div>
+          )}
+
+          {/* ── Upsells Vendidos ── */}
+          {upsellData && upsellData.upsells.length > 0 && (
+            <div className="aff-drawer-section">
+              <div className="aff-drawer-section-title">Upsells Vendidos</div>
+              <table style={{ width: "100%", fontSize: 13 }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "left" }}>Produto</th>
+                    <th style={{ textAlign: "right" }}>Qtd</th>
+                    <th style={{ textAlign: "right" }}>Gross</th>
+                    <th style={{ textAlign: "right" }}>AOV +</th>
+                    <th style={{ textAlign: "right" }}>% AOV</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {upsellData.upsells.map((u) => (
+                    <tr key={u.productName}>
+                      <td>{u.productName}</td>
+                      <td className="num">{u.quantity}</td>
+                      <td className="num">{formatEur(u.gross)}</td>
+                      <td className="num">{formatEur(u.aovContribution)}</td>
+                      <td className="num">{formatPct(u.aovContributionPct)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-3)" }}>
+                AOV total: {formatEur(upsellData.totalAOV)} · {upsellData.frontSalesCount} vendas front · {formatEur(upsellData.totalUpsellGross)} em upsells
+              </div>
             </div>
           )}
 
