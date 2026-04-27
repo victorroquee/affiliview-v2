@@ -117,7 +117,7 @@ Plans:
   3. User can clear the tag filter to return to the full affiliate list
 **Plans:** 2 plans
 Plans:
-- [ ] 07-01-PLAN.md — useAffiliateTags hook + drawer tag assignment UI
+- [x] 07-01-PLAN.md — useAffiliateTags hook + drawer tag assignment UI
 - [ ] 07-02-PLAN.md — Tag display on rows + tag filter on Affiliates page
 **UI hint**: yes
 
