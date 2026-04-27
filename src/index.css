@@ -484,6 +484,12 @@ input  { font-family: inherit; }
   gap: 10px;
 }
 
+.kpi-grid-5 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
 .kpi-card {
   background: var(--bg-primary);
   border: 1px solid var(--border);
@@ -828,8 +834,31 @@ td.orange, .num.orange { color: var(--amber);  font-weight: 600; }
 .tier-badge.tier-1       { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
 .tier-badge.tier-2       { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-bd); }
 .tier-badge.tier-3       { background: #F3E8FF; color: #6B21A8; border: 1px solid #DDD6FE; }
-.tier-badge.tier-ativo   { background: var(--green-bg); color: var(--green-text); border: 1px solid var(--green-bd); }
-.tier-badge.tier-inativo { background: var(--bg-secondary); color: var(--text-3); border: 1px solid var(--border); }
+.tier-badge.tier-ativo    { background: var(--green-bg); color: var(--green-text); border: 1px solid var(--green-bd); }
+.tier-badge.tier-em-rampa { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-bd); }
+.tier-badge.tier-inativo  { background: var(--bg-secondary); color: var(--text-3); border: 1px solid var(--border); }
+
+/* ── Affiliate summary / filter layout ───────────────────────────────────── */
+.aff-summary-badges {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.aff-last-sale {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+.aff-filter-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-3);
+  font-size: 13px;
+}
 
 /* ── Affiliate detail panel ──────────────────────────────────────────────── */
 .aff-main-row:hover { background: var(--bg-secondary); }
@@ -2683,6 +2712,7 @@ td.orange, .num.orange { color: var(--amber);  font-weight: 600; }
 @media (max-width: 1200px) {
   .kpi-grid   { grid-template-columns: repeat(3, 1fr); }
   .kpi-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .kpi-grid-5 { grid-template-columns: repeat(3, 1fr); }
   .charts-row { grid-template-columns: 1fr; }
   .scorecard-row { grid-template-columns: 1fr; }
 }

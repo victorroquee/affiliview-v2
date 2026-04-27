@@ -98,7 +98,7 @@ export interface AffiliateDetail {
 
 // ─── Affiliate Ranking ────────────────────────────────────────────────────────
 
-export type AffiliateRanking = "Tier 1" | "Tier 2" | "Tier 3" | "Ativo" | "Inativo";
+export type AffiliateRanking = "Tier 1" | "Tier 2" | "Tier 3" | "Ativo" | "Em Rampa" | "Inativo";
 
 export interface AffiliateDayDetail {
   date: string;        // "2026-04-01"
@@ -115,6 +115,7 @@ export interface AffiliateRankingInfo {
   frontSalesInWindow: number;     // total vendas front na janela de 7 dias
   windowStart: string;            // data ISO do primeiro dia da janela
   windowEnd: string;              // data ISO do último dia da janela
+  lastFrontSaleDate: string | null;  // ISO date of most recent front sale across allRows
 }
 
 const TIER_THRESHOLDS: { tier: AffiliateRanking; min: number }[] = [
@@ -200,6 +201,19 @@ export function computeAffiliateRankings(
     affData.set(name, d);
   }
 
+  // Track last front sale date per affiliate across ALL data
+  const lastSaleMap = new Map<string, string>();
+  for (const t of payRows) {
+    if (t.upsellNo !== 0) continue;
+    const name = t.affiliate.trim();
+    if (!name) continue;
+    const dateKey = t.date.toISOString().split("T")[0]!;
+    const prev = lastSaleMap.get(name);
+    if (!prev || dateKey > prev) {
+      lastSaleMap.set(name, dateKey);
+    }
+  }
+
   // Determina o ranking e monta o breakdown diário de cada afiliado
   const rankings = new Map<string, AffiliateRankingInfo>();
   for (const [name, data] of affData) {
@@ -212,7 +226,13 @@ export function computeAffiliateRankings(
       }
     }
     if (!assigned) {
-      assigned = data.frontSales >= ATIVO_MIN_SALES ? "Ativo" : "Inativo";
+      if (data.frontSales >= ATIVO_MIN_SALES) {
+        assigned = "Ativo";
+      } else if (data.frontSales >= 1) {
+        assigned = "Em Rampa";
+      } else {
+        assigned = "Inativo";
+      }
     }
 
     const days: AffiliateDayDetail[] = dateKeys.map((dk) => {
@@ -233,6 +253,23 @@ export function computeAffiliateRankings(
       frontSalesInWindow: data.frontSales,
       windowStart: dateKeys[0]!,
       windowEnd: dateKeys[6]!,
+      lastFrontSaleDate: lastSaleMap.get(name) ?? null,
+    });
+  }
+
+  // Add affiliates with historical sales but 0 in window as Inativo
+  for (const [name, lastDate] of lastSaleMap) {
+    if (rankings.has(name)) continue;
+    const emptyDays: AffiliateDayDetail[] = dateKeys.map((dk) => ({
+      date: dk, gross: 0, frontSales: 0, t1: false, t2: false, t3: false,
+    }));
+    rankings.set(name, {
+      ranking: "Inativo",
+      days: emptyDays,
+      frontSalesInWindow: 0,
+      windowStart: dateKeys[0]!,
+      windowEnd: dateKeys[6]!,
+      lastFrontSaleDate: lastDate,
     });
   }
 
