@@ -1,5 +1,6 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { X } from "lucide-react";
+import { useAffiliateTags } from "../hooks/useAffiliateTags";
 import {
   type AffiliateRow,
   type AffiliateRanking,
@@ -73,6 +74,11 @@ const AffiliateDrawer: React.FC<AffiliateDrawerProps> = ({ affiliate, rankingInf
   const onCloseRef = React.useRef(onClose);
   onCloseRef.current = onClose;
 
+  const { getTagsFor, addTag, removeTag } = useAffiliateTags();
+  const [tagInput, setTagInput] = useState("");
+
+  const currentTags = affiliate ? getTagsFor(affiliate.name) : [];
+
   const upsellData = useMemo(() => {
     if (!affiliate || filteredRows.length === 0) return null;
     return computeAffiliateUpsells(filteredRows, affiliate.name);
@@ -111,6 +117,71 @@ const AffiliateDrawer: React.FC<AffiliateDrawerProps> = ({ affiliate, rankingInf
         </div>
 
         <div className="aff-drawer-body">
+
+          {/* ── Tags ── */}
+          <div className="aff-drawer-section">
+            <div className="aff-drawer-section-title">Tags</div>
+            <div className="aff-drawer-tags" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2 }}>
+              {currentTags.map(tag => (
+                <span
+                  key={tag}
+                  className="tag-chip"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    background: "var(--bg-2)",
+                    color: "var(--text-2)",
+                    fontSize: 12,
+                    padding: "2px 8px",
+                    borderRadius: 4,
+                    marginRight: 4,
+                    marginBottom: 4,
+                  }}
+                >
+                  {tag}
+                  <button
+                    className="tag-chip-remove"
+                    onClick={(e) => { e.stopPropagation(); removeTag(affiliate!.name, tag); }}
+                    aria-label={`Remover tag ${tag}`}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      marginLeft: 4,
+                      fontSize: 10,
+                      color: "var(--text-3)",
+                      padding: 0,
+                      lineHeight: 1,
+                    }}
+                  >
+                    x
+                  </button>
+                </span>
+              ))}
+              <input
+                className="tag-input"
+                type="text"
+                placeholder="Adicionar tag..."
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && tagInput.trim()) {
+                    addTag(affiliate!.name, tagInput);
+                    setTagInput("");
+                  }
+                }}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  fontSize: 12,
+                  flexGrow: 1,
+                  outline: "none",
+                  color: "var(--text-2)",
+                  minWidth: 120,
+                }}
+              />
+            </div>
+          </div>
 
           {/* ── Métricas ── */}
           <div className="aff-drawer-section">
