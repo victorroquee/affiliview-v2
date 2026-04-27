@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Melhorias Dashboard
-status: ready_to_plan
-stopped_at: Data accuracy fixes applied — ready to plan Phase 4
-last_updated: "2026-04-23"
-last_activity: 2026-04-23
+status: executing
+stopped_at: Ready to plan Phase 4
+last_updated: "2026-04-27T15:06:35.075Z"
+last_activity: 2026-04-27 -- Phase 4 planning complete
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
+  total_plans: 3
   completed_plans: 0
   percent: 0
 ---
@@ -20,8 +20,8 @@ progress:
 
 Phase: 4 of 7 (Status de Afiliados) — Not started
 Plan: —
-Status: Ready to plan
-Last activity: 2026-04-23 — Data accuracy audit and fixes (AOV, Gross, Earnings alignment with Digistore24)
+Status: Ready to execute
+Last activity: 2026-04-27 -- Phase 4 planning complete
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -41,18 +41,22 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 ## Recent Data Accuracy Fixes (2026-04-23)
 
 ### AOV — VAT exclusion
+
 - AOV now uses `netAmount` (amount - vat_amount) instead of `grossAmount`
 - Fixes ~12% inflation from VAT inclusion
 
 ### Gross Revenue — Front-only alignment
+
 - `gross` now sums only front payments (upsell_no=0), matching Digistore dashboard
 - `grossBruto` kept as total (front + upsells) for AOV and rate calculations
 
 ### Earnings — Front-only alignment
+
 - `earningsTotal` now sums front payment earnings + refund/CB deductions
 - Matches Digistore's "Your Earnings" which shows front-order earnings
 
 ### Transaction type safety
+
 - `transactionType` normalized to lowercase in normalizer
 - `isPayment()` changed from catch-all to strict whitelist (payment, sale, upsell)
 - `earned_amount` fallback enforces negative sign for refunds/CB
