@@ -20,8 +20,10 @@ import {
   type AffiliateRow,
   type AffiliateRankingInfo,
   type PeriodMetrics,
+  type UpsellProductRow,
   computeFromFiltered,
   computeAffiliateRankings,
+  computeBackendProducts,
   isMaileonardo,
   formatEur,
   formatPct,
@@ -79,6 +81,11 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const drawerRanking: AffiliateRankingInfo | null =
     drawerAffiliate ? (rankings.get(drawerAffiliate.name) ?? null) : null;
+
+  const backendProducts = useMemo((): UpsellProductRow[] => {
+    if (filteredRows.length === 0) return [];
+    return computeBackendProducts(filteredRows);
+  }, [filteredRows]);
 
   const filteredProductSummary = useMemo(() => {
     if (!metrics) return [];
@@ -247,11 +254,43 @@ const Dashboard: React.FC<DashboardProps> = ({
       <ProductSummaryTable data={filteredProductSummary} />
       <BundlePerformanceTable data={filteredBundles} />
 
+      {backendProducts.length > 0 && (
+        <div className="table-container">
+          <div className="table-header">
+            <h3>Resultados de Backend (Upsells/Downsells)</h3>
+            <p>Produtos vendidos como upsell ou downsell no periodo selecionado</p>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th>Tipo</th>
+                <th style={{ textAlign: "right" }}>Quantidade</th>
+                <th style={{ textAlign: "right" }}>Gross</th>
+                <th style={{ textAlign: "right" }}>Contribuicao %</th>
+              </tr>
+            </thead>
+            <tbody>
+              {backendProducts.map((p) => (
+                <tr key={p.productName}>
+                  <td style={{ fontWeight: 600 }}>{p.productName}</td>
+                  <td><span className="tier-badge">{p.classification}</span></td>
+                  <td className="num">{formatInt(p.quantitySold)}</td>
+                  <td className="num green">{formatEur(p.gross)}</td>
+                  <td className="num">{formatPct(p.contributionPct)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       <div className="footer">AFFILIVIEW by OG GROUP · 2026</div>
 
       <AffiliateDrawer
         affiliate={drawerAffiliate}
         rankingInfo={drawerRanking}
+        filteredRows={filteredRows}
         onClose={() => setDrawerAffiliate(null)}
       />
     </>
