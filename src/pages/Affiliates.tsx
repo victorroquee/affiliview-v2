@@ -6,6 +6,7 @@ import {
   type AffiliateRankingInfo,
   computeFromFiltered,
   computeAffiliateRankings,
+  computeTopProductPerAffiliate,
   isMaileonardo,
   formatEur,
   formatPct,
@@ -65,6 +66,11 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
 
   const rankings: Map<string, AffiliateRankingInfo> = useMemo(
     () => computeAffiliateRankings(allRows.filter((r) => !isMaileonardo(r.affiliate))),
+    [allRows]
+  );
+
+  const topProducts: Map<string, string> = useMemo(
+    () => computeTopProductPerAffiliate(allRows.filter((r) => !isMaileonardo(r.affiliate))),
     [allRows]
   );
 
@@ -163,6 +169,7 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
             <tr>
               <th>#</th>
               <th>Afiliado</th>
+              <th>Top Produto (7d)</th>
               <th>Ranking <InfoTooltip text={RANKING_TOOLTIP} /></th>
               <th style={{ textAlign: "right" }}>Gross</th>
               <th style={{ textAlign: "right" }}>Earnings</th>
@@ -178,7 +185,7 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
           <tbody>
             {filteredAffiliates.length === 0 ? (
               <tr>
-                <td colSpan={12} className="aff-filter-empty">
+                <td colSpan={13} className="aff-filter-empty">
                   {statusFilter === "Inativo"
                     ? "Nenhum afiliado inativo no período."
                     : statusFilter === "Em Rampa"
@@ -206,6 +213,15 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
                         <div className="aff-last-sale">
                           Última venda: {formatDaysAgo(rankingInfo.lastFrontSaleDate)}
                         </div>
+                      )}
+                    </td>
+                    <td>
+                      {topProducts.get(a.name) ? (
+                        <span style={{ fontSize: 12, color: "var(--text-2)", background: "var(--bg-2)", padding: "2px 8px", borderRadius: 4 }}>
+                          {topProducts.get(a.name)}
+                        </span>
+                      ) : (
+                        <span style={{ color: "var(--text-3)", fontSize: 12 }}>—</span>
                       )}
                     </td>
                     <td>
