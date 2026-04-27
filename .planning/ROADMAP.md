@@ -73,6 +73,7 @@ Plans:
 - [x] 04-01-PLAN.md — Data layer: add Em Rampa to ranking type/logic + lastFrontSaleDate + CSS foundation
 - [x] 04-02-PLAN.md — Dashboard count fix + Inativos KPI + AffiliateDrawer Em Rampa support
 - [x] 04-03-PLAN.md — Affiliates page: status filter tabs, summary badges, sort order, Ultima venda
+
 **UI hint**: yes
 
 #### Phase 5: Ajustes Visuais
@@ -100,7 +101,10 @@ Plans:
   2. User can open an affiliate drawer and see which upsells that affiliate sold in the selected period with quantities
   3. User can see how much each upsell kit contributed to the affiliate's overall AOV inside the drawer
   4. User can see which product each affiliate is running the most in the last 7 days
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 06-01-PLAN.md — Data layer: upsell/backend aggregation functions and types
+- [ ] 06-02-PLAN.md — UI: backend products table, upsell drawer section, top product badge
 **UI hint**: yes
 
 #### Phase 7: Tags de Afiliados
@@ -126,7 +130,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8
 | 3. Simulation Engine | v1.0 | 2/2 | Complete | 2026-04-22 |
 | 4. Status de Afiliados | v1.1 | 0/3 | Planning complete | - |
 | 5. Ajustes Visuais | v1.1 | 0/2 | Planning complete | - |
-| 6. Dados de Backend e Upsell | v1.1 | 0/TBD | Not started | - |
+| 6. Dados de Backend e Upsell | v1.1 | 0/2 | Planning complete | - |
 | 7. Tags de Afiliados | v1.1 | 0/TBD | Not started | - |
 | 8. Auditoria Divergencia | v1.1 | 0/TBD | Not started | - |
 
