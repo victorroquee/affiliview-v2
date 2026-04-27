@@ -66,7 +66,7 @@ export interface BundleRow {
   valorLiq: number;
   reembolsos: number;
   chargebacks: number;
-  rcb: number;
+  refundPct: number;
 }
 
 export interface AffiliateRow {
@@ -608,7 +608,7 @@ export function computePeriod(
       valorLiq:    d.valorLiq,
       reembolsos:  d.reembolsos,
       chargebacks: d.chargebacks,
-      rcb:         d.reembolsos + d.chargebacks,
+      refundPct:   d.vendas > 0 ? (d.reembolsos / d.vendas) * 100 : 0,
     }))
     .sort((a, b) => b.gross - a.gross);
 

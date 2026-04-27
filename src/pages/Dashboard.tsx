@@ -152,8 +152,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                 icon={RotateCcw}
                 label="Reembolso + Chargeback"
                 value={formatPct(metrics.refundCbPct)}
-                info={`Taxa value-based: (gross reembolsos + gross chargebacks) ÷ gross revenue total. Alerta: laranja >5%, vermelho >10%. Reembolso: ${formatPct(metrics.refundPct)} · Chargeback: ${formatPct(metrics.chargebackPct)}`}
-                color={metrics.refundCbPct > 10 ? "red" : metrics.refundCbPct > 5 ? "orange" : ""}
+                info={`Taxa value-based: (gross reembolsos + gross chargebacks) ÷ gross revenue total. Alerta: laranja ≤8%, vermelho >8%. Reembolso: ${formatPct(metrics.refundPct)} · Chargeback: ${formatPct(metrics.chargebackPct)}`}
+                color={metrics.refundCbPct > 8 ? "red" : metrics.refundCbPct > 0 ? "orange" : ""}
               />
             </div>
           </div>

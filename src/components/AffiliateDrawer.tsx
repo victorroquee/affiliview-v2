@@ -80,7 +80,7 @@ const AffiliateDrawer: React.FC<AffiliateDrawerProps> = ({ affiliate, rankingInf
   if (!affiliate) return null;
 
   const ranking: AffiliateRanking = rankingInfo?.ranking ?? "Inativo";
-  const margemColor = affiliate.margem > 30 ? "green" : affiliate.margem > 15 ? "orange" : "red";
+  const margemColor = affiliate.margem >= 10 ? "green" : affiliate.margem >= 5 ? "orange" : "red";
   const next    = nextTier(ranking);
   const nextMin = next && TIER_MIN[next] != null ? TIER_MIN[next]! : null;
 
@@ -116,7 +116,7 @@ const AffiliateDrawer: React.FC<AffiliateDrawerProps> = ({ affiliate, rankingInf
                 { label: "Ticket Médio", value: formatEur(affiliate.aov),        cls: "" },
                 { label: "CPA",          value: formatEur(affiliate.cpa),        cls: "" },
                 { label: "Margem",       value: formatPct(affiliate.margem),     cls: margemColor },
-                { label: "Refund+CB",    value: formatPct(affiliate.refundCbPct), cls: affiliate.refundCbPct > 10 ? "red" : affiliate.refundCbPct > 5 ? "orange" : "" },
+                { label: "Refund+CB",    value: formatPct(affiliate.refundCbPct), cls: affiliate.refundCbPct > 8 ? "red" : affiliate.refundCbPct > 0 ? "orange" : ""},
               ].map(({ label, value, cls }) => (
                 <div key={label} className="aff-drawer-metric">
                   <div className="aff-drawer-metric-label">{label}</div>

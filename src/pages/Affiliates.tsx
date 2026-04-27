@@ -188,7 +188,7 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
               </tr>
             ) : (
               filteredAffiliates.map((a, i) => {
-                const margemColor = a.margem > 30 ? "green" : a.margem > 15 ? "orange" : "red";
+                const margemColor = a.margem >= 10 ? "green" : a.margem >= 5 ? "orange" : "red";
                 const rankingInfo = rankings.get(a.name);
                 const ranking: AffiliateRanking = rankingInfo?.ranking ?? "Inativo";
                 const isSelected = selectedAffiliate === a.name;
@@ -220,7 +220,7 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
                     <td className="num">{formatEur(a.aov)}</td>
                     <td className="num">{formatEur(a.cpa)}</td>
                     <td className={`num ${margemColor}`}>{formatPct(a.margem)}</td>
-                    <td className={`num ${a.refundCbPct > 10 ? "red" : a.refundCbPct > 5 ? "orange" : ""}`}>
+                    <td className={`num ${a.refundCbPct > 8 ? "red" : a.refundCbPct > 0 ? "orange" : ""}`}>
                       {formatPct(a.refundCbPct)}
                     </td>
                     <td>

@@ -80,13 +80,13 @@ export const BundlePerformanceTable: React.FC<BundlePerformanceTableProps> = ({ 
             <th style={{ textAlign: "right" }}>Valor Líquido <InfoTooltip text="Net Revenue menos o COGS (custo do produto + frete) deste kit. Verde = lucrativo, vermelho = prejuízo." /></th>
             <th style={{ textAlign: "right" }}>Reembolsos <InfoTooltip text="Quantidade absoluta de pedidos reembolsados neste kit. Laranja indica ao menos um reembolso no período." /></th>
             <th style={{ textAlign: "right" }}>Chargebacks <InfoTooltip text="Quantidade absoluta de chargebacks neste kit. Vermelho indica ao menos um chargeback no período." /></th>
-            <th style={{ textAlign: "right" }}>R+CB (total) <InfoTooltip text="Total de ocorrências de reembolsos + chargebacks neste kit. Referência rápida de exposição ao risco." /></th>
+            <th style={{ textAlign: "right" }}>Reembolso % <InfoTooltip text="Percentual de reembolsos sobre vendas deste kit. Laranja ≤8%, vermelho >8%." /></th>
           </tr>
         </thead>
         <tbody>
           {data.map((row) => (
             <tr key={row.bundle}>
-              <td style={{ fontWeight: 600 }}>{row.bundle}</td>
+              <td style={{ fontWeight: 600 }}>{row.bundle.replace(/^M\d+\s*/i, "")}</td>
               <td style={{ color: "var(--text-3)", fontSize: 11 }}>{row.product}</td>
               <td className="num">{formatInt(row.vendas)}</td>
               <td className="num green">{formatEur(row.gross)}</td>
@@ -100,8 +100,8 @@ export const BundlePerformanceTable: React.FC<BundlePerformanceTableProps> = ({ 
               <td className={`num ${row.chargebacks > 0 ? "red" : ""}`}>
                 {formatInt(row.chargebacks)}
               </td>
-              <td className={`num ${row.rcb > 0 ? "red" : ""}`}>
-                {formatInt(row.rcb)}
+              <td className={`num ${row.refundPct > 8 ? "red" : row.refundPct > 0 ? "orange" : ""}`}>
+                {formatPct(row.refundPct)}
               </td>
             </tr>
           ))}
