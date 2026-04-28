@@ -555,11 +555,14 @@ export function computePeriod(
     payTxs.reduce((s, t) => s + t.earnings, 0) +
     refCbTxs.reduce((s, t) => s + t.earnings, 0);
 
-  // earningsFront = front-only earnings + refund/CB — base para Valor Liquido
+  // earningsFront = front-only earnings + front-only refund/CB — base para Valor Liquido
   // COGS aplica apenas a produtos fisicos front (upsells sao digitais, sem fulfillment)
+  // Only front refunds/CB (upsellNo === 0) deducted here — upsell refunds must not reduce
+  // a base that never included upsell earnings (would understate valorLiq when upsell refunds exist).
+  const frontRefCbForEarnings = refCbTxs.filter((t) => t.upsellNo === 0);
   const earningsFront =
     frontPayments.reduce((s, t) => s + t.earnings, 0) +
-    refCbTxs.reduce((s, t) => s + t.earnings, 0);
+    frontRefCbForEarnings.reduce((s, t) => s + t.earnings, 0);
 
   // ── AOV ────────────────────────────────────────────────────────────────────
   // Average order value per unique order (front + upsells + bumps), VAT-excluded.
