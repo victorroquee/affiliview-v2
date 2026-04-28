@@ -56,7 +56,7 @@ export function useDigistoreAPI(): UseDigistoreAPIReturn {
           // Only vendor transactions (where we are the seller)
           "search[role]":             "vendor",
           // Include all relevant transaction types accepted by the Digistore API
-          "search[transaction_type]": "payment,refund,chargeback",
+          "search[transaction_type]": "payment,sale,upsell,refund,chargeback",
           sort_by:    "date",
           sort_order: "asc",
           page_no:    String(page),

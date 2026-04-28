@@ -557,6 +557,30 @@ export function computePeriod(
     frontPayments.reduce((s, t) => s + t.earnings, 0) +
     refCbTxs.reduce((s, t) => s + t.earnings, 0);
 
+  // ── AUDIT DIAGNOSTIC — remove after Phase 8 verification ──────────────
+  console.group("AUDIT: computePeriod");
+  console.log("total payment rows:", payTxs.length);
+  console.log("  front payments (upsellNo=0):", frontPayments.length);
+  console.log("  upsell payments (upsellNo>0):", payTxs.filter(t => t.upsellNo > 0).length);
+  console.log("refund/CB rows:", refCbTxs.length);
+  console.log("---");
+  console.log("grossBruto (ALL payments):", payTxs.reduce((s,t) => s + t.grossAmount, 0).toFixed(2));
+  console.log("gross (front-only):", frontPayments.reduce((s,t) => s + t.grossAmount, 0).toFixed(2));
+  console.log("DELTA gross:", (payTxs.reduce((s,t) => s + t.grossAmount, 0) - frontPayments.reduce((s,t) => s + t.grossAmount, 0)).toFixed(2));
+  console.log("---");
+  console.log("earnings ALL payments:", payTxs.reduce((s,t) => s + t.earnings, 0).toFixed(2));
+  console.log("earnings front-only:", frontPayments.reduce((s,t) => s + t.earnings, 0).toFixed(2));
+  console.log("earnings upsells:", payTxs.filter(t => t.upsellNo > 0).reduce((s,t) => s + t.earnings, 0).toFixed(2));
+  console.log("earnings refund/CB:", refCbTxs.reduce((s,t) => s + t.earnings, 0).toFixed(2));
+  console.log("earningsTotal (current formula = front + refCb):", earningsTotal.toFixed(2));
+  console.log("earningsAll (proposed = ALL payments + refCb):",
+    (payTxs.reduce((s,t) => s + t.earnings, 0) + refCbTxs.reduce((s,t) => s + t.earnings, 0)).toFixed(2));
+  console.log("---");
+  console.log("Digistore reference (INVESTIGATION-CONTEXT):");
+  console.log("  Gross Amount: 14110.76 | Earnings: 3962.17");
+  console.groupEnd();
+  // ── END AUDIT DIAGNOSTIC ──────────────────────────────────────────────
+
   // ── AOV ────────────────────────────────────────────────────────────────────
   // Average order value per unique order (front + upsells + bumps), VAT-excluded.
   // Numerator: total net of all payments (amount − VAT); Denominator: front sales (unique orders)
