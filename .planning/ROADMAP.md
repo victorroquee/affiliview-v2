@@ -152,6 +152,6 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8
 **UI hint**: no
 
 Plans:
-- [ ] 08-01-PLAN.md — Diagnostic: expand API filter + add console audit logging
+- [x] 08-01-PLAN.md — Diagnostic: expand API filter + add console audit logging
 - [ ] 08-02-PLAN.md — Fix Gross and Earnings KPIs + decouple Valor Liquido + update logica docs
 - [ ] 08-03-PLAN.md — Update Dashboard KPI tooltip text
