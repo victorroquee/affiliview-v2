@@ -2,7 +2,7 @@
 
 ## O que e
 
-Receita bruta dos pedidos frontais no periodo selecionado. Representa o valor total pago pelos clientes (incluindo IVA/VAT) em transacoes do tipo `payment` com `upsell_no === 0` (vendas frontais apenas). Alinhado com o gross do dashboard Digistore24.
+Receita bruta de TODOS os pagamentos no periodo selecionado. Representa o valor total pago pelos clientes (incluindo IVA/VAT) em transacoes do tipo `payment` (front + upsells + bumps). Alinhado com o "Gross Amount" do dashboard Digistore24 que inclui upsells.
 
 ---
 
@@ -18,9 +18,11 @@ Receita bruta dos pedidos frontais no periodo selecionado. Representa o valor to
 ## Formula
 
 ```
-Gross Revenue = SUM(amount WHERE payment AND upsell_no === 0)
-              = frontPayments.reduce(grossAmount)
+Gross Revenue = SUM(amount WHERE payment — ALL upsell_no values)
+              = payTxs.reduce(grossAmount)
 ```
+
+> **Nota (Phase 8 correcao):** Anteriormente, Gross usava apenas pagamentos frontais (upsell_no=0). Corrigido para incluir todos os pagamentos, alinhando com "Gross Amount" do Digistore24. A diferenca era de -13.4%.
 
 ---
 
@@ -28,17 +30,18 @@ Gross Revenue = SUM(amount WHERE payment AND upsell_no === 0)
 
 | Campo | Escopo | Uso |
 |-------|--------|-----|
-| `gross` | Pedidos frontais (upsell_no=0) | KPI display, alinhado com Digistore |
-| `grossBruto` | Todos os pagamentos (front + upsells) | AOV, taxas de reembolso internas |
+| `gross` | Todos os pagamentos (front + upsells) | KPI display, alinhado com Digistore |
+| `grossBruto` | Alias de gross | Backward compat, taxas de reembolso internas |
+
+> Desde Phase 8, `gross === grossBruto`. Ambos incluem front + upsells.
 
 ---
 
 ## Regras
 
-- Inclui apenas vendas frontais (`upsell_no === 0`)
+- Inclui TODOS os pagamentos (front + upsells + bumps) — alinhado com Digistore24
 - Inclui os tres produtos: **Erectus X**, **Slimjara** e **Memoguard**
 - Refunds e chargebacks nao reduzem o Gross — seu impacto vai para o Earnings via `earned_amount` negativo
-- Upsells e bumps nao inflam este KPI — sao capturados no AOV
 - O periodo filtrado segue horario **UTC**
 
 ---
@@ -69,10 +72,8 @@ Gross Revenue = €150 + €90 = €240,00
 **Arquivo**: `src/lib/transactions.ts` — funcao `computePeriod()`
 
 ```typescript
-const frontPayments = payTxs.filter((t) => t.upsellNo === 0);
-const gross = frontPayments.reduce((s, t) => s + t.grossAmount, 0);
-// grossBruto mantido como total (front + upsells) para AOV e taxas
 const grossBruto = payTxs.reduce((s, t) => s + t.grossAmount, 0);
+const gross = grossBruto; // alinhado com Digistore24 Gross Amount
 ```
 
 **Exibido em**: `src/pages/Dashboard.tsx` — cartao "Gross Revenue"
