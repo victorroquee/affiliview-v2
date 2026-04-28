@@ -135,12 +135,12 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8
 | 5. Ajustes Visuais | v1.1 | 0/2 | Planning complete | - |
 | 6. Dados de Backend e Upsell | v1.1 | 0/2 | Planning complete | - |
 | 7. Tags de Afiliados | v1.1 | 0/2 | Planning complete | - |
-| 8. Auditoria Divergencia | v1.1 | 0/TBD | Not started | - |
+| 8. Auditoria Divergencia | v1.1 | 0/3 | Planning complete | - |
 
 ### Phase 8: Auditoria de Divergencia Digistore24 vs AffiliView
 
 **Goal:** Identificar e corrigir as causas raiz da divergencia entre Gross (-13.4%), Earnings (-48.3%) e Net Amount exibidos no painel Digistore24 vs AffiliView
-**Requirements**: TBD
+**Requirements**: AUDIT-01, AUDIT-02, AUDIT-03, AUDIT-04, AUDIT-05
 **Depends on:** Phase 7
 **Success Criteria** (what must be TRUE):
   1. Relatorio de diagnostico com hipoteses rankeadas por probabilidade
@@ -148,8 +148,10 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8
   3. Identificacao de quais filtros (timezone, order_type, status, paginacao) causam a divergencia
   4. Gross Revenue do AffiliView alinhado com Gross Amount do painel Digistore24 (margem <1%)
   5. Earnings do AffiliView alinhado com Your Earnings do painel Digistore24 (margem <1%)
-**Plans:** 0 plans
+**Plans:** 3 plans
 **UI hint**: no
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 8 to break down)
+- [ ] 08-01-PLAN.md — Diagnostic: expand API filter + add console audit logging
+- [ ] 08-02-PLAN.md — Fix Gross and Earnings KPIs + decouple Valor Liquido + update logica docs
+- [ ] 08-03-PLAN.md — Update Dashboard KPI tooltip text

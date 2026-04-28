@@ -49,6 +49,14 @@ Requirements for milestone v1.1 — Melhorias Dashboard.
 - [ ] **TAG-01**: User can assign manual tags to affiliates (e.g., source/origin like "chris")
 - [ ] **TAG-02**: User can filter the affiliate list by tags
 
+### Auditoria de Divergencia
+
+- [ ] **AUDIT-01**: Diagnostic report with hypotheses ranked by probability for Gross and Earnings divergence
+- [ ] **AUDIT-02**: Field mapping of Digistore24 API fields vs AffiliView computed fields documented
+- [ ] **AUDIT-03**: Identification of which filters (transaction_type, scope, timezone) cause the divergence
+- [ ] **AUDIT-04**: Gross Revenue aligned with Digistore24 Gross Amount (margin <1%)
+- [ ] **AUDIT-05**: Earnings aligned with Digistore24 Your Earnings (margin <1%)
+
 ## Open Questions
 
 | Question | Impact | Resolve Before |
@@ -103,12 +111,17 @@ Requirements for milestone v1.1 — Melhorias Dashboard.
 | BKND-04 | Phase 6 | Pending |
 | TAG-01 | Phase 7 | Pending |
 | TAG-02 | Phase 7 | Pending |
+| AUDIT-01 | Phase 8 | Pending |
+| AUDIT-02 | Phase 8 | Pending |
+| AUDIT-03 | Phase 8 | Pending |
+| AUDIT-04 | Phase 8 | Pending |
+| AUDIT-05 | Phase 8 | Pending |
 
 **Coverage:**
-- v1.1 requirements: 16 total
-- Mapped to phases: 16
+- v1.1 requirements: 21 total
+- Mapped to phases: 21
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-22*
-*Last updated: 2026-04-22 after v1.1 roadmap creation*
+*Last updated: 2026-04-28 after Phase 8 planning*
