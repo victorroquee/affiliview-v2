@@ -88,8 +88,8 @@ Plans:
   5. User can see a Reembolso % column in the Performance por kit (Front) table
 **Plans:** 2 plans
 Plans:
-- [ ] 05-01-PLAN.md — Fix refund and margin color thresholds (VIS-01, VIS-02)
-- [ ] 05-02-PLAN.md — Remove R+CB column, strip M-prefix, add Reembolso % column (VIS-03, VIS-04, VIS-05)
+- [x] 05-01-PLAN.md — Fix refund and margin color thresholds (VIS-01, VIS-02)
+- [x] 05-02-PLAN.md — Remove R+CB column, strip M-prefix, add Reembolso % column (VIS-03, VIS-04, VIS-05)
 **UI hint**: yes
 
 #### Phase 6: Dados de Backend e Upsell
