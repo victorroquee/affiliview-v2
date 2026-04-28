@@ -32,8 +32,8 @@ export interface PeriodMetrics {
   refundPct: number;
   chargebackPct: number;
   refundCbPct: number;
-  refundAmt: number;    // ABS(SUM(earnings for refunds))
-  cbAmt: number;        // ABS(SUM(earnings for CB))
+  refundAmt: number;    // SUM(grossAmount for refund transactions) — positive unsigned value
+  cbAmt: number;        // SUM(grossAmount for chargeback transactions) — positive unsigned value
   activated: number;
   novosQualificados: number;
   affiliatesSelling: string[];
@@ -748,8 +748,8 @@ export function computePeriod(
       product: string;
       vendas: number;
       gross: number;
-      refundAmt: number;   // ABS(SUM earnings) de reembolsos — para netRevenue e valorLiq
-      cbAmt: number;       // ABS(SUM earnings) de chargebacks — para netRevenue e valorLiq
+      refundAmt: number;   // SUM(grossAmount for refund transactions) — positive unsigned value
+      cbAmt: number;       // SUM(grossAmount for chargeback transactions) — positive unsigned value
       valorLiq: number;
       reembolsos: number;
       chargebacks: number;
