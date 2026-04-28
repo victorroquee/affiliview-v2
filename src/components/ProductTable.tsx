@@ -4,7 +4,7 @@ import InfoTooltip from "./InfoTooltip";
 
 const RANKING_CLASS: Record<AffiliateRanking, string> = {
   "Tier 1": "tier-1", "Tier 2": "tier-2", "Tier 3": "tier-3",
-  "Ativo": "tier-ativo", "Inativo": "tier-inativo",
+  "Ativo": "tier-ativo", "Em Rampa": "tier-em-rampa", "Inativo": "tier-inativo",
 };
 
 // ─── Product Summary Table ────────────────────────
