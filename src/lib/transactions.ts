@@ -591,6 +591,8 @@ export function computePeriod(
   // Affiliates whose total affiliate_amount (CPA received) >= €2000 in the period.
   // Falls back to gross-based when affiliateAmount = 0.
   const affCpa   = new Map<string, number>();
+  // affGross includes ALL payments (front + upsells) per affiliate — intentional post-Phase-8.
+  // If front-only qualification is needed, replace payTxs with frontPayments here.
   const affGross = new Map<string, number>();
   for (const t of payTxs) {
     const n = t.affiliate.trim();
