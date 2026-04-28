@@ -60,8 +60,8 @@ Para refunds e chargebacks, `earned_amount` e o valor estornado (negativo).
 | Refund Erectus X | refund | 0 | -€65,00 |
 
 ```
-Earnings = €65 + €39 + (-€65) = €39,00
-(upsell de €34 nao incluido — contabilizado apenas no AOV)
+Earnings = €65 + €34 + €39 + (-€65) = €73,00
+(upsell de €34 incluido — Phase 8 correcao: ALL payments entram no Earnings)
 ```
 
 ---
