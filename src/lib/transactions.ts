@@ -21,9 +21,9 @@ export interface TransactionRow {
 }
 
 export interface PeriodMetrics {
-  gross: number;        // = grossBruto (payments only — refunds don't affect gross)
+  gross: number;        // ALL payments (front + upsells) — alinhado com Digistore24 Gross Amount
   grossBruto: number;   // alias of gross, kept for backward compat
-  earnings: number;     // SUM(earned_amount for all types) — refunds reduce this
+  earnings: number;     // ALL payments + refund/CB deductions — alinhado com Digistore24 Your Earnings
   valorLiq: number;
   productCost: number;
   shippingCost: number;
@@ -539,47 +539,27 @@ export function computePeriod(
   const frontSales    = frontPayments.length;
 
   // ── Gross ──────────────────────────────────────────────────────────────────
-  // grossBruto = soma de TODOS os pagamentos (front + upsells + bumps) — usado
-  // internamente para taxas de reembolso/CB e AOV.
-  // gross = soma apenas dos pagamentos frontais (upsellNo === 0) — alinhado com
-  // o dashboard da Digistore24 que mostra gross por pedido único.
+  // Gross = ALL payments (front + upsells + bumps) — alinhado com Digistore24 "Gross Amount"
+  // Digistore inclui upsells e bumps no gross do dashboard (confirmado em Phase 8 auditoria)
   const grossBruto = payTxs.reduce((s, t) => s + t.grossAmount, 0);
-  const gross = frontPayments.reduce((s, t) => s + t.grossAmount, 0);
+  const gross = grossBruto;
 
   // Rates: value-based (gross do reembolso/CB ÷ gross frontal × 100)
   const rPct = gross > 0 ? (refundAmt / gross) * 100 : 0;
   const cPct = gross > 0 ? (cbAmt     / gross) * 100 : 0;
 
   // ── Earnings ───────────────────────────────────────────────────────────────
-  // Front-only payment earnings + refund/CB deductions (negative).
-  // Matches Digistore's "Your Earnings" which shows front-order earnings only.
-  const earningsTotal =
-    frontPayments.reduce((s, t) => s + t.earnings, 0) +
+  // earningsKPI = ALL payments (front + upsells + bumps) + refund/CB deductions
+  // Alinhado com Digistore24 "Your Earnings" que inclui upsells (confirmado Phase 8 auditoria)
+  const earningsKPI =
+    payTxs.reduce((s, t) => s + t.earnings, 0) +
     refCbTxs.reduce((s, t) => s + t.earnings, 0);
 
-  // ── AUDIT DIAGNOSTIC — remove after Phase 8 verification ──────────────
-  console.group("AUDIT: computePeriod");
-  console.log("total payment rows:", payTxs.length);
-  console.log("  front payments (upsellNo=0):", frontPayments.length);
-  console.log("  upsell payments (upsellNo>0):", payTxs.filter(t => t.upsellNo > 0).length);
-  console.log("refund/CB rows:", refCbTxs.length);
-  console.log("---");
-  console.log("grossBruto (ALL payments):", payTxs.reduce((s,t) => s + t.grossAmount, 0).toFixed(2));
-  console.log("gross (front-only):", frontPayments.reduce((s,t) => s + t.grossAmount, 0).toFixed(2));
-  console.log("DELTA gross:", (payTxs.reduce((s,t) => s + t.grossAmount, 0) - frontPayments.reduce((s,t) => s + t.grossAmount, 0)).toFixed(2));
-  console.log("---");
-  console.log("earnings ALL payments:", payTxs.reduce((s,t) => s + t.earnings, 0).toFixed(2));
-  console.log("earnings front-only:", frontPayments.reduce((s,t) => s + t.earnings, 0).toFixed(2));
-  console.log("earnings upsells:", payTxs.filter(t => t.upsellNo > 0).reduce((s,t) => s + t.earnings, 0).toFixed(2));
-  console.log("earnings refund/CB:", refCbTxs.reduce((s,t) => s + t.earnings, 0).toFixed(2));
-  console.log("earningsTotal (current formula = front + refCb):", earningsTotal.toFixed(2));
-  console.log("earningsAll (proposed = ALL payments + refCb):",
-    (payTxs.reduce((s,t) => s + t.earnings, 0) + refCbTxs.reduce((s,t) => s + t.earnings, 0)).toFixed(2));
-  console.log("---");
-  console.log("Digistore reference (INVESTIGATION-CONTEXT):");
-  console.log("  Gross Amount: 14110.76 | Earnings: 3962.17");
-  console.groupEnd();
-  // ── END AUDIT DIAGNOSTIC ──────────────────────────────────────────────
+  // earningsFront = front-only earnings + refund/CB — base para Valor Liquido
+  // COGS aplica apenas a produtos fisicos front (upsells sao digitais, sem fulfillment)
+  const earningsFront =
+    frontPayments.reduce((s, t) => s + t.earnings, 0) +
+    refCbTxs.reduce((s, t) => s + t.earnings, 0);
 
   // ── AOV ────────────────────────────────────────────────────────────────────
   // Average order value per unique order (front + upsells + bumps), VAT-excluded.
@@ -601,7 +581,8 @@ export function computePeriod(
     shippingCostTotal += b.shipping;
     cogsTotal         += b.total;
   }
-  const valorLiq = earningsTotal - cogsTotal;
+  // Valor Liquido = front-only earnings - COGS (upsells sao digitais, sem custo de fulfillment)
+  const valorLiq = earningsFront - cogsTotal;
 
   // ── Activated 2K ──────────────────────────────────────────────────────────
   // Affiliates whose total affiliate_amount (CPA received) >= €2000 in the period.
@@ -643,9 +624,9 @@ export function computePeriod(
   );
 
   // ── Daily Gross ───────────────────────────────────────────────────────────
-  // Front-only payment rows — aligned with gross KPI (Digistore definition)
+  // All payment rows — aligned with gross KPI (Digistore definition, includes upsells)
   const dailyMap = new Map<string, number>();
-  for (const t of frontPayments) {
+  for (const t of payTxs) {
     const dateKey = t.date.toISOString().split("T")[0]!;
     dailyMap.set(dateKey, (dailyMap.get(dateKey) ?? 0) + t.grossAmount);
   }
@@ -878,7 +859,7 @@ export function computePeriod(
   return {
     gross,
     grossBruto,
-    earnings: earningsTotal,
+    earnings: earningsKPI,
     valorLiq,
     productCost:  productCostTotal,
     shippingCost: shippingCostTotal,
