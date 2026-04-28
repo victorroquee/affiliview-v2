@@ -9,8 +9,8 @@ Receita bruta de TODOS os pagamentos no periodo selecionado. Representa o valor 
 ## Origem e Extracao
 - **Fonte**: API Digistore24 — endpoint `listTransactions`
 - **Campo utilizado**: `amount` — valor bruto pago pelo comprador (inclui VAT)
-- **Filtro**: somente transacoes com `transaction_type === "payment"` e `upsell_no === 0`
-- Upsells e bumps (upsell_no >= 1) **nao** entram no Gross Revenue — sao contabilizados no AOV
+- **Filtro**: transacoes com `transaction_type === "payment"` — **todos** os valores de `upsell_no` (front + upsells + bumps)
+- Upsells e bumps (upsell_no >= 1) **entram** no Gross Revenue — alinhado com Digistore24 "Gross Amount" (Phase 8 correcao)
 - Refunds e chargebacks **nao** afetam o Gross
 
 ---
@@ -51,12 +51,12 @@ Gross Revenue = SUM(amount WHERE payment — ALL upsell_no values)
 | Tipo | transaction_type | upsell_no | amount | Entra no Gross? |
 |------|-----------------|-----------|--------|-----------------|
 | Venda frontal | payment | 0 | €150,00 | Sim |
-| Upsell | payment | 1 | €80,00 | Nao (upsell) |
+| Upsell | payment | 1 | €80,00 | Sim (Phase 8 correcao) |
 | Venda frontal | payment | 0 | €90,00 | Sim |
 | Refund | refund | 0 | €150,00 | Nao (refund) |
 
 ```
-Gross Revenue = €150 + €90 = €240,00
+Gross Revenue = €150 + €80 + €90 = €320,00
 ```
 
 ---
