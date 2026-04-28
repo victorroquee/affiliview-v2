@@ -2,7 +2,7 @@
 
 ## O que e
 
-O valor que o produtor (vendedor) efetivamente recebe apos o Digistore descontar automaticamente a comissao do afiliado, as taxas e reservas da plataforma, e o IVA/VAT. Contabiliza apenas pedidos frontais (upsell_no=0) mais estornos de reembolsos/chargebacks. Alinhado com "Your Earnings" do Digistore24.
+O valor que o produtor (vendedor) efetivamente recebe apos o Digistore descontar automaticamente a comissao do afiliado, as taxas e reservas da plataforma, e o IVA/VAT. Contabiliza TODOS os pagamentos (front + upsells + bumps) mais estornos de reembolsos/chargebacks. Alinhado com "Your Earnings" do Digistore24 que inclui upsells.
 
 ---
 
@@ -17,13 +17,14 @@ O valor que o produtor (vendedor) efetivamente recebe apos o Digistore descontar
 ## Formula
 
 ```
-Earnings = SUM(earned_amount WHERE payment AND upsell_no === 0)
+Earnings = SUM(earned_amount WHERE payment — ALL upsell_no values)
          + SUM(earned_amount WHERE refund/chargeback)
 ```
 
-- Pagamentos frontais: earned_amount positivo
-- Upsells: **nao incluidos** (alinhamento com Digistore)
+- Pagamentos (front + upsells + bumps): earned_amount positivo
 - Refunds/CB: earned_amount negativo (reduz o total)
+
+> **Nota (Phase 8 correcao):** Anteriormente, Earnings usava apenas pagamentos frontais (upsell_no=0). Corrigido para incluir todos os pagamentos, alinhando com "Your Earnings" do Digistore24 que soma inicial + upsells + subscriptions. A diferenca era de -48.3%.
 
 ---
 
@@ -41,10 +42,11 @@ Para refunds e chargebacks, `earned_amount` e o valor estornado (negativo).
 
 ## Regras
 
-- Inclui apenas pagamentos frontais (`upsell_no === 0`) — upsells nao inflam este KPI
+- Inclui TODOS os pagamentos (front + upsells + bumps) — alinhado com Digistore24
 - Refunds e chargebacks (negativos) sao incluidos na soma, reduzindo o total
 - Inclui os tres produtos: **Erectus X**, **Slimjara** e **Memoguard**
 - O periodo filtrado segue horario **UTC**
+- **Valor Liquido** usa uma base de earnings separada (somente front) — ver valor_liquido.md
 
 ---
 
@@ -94,10 +96,13 @@ const earnedAmount = isRefundCbTx && rawEarned > 0 ? -rawEarned : rawEarned;
 **Arquivo**: `src/lib/transactions.ts` — funcao `computePeriod()`
 
 ```typescript
-const frontPayments = payTxs.filter((t) => t.upsellNo === 0);
+// earningsKPI = ALL payments + refund/CB deductions
+const earningsKPI =
+  payTxs.reduce((s, t) => s + t.earnings, 0) +
+  refCbTxs.reduce((s, t) => s + t.earnings, 0);
 
-// Earnings = front payments + refund/CB deductions
-const earningsTotal =
+// earningsFront = front-only (base para Valor Liquido — COGS aplica somente a front)
+const earningsFront =
   frontPayments.reduce((s, t) => s + t.earnings, 0) +
   refCbTxs.reduce((s, t) => s + t.earnings, 0);
 ```
