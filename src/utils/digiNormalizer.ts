@@ -18,6 +18,9 @@ export interface DigiAPITransaction {
   affiliate_amount:         string | number;  // CPA paid to affiliate
   // earned_amount: signed — positive for payments, NEGATIVE for refunds/CB
   earned_amount:            string | number;  // vendor's real earnings (= merchant_amount)
+  // transaction_amount: signed — positive for payments, NEGATIVE for refunds/CB.
+  // For partial refunds, this is the actual refunded amount (not the original order total).
+  transaction_amount:       string | number;
   // Upsell position: 0 = front offer, 1+ = upsell/downsell
   upsell_no:                number;
   // Product & affiliate
@@ -110,13 +113,18 @@ export function normalizeDigiTransaction(t: DigiAPITransaction): TransactionRow 
   );
 
   // ── Amounts ───────────────────────────────────────────────────────────────
-  // grossAmount: always stores the raw `amount` from the API (positive for all types).
-  // For payments: the sale price paid by the customer.
-  // For refunds/CB: the gross amount reversed (used as numerator in refund rate calculations).
+  // For payments: grossAmount = `amount` (the sale price paid by the customer).
+  // For refunds/CB: grossAmount = |transaction_amount| (the actual refunded amount).
+  //   `amount` for refunds is the ORIGINAL order total — wrong for partial refunds
+  //   (e.g., 30% refund of €294 → amount=294 but transaction_amount=-88.20).
+  //   `transaction_amount` is signed (negative for refunds/CB) and reflects the real amount.
   // Gross REVENUE is computed by summing only payTxs — refunds don't pollute revenue totals.
   const rawAmount   = parseMoney(raw["amount"]);
+  const rawTransactionAmount = parseMoney(raw["transaction_amount"]);
   const vatAmount   = parseMoney(raw["vat_amount"]);
-  const grossAmount = rawAmount;
+  const grossAmount = isRefundCbTx
+    ? Math.abs(rawTransactionAmount || rawAmount)  // |transaction_amount|, fallback to amount
+    : rawAmount;
   const netAmount   = isPaymentTx ? rawAmount - vatAmount : 0;
 
   // earned_amount: correctly signed by the API — positive for payments,

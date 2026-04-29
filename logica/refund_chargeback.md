@@ -4,7 +4,7 @@
 
 - **Refund**: Devolução solicitada pelo cliente diretamente ao produtor/plataforma (reembolso voluntário)
 - **Chargeback**: Contestação iniciada pelo cliente junto ao banco/operadora do cartão (dispute bancário)
-- **Refund + CB %**: Percentual combinado das duas situações em relação ao total de transações de pagamento — principal indicador de qualidade de tráfego de um afiliado
+- **Refund + CB %**: Percentual combinado das duas situações — principal indicador de qualidade de tráfego
 
 ---
 
@@ -12,18 +12,32 @@
 - **Fonte**: API Digistore24 — endpoint `listTransactions`
 - Refunds e chargebacks aparecem como transações separadas com `transaction_type` igual a `"refund"` ou `"chargeback"`
 - O campo `earned_amount` dessas transações é **negativo** na API (representa o valor estornado)
+- O campo `transaction_amount` é **negativo** e reflete o valor **efetivamente** reembolsado (correto para reembolsos parciais)
+- O campo `amount` é sempre **positivo** e mostra o valor **original do pedido** (NÃO o valor reembolsado para parciais)
 
 ---
 
-## Fórmula
+## Fórmula (KPI Global — value-based)
 
 ```
-Refund %    = (COUNT de transações refund) / (COUNT de transações payment) × 100
-Chargeback % = (COUNT de transações chargeback) / (COUNT de transações payment) × 100
+Refund %     = SUM(grossAmount WHERE refund) / SUM(grossAmount WHERE payment) × 100
+Chargeback % = SUM(grossAmount WHERE chargeback) / SUM(grossAmount WHERE payment) × 100
 Refund + CB % = Refund % + Chargeback %
 ```
 
-> A taxa é calculada por **contagem de transações**, não por valor monetário. O denominador é o total de registros com `transaction_type === "payment"`.
+> A taxa global é calculada por **valor monetário (value-based)**. O numerador é o gross total reembolsado/contestado; o denominador é o gross total de pagamentos.
+>
+> Para refunds/CB, `grossAmount` usa o campo `|transaction_amount|` da API (valor efetivamente devolvido), não `amount` (valor original do pedido). Isso garante que reembolsos parciais (30-50% do valor) sejam contabilizados corretamente.
+
+---
+
+## Fórmula (Bundle Performance — count-based)
+
+```
+Refund % (por kit) = COUNT(refunds) / COUNT(vendas) × 100
+```
+
+> Na tabela de Performance por Kit (Front), a taxa é calculada por **contagem**, não por valor.
 
 ---
 
@@ -31,46 +45,55 @@ Refund + CB % = Refund % + Chargeback %
 
 | Tipo | transaction_type na API |
 |------|------------------------|
-| Refund | `"refund"` ou `"return"` ou `"reversal"` |
+| Refund | `"refund"` |
 | Chargeback | `"chargeback"` |
 
-> A API Digistore24 utiliza `"refund"` como tipo principal. Os tipos `"return"` e `"reversal"` também são tratados como refund por compatibilidade.
+> A API Digistore24 aceita apenas `"payment"`, `"refund"`, `"chargeback"` e `"refund_request"` como tipos válidos. Outros tipos (`"sale"`, `"upsell"`, `"return"`, `"reversal"`) causam HTTP 400.
+>
+> O normalizer reconhece `"return"` e `"reversal"` como refund por compatibilidade, mas a API nunca retorna esses tipos.
 
 ---
 
-## Valores Monetários (para exibição)
+## Valores Monetários
 
-Além das taxas percentuais, os **valores absolutos** de devoluções são exibidos para referência:
+Para refunds e chargebacks, o `grossAmount` no TransactionRow é:
 
 ```
-refundAmt = SUM(ABS(earned_amount) WHERE type IN refund/return/reversal)
-cbAmt     = SUM(ABS(earned_amount) WHERE type = chargeback)
+grossAmount = |transaction_amount|   (valor efetivamente devolvido, sempre positivo)
 ```
 
-O `earned_amount` é negativo na API para esses tipos — `Math.abs()` converte para valor positivo de exibição.
+Isso é diferente do campo `amount` da API, que para reembolsos parciais mostra o valor original do pedido (não o reembolsado).
+
+**Exemplo de reembolso parcial:**
+```
+Pedido original: amount = €294.00
+Reembolso de 30%: transaction_amount = -€88.20
+→ grossAmount no TransactionRow = €88.20 (correto)
+→ earned_amount = -€74.31 (impacto nos earnings)
+```
 
 ---
 
 ## Regras
 
-- O denominador é a **contagem total de transações payment** no período
+- O denominador (gross) inclui **todos os payments** (front + upsells + bumps)
 - Inclui os três produtos: **Erectus X**, **Slimjara** e **Memoguard**
 - O período filtrado segue horário **UTC** (00:00 até 23:59 UTC)
 - `refund_request` é filtrado antes da normalização e **não entra** no cálculo
 
 ---
 
-## Exemplo Prático
+## Exemplo Prático (value-based)
 
-| transaction_type | Contagem | Entra no cálculo |
-|-----------------|----------|-----------------|
-| payment | 10 | Denominador |
-| refund | 1 | Numerador Refund |
-| chargeback | 0 | Numerador CB |
+| Tipo | Gross | Contagem |
+|------|-------|----------|
+| payment | €10.000 | 40 |
+| refund | €800 | 3 |
+| chargeback | €200 | 1 |
 
 ```
-Refund %     = 1 / 10 × 100 = 10,0%
-Chargeback % = 0 / 10 × 100 = 0,0%
+Refund %     = €800 / €10.000 × 100 = 8,0%
+Chargeback % = €200 / €10.000 × 100 = 2,0%
 Refund + CB % = 10,0%
 ```
 
@@ -97,15 +120,17 @@ Refund + CB % = 10,0%
 ---
 
 ## Onde é Exibido
-- Cartão KPI "Refund + CB" no topo do dashboard (valor combinado)
-- Breakdown separado de Refund % e CB % abaixo do valor principal
-- Por afiliado na tabela de top afiliados e na página de Afiliados
+- Cartão KPI "Refund + CB" no topo do dashboard (valor combinado, value-based)
+- Breakdown separado de Refund % e CB % no tooltip
+- Por afiliado na tabela de top afiliados (value-based: gross reembolsado / gross total do afiliado)
+- Por kit na tabela BundlePerformance (count-based: contagem refunds / contagem vendas)
 
 ---
 
 ## Observações
 - Um Chargeback % acima de 1-2% já é sinal de alerta crítico para a plataforma Digistore
-- A taxa count-based reflete a proporção de pedidos problemáticos, independente do valor monetário
+- Reembolsos parciais (30-50% do valor) são comuns — representam ~23% dos reembolsos no dataset atual
+- O uso de `|transaction_amount|` garante que parciais não inflem artificialmente a taxa
 
 ---
 
@@ -125,43 +150,28 @@ export function isChargeback(t: TransactionRow): boolean {
 }
 ```
 
-Cálculo das taxas (count-based):
+Cálculo das taxas (value-based — KPI global):
 
 ```typescript
 const refundRows = refCbTxs.filter(isRefund);
 const cbRows     = refCbTxs.filter(isChargeback);
-const payCount   = payTxs.length;  // total de transações payment
 
-// Taxas por contagem de transações
-const rPct = payCount > 0 ? (refundRows.length / payCount) * 100 : 0;
-const cPct = payCount > 0 ? (cbRows.length   / payCount) * 100 : 0;
+// grossAmount usa |transaction_amount| para refunds (actual amount refunded)
+const refundAmt = refundRows.reduce((s, t) => s + t.grossAmount, 0);
+const cbAmt     = cbRows.reduce((s, t)     => s + t.grossAmount, 0);
+
+// Taxas value-based: gross reembolsado / gross total de pagamentos
+const rPct = gross > 0 ? (refundAmt / gross) * 100 : 0;
+const cPct = gross > 0 ? (cbAmt     / gross) * 100 : 0;
 ```
 
-Valores monetários (para exibição):
-
-```typescript
-// earned_amount é negativo na API para refunds/CB — Math.abs() para exibição
-const refundAmt = refundRows.reduce((s, t) => s + Math.abs(t.earnings), 0);
-const cbAmt     = cbRows.reduce((s, t)     => s + Math.abs(t.earnings), 0);
-```
-
-Filtro de `refund_request` na normalização (excluído antes de chegar ao cálculo):
+Normalização do grossAmount para refunds (actual amount, not original order):
 
 ```typescript
 // src/utils/digiNormalizer.ts
-.filter((t) => {
-  const type = String(t["transaction_type"] ?? "");
-  return type !== "refund_request";  // refund_request é descartado
-})
+const grossAmount = isRefundCbTx
+  ? Math.abs(rawTransactionAmount || rawAmount)  // |transaction_amount|
+  : rawAmount;                                    // amount (original)
 ```
 
-**Taxa por afiliado** (tabela de top afiliados — usa valor monetário como denominador para consistência):
-
-```typescript
-// Na tabela de afiliados, o denominador é grossBruto (somente pagamentos positivos)
-const rcPct = d.grossBruto > 0
-  ? ((d.refundAmt + d.cbAmt) / d.grossBruto) * 100
-  : 0;
-```
-
-**Exibido em**: `src/pages/Index.tsx` — cartão "Refund+CB%" com breakdown separado, e por afiliado em `src/pages/Affiliates.tsx`
+**Exibido em**: `src/pages/Dashboard.tsx` — cartão "Refund+CB%" e por afiliado em `src/pages/Affiliates.tsx`

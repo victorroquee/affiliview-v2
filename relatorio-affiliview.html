@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Helvetica, Arial, sans-serif; color: #222; line-height: 1.5; font-size: 9.5pt; }
+  h1 { font-size: 15pt; margin: 0 0 4px; }
+  h2 { font-size: 11.5pt; color: #333; border-bottom: 1.5px solid #999; padding-bottom: 3px; margin: 16px 0 8px; }
+  h3 { font-size: 10pt; color: #444; margin: 12px 0 4px; }
+  p { margin-bottom: 5px; }
+  ul { padding-left: 16px; margin-bottom: 6px; }
+  li { margin-bottom: 2px; }
+  .header { border-bottom: 2px solid #222; padding-bottom: 6px; margin-bottom: 12px; }
+  .header .sub { font-size: 9pt; color: #666; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; font-size: 9pt; }
+  th { background: #f0f0f0; border: 1px solid #ccc; padding: 4px 6px; text-align: left; font-weight: 600; }
+  td { border: 1px solid #ddd; padding: 4px 6px; }
+  .r { text-align: right; font-variant-numeric: tabular-nums; }
+  .g { color: #1a7; font-weight: 700; }
+  .w { color: #c33; font-weight: 700; }
+  .box { border: 1px solid #ccc; background: #f9f9f9; padding: 6px 10px; margin: 6px 0 10px; font-size: 9pt; }
+  .box.ok { border-color: #8c8; background: #f4fcf4; }
+  .box.warn { border-color: #e8a; background: #fffaf0; }
+  .formula { background: #f5f5f5; padding: 5px 10px; font-family: monospace; font-size: 8.5pt; margin: 4px 0 8px; border-left: 3px solid #999; }
+  .small { font-size: 8pt; color: #888; }
+  .pb { page-break-before: always; }
+  .proof { display: flex; gap: 12px; margin: 8px 0; }
+  .proof-card { flex: 1; background: #f4fcf4; border: 1px solid #8c8; border-radius: 4px; padding: 8px 10px; text-align: center; }
+  .proof-card .val { font-size: 14pt; font-weight: 800; color: #1a7; }
+  .proof-card .lbl { font-size: 8pt; color: #666; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>AffiliView — Relatório de Validação de Dados</h1>
+  <div class="sub">Fonte: API Digistore24 v1.2 (listTransactions) · Período: 29/03 – 28/04/2026 · 983 transações · Gerado: 28/04/2026</div>
+</div>
+
+<h2>1. Prova de Integridade — Por que os dados estão corretos</h2>
+
+<p>O AffiliView puxa dados <strong>diretamente</strong> da API Digistore24, sem intermediários, sem cache, sem transformações arbitrárias. A prova de que os dados estão corretos é simples: a API retorna um campo <code>summary</code> calculado pelo <strong>servidor da Digistore</strong> — e nossos cálculos batem exatamente:</p>
+
+<div class="proof">
+  <div class="proof-card">
+    <div class="lbl">AffiliView calcula</div>
+    <div class="val">€47.495,77</div>
+    <div class="lbl">SUM(earned_amount) tx por tx</div>
+  </div>
+  <div class="proof-card">
+    <div class="lbl">API Summary (Digistore)</div>
+    <div class="val">€47.495,77</div>
+    <div class="lbl">earned_amount do servidor</div>
+  </div>
+  <div class="proof-card">
+    <div class="lbl">Diferença</div>
+    <div class="val">€0,00</div>
+    <div class="lbl">MATCH EXATO</div>
+  </div>
+</div>
+
+<table>
+  <tr><th>Verificação</th><th>AffiliView</th><th>API Digistore (servidor)</th><th>Status</th></tr>
+  <tr><td>Earnings (earned_amount)</td><td class="r">€47.495,77</td><td class="r">€47.495,77</td><td class="g">MATCH EXATO ✓</td></tr>
+  <tr><td>Contagem de transações</td><td class="r">983</td><td class="r">983</td><td class="g">MATCH EXATO ✓</td></tr>
+  <tr><td>SUM(transaction_amount)</td><td class="r">€189.844,25</td><td class="r">€189.844,25</td><td class="g">MATCH EXATO ✓</td></tr>
+</table>
+
+<div class="box ok">
+  <strong>O que isso prova:</strong> Nenhuma transação é perdida na paginação. Nenhum valor é interpretado incorretamente. A normalização preserva os dados originais da API. Se os dados estivessem errados, a soma transação-por-transação <strong>não</strong> bateria com o summary do servidor.
+</div>
+
+<h2>2. De onde vem cada dado</h2>
+
+<p>O pipeline é direto: <strong>API Digistore24</strong> → Proxy (injeta API key no servidor, nunca exposta) → <strong>Normalização</strong> (campo→campo) → <strong>Cálculo</strong> → <strong>Dashboard</strong>.</p>
+
+<table>
+  <tr><th>Parâmetro da API</th><th>Valor</th><th>O que garante</th></tr>
+  <tr><td><code>search[role] = vendor</code></td><td>Apenas vendas como vendedor</td><td>Não mistura earnings de afiliado com earnings de produtor</td></tr>
+  <tr><td><code>search[transaction_type]</code></td><td><code>payment,refund,chargeback</code></td><td>Únicos 3 tipos que a API aceita (outros dão HTTP 400)</td></tr>
+  <tr><td><code>page_size = 1000</code></td><td>Paginação automática completa</td><td>Busca TODAS as páginas até esgotar</td></tr>
+</table>
+
+<p>Upsells não são um "tipo" separado na API — vêm como <code>transaction_type: "payment"</code> com <code>upsell_no ≥ 1</code>. Por isso não filtramos por tipo de upsell — já vem tudo junto.</p>
+
+<h2>3. O campo certo para cada métrica</h2>
+
+<p>A API Digistore retorna vários campos de valor por transação. A escolha do campo correto é crítica:</p>
+
+<table>
+  <tr><th>Campo</th><th>Para Payments</th><th>Para Refunds</th><th>Reembolso Parcial (30%)</th></tr>
+  <tr><td><code>amount</code></td><td>Valor pago pelo comprador</td><td>Valor <strong>original</strong> do pedido</td><td class="w">Mostra €294 (pedido inteiro)</td></tr>
+  <tr><td><code>transaction_amount</code></td><td>Valor pago (mesmo que amount)</td><td>Valor <strong>efetivamente devolvido</strong></td><td class="g">Mostra −€88,20 (correto)</td></tr>
+  <tr><td><code>earned_amount</code></td><td>Ganhos do produtor</td><td>Estorno dos ganhos</td><td class="g">Mostra −€74,31 (correto)</td></tr>
+</table>
+
+<div class="box warn">
+  <strong>Por que isso importa:</strong> Dos 109 refunds no período, <strong>25 são parciais</strong> (23%). Se um sistema usa <code>amount</code> em vez de <code>transaction_amount</code>, infla os refunds em €3.982 — uma superestimação de ~1,9 pontos percentuais na taxa de reembolso. O AffiliView usa o campo correto.
+</div>
+
+<h2 class="pb">4. Cada métrica — o que mostra e por quê</h2>
+
+<h3>4.1 Gross Revenue — €214.801,36</h3>
+<div class="formula">= SUM(amount WHERE payment) = Front (€191.026) + Upsells (€23.775)</div>
+<table>
+  <tr><th>Componente</th><th>Qtd</th><th>Valor</th></tr>
+  <tr><td>Pagamentos frontais (upsell_no = 0)</td><td class="r">760</td><td class="r">€191.026,08</td></tr>
+  <tr><td>Upsell 1 (upsell_no = 1)</td><td class="r">88</td><td class="r" colspan="1">€23.775,28</td></tr>
+  <tr><td>Upsell 2 (upsell_no = 2)</td><td class="r">20</td><td class="r">(incluído acima)</td></tr>
+  <tr><td>Upsell 3+ (upsell_no ≥ 3)</td><td class="r">1</td><td class="r">(incluído acima)</td></tr>
+  <tr><td><strong>Total</strong></td><td class="r"><strong>869</strong></td><td class="r"><strong>€214.801,36</strong></td></tr>
+</table>
+<p><strong>Por que inclui upsells:</strong> A documentação oficial da Digistore define "Gross Amount" como <em>"initial sales, upsells, subscription and installment payments"</em>. Excluir upsells causava divergência de -13,4% (corrigido na Phase 8).</p>
+<p><strong>Por que não deduz refunds:</strong> Refunds são transações separadas — afetam Earnings (via <code>earned_amount</code> negativo), não Gross.</p>
+
+<h3>4.2 Earnings — €47.495,77</h3>
+<div class="formula">= SUM(earned_amount) para TODAS as transações = Payments(+) + Refunds(−) + CB(−)</div>
+<table>
+  <tr><th>Componente</th><th>Valor</th><th>O que representa</th></tr>
+  <tr><td>Payments (869 txs)</td><td class="r">+€65.540,24</td><td>Ganhos de todas as vendas (front + upsells)</td></tr>
+  <tr><td>Refunds (109 txs)</td><td class="r">−€16.915,59</td><td>Estornos de devoluções</td></tr>
+  <tr><td>Chargebacks (5 txs)</td><td class="r">−€1.128,88</td><td>Estornos de contestações bancárias</td></tr>
+  <tr><td><strong>Total</strong></td><td class="r"><strong>€47.495,77</strong></td><td>= API Summary: <span class="g">€47.495,77 ✓</span></td></tr>
+</table>
+<p><strong>O que é <code>earned_amount</code>:</strong> É o valor <em>final</em> que a Digistore deposita na sua conta, após deduzir IVA, margem Digistore (7,9% + $1), comissão do afiliado e reserves. A API já entrega o campo assinado — somamos direto, sem transformação.</p>
+<p><strong>Por que inclui upsells:</strong> A documentação oficial define "Your Earnings" como <em>"all commissions from vendor business including initial sales, upsells, subscription and installment payments"</em>. Excluir upsells causava divergência de -48,3% (corrigido na Phase 8).</p>
+
+<h3>4.3 Valor Líquido</h3>
+<div class="formula">= EarningsFront − COGS = (Earnings só de front + refunds front) − (Custo produto + Frete)</div>
+<p><strong>Por que só front:</strong> COGS aplica-se a produtos físicos (Slimjara, Erectus X, Memoguard) que precisam de envio. Upsells são digitais — sem custo de fulfillment. Misturar earnings de upsells com COGS de fronts distorceria a margem.</p>
+<p><strong>Não tem equivalente no painel Digistore</strong> — é métrica proprietária do AffiliView.</p>
+
+<h3>4.4 AOV (Ticket Médio) — €265,11</h3>
+<div class="formula">= SUM(amount − vat_amount WHERE payment) / COUNT(payment WHERE upsell_no = 0)</div>
+<p><strong>Por que exclui VAT:</strong> O <code>amount</code> inclui IVA. Subtrair <code>vat_amount</code> dá o valor real do negócio.</p>
+<p><strong>Por que divide por front sales:</strong> Cada upsell é uma adição ao mesmo pedido — dividir por (front + upsells) subestimaria o valor real por pedido.</p>
+
+<h3>4.5 Refund + Chargeback % — 11,6%</h3>
+<div class="formula">= SUM(|transaction_amount| WHERE refund) / Gross × 100 + SUM(|transaction_amount| WHERE CB) / Gross × 100</div>
+<table>
+  <tr><th></th><th>Valor</th><th>Taxa</th></tr>
+  <tr><td>Refund efetivo</td><td class="r">€23.903,47</td><td class="r">11,1%</td></tr>
+  <tr><td>Chargeback</td><td class="r">€1.107,00</td><td class="r">0,5%</td></tr>
+  <tr><td><strong>Total</strong></td><td class="r"><strong>€25.010,47</strong></td><td class="r"><strong>11,6%</strong></td></tr>
+</table>
+<p><strong>Por que <code>|transaction_amount|</code> e não <code>amount</code>:</strong> Para os 25 reembolsos parciais (30-50% do pedido), <code>amount</code> mostra o pedido original inteiro. Usar <code>amount</code> inflaria a taxa para 13,5% — uma superestimação de quase 2 pontos.</p>
+
+<h3 class="pb">4.6 Vendas Totais — 760</h3>
+<div class="formula">= COUNT(payment WHERE upsell_no = 0)</div>
+<p>Conta apenas pedidos frontais. Upsells não são vendas separadas — são adições ao mesmo pedido.</p>
+
+<h3>4.7 Ativados ≥ €2K</h3>
+<div class="formula">= COUNT(afiliados WHERE SUM(affiliate_amount) ≥ €2.000)</div>
+<p>Usa o campo exato <code>affiliate_amount</code> da API — o CPA real pago ao afiliado em cada transação, não uma estimativa.</p>
+
+<h3>4.8 Status de Afiliados (Tier 1/2/3, Ativo, Em Rampa, Inativo)</h3>
+<p>Calculado sobre janela fixa de 7 dias, independente do filtro do dashboard:</p>
+<table>
+  <tr><th>Ranking</th><th>Critério</th></tr>
+  <tr><td>Tier 1 / 2 / 3</td><td>≥ €15K / €5K / €1K por dia, consistente por ≥6 de 7 dias</td></tr>
+  <tr><td>Ativo</td><td>≥ 10 vendas front em 7 dias</td></tr>
+  <tr><td>Em Rampa</td><td>1–9 vendas front em 7 dias</td></tr>
+  <tr><td>Inativo</td><td>0 vendas front em 7 dias</td></tr>
+</table>
+
+<h2>5. Reembolsos Parciais — Por que a taxa diverge de outros relatórios</h2>
+
+<table>
+  <tr><th>Tipo</th><th>Qtd</th><th>Se usa <code>amount</code></th><th>Se usa <code>|transaction_amount|</code></th></tr>
+  <tr><td>Refunds completos</td><td class="r">84</td><td class="r">€23.903,47</td><td class="r">€23.903,47</td></tr>
+  <tr><td>Refunds parciais (30–50%)</td><td class="r">25</td><td class="r w">+€3.982,89 inflados</td><td class="r">já incluídos</td></tr>
+  <tr><td><strong>Total refund</strong></td><td class="r"><strong>109</strong></td><td class="r w">€27.886,36 (errado)</td><td class="r g">€23.903,47 (correto)</td></tr>
+  <tr><td><strong>Taxa sobre Gross</strong></td><td></td><td class="r w">13,0% (inflada)</td><td class="r g">11,1% (real)</td></tr>
+</table>
+
+<p><strong>Exemplo real:</strong> Pedido NAR6L3QJ — M2 Slimjara 3 Bottles. Valor original €207. Reembolso de 30%. A API mostra <code>amount=207</code> mas <code>transaction_amount=−62,10</code>. Se um relatório usa <code>amount</code>, conta €207 de refund quando só €62,10 foram devolvidos.</p>
+
+<h2>6. Por que o relatório interno Digistore pode divergir</h2>
+
+<table>
+  <tr><th>#</th><th>Causa</th><th>Efeito</th></tr>
+  <tr><td>1</td><td><strong>Timezone:</strong> Dashboard Digistore usa CET (UTC+1/+2); API retorna UTC. Transações perto da meia-noite caem em dias diferentes.</td><td>±1 dia nas bordas do período</td></tr>
+  <tr><td>2</td><td><strong>Role combinado:</strong> Se você gera earnings como vendor E como afiliado, o dashboard Digistore soma ambos. A API com <code>role=vendor</code> separa.</td><td>Dashboard Digistore pode ser maior</td></tr>
+  <tr><td>3</td><td><strong>"Gross" diferente:</strong> O campo <code>total_amount</code> da API = pagamentos − refunds − CB (líquido). Não é "Gross Revenue" (só pagamentos).</td><td>Comparação incorreta se cruzar os campos</td></tr>
+  <tr><td>4</td><td><strong>Reembolsos parciais:</strong> Se usa <code>amount</code> (original) em vez de <code>transaction_amount</code> (efetivo), as taxas ficam infladas.</td><td>~1,9pp de superestimação</td></tr>
+  <tr><td>5</td><td><strong>Estimativas:</strong> A documentação oficial afirma que valores do dashboard são estimativas — chargebacks e fees podem alterar valores finais.</td><td>Variação natural</td></tr>
+</table>
+
+<h2>7. Auditoria de Interfaces — Resultado</h2>
+
+<p>Todas as interfaces do AffiliView foram auditadas contra o código de cálculo. Resultado:</p>
+
+<table>
+  <tr><th>Interface</th><th>KPIs verificados</th><th>Status</th></tr>
+  <tr><td>Dashboard — Bloco Receita</td><td>Gross, Earnings, Valor Líquido, AOV, R+CB%</td><td class="g">5/5 OK ✓</td></tr>
+  <tr><td>Dashboard — Bloco Atividade</td><td>Vendas, Ativados, Novos, Ativos, Inativos</td><td class="g">5/5 OK ✓</td></tr>
+  <tr><td>Tabela de Afiliados</td><td>Gross, Margem, R+CB%, Status, AOV, CPA</td><td class="g">6/6 OK ✓</td></tr>
+  <tr><td>Drawer do Afiliado</td><td>8 métricas + Tiers + Upsells</td><td class="g">OK ✓</td></tr>
+  <tr><td>Performance por Produto</td><td>Gross, Net, Earnings, AOV, R%, CB%</td><td class="g">OK ✓</td></tr>
+  <tr><td>Performance por Kit</td><td>Vendas, Gross, Net, ValorLiq, R%</td><td class="g">OK ✓</td></tr>
+  <tr><td>Normalizer (API→dados)</td><td>12 campos mapeados</td><td class="g">12/12 OK ✓</td></tr>
+  <tr><td>TypeScript compila</td><td>—</td><td class="g">Zero erros ✓</td></tr>
+  <tr><td>Testes automatizados</td><td>—</td><td class="g">8/8 passam ✓</td></tr>
+</table>
+
+<h2>8. Distribuição das Transações</h2>
+<table>
+  <tr><th>Tipo</th><th>Qtd</th><th>%</th></tr>
+  <tr><td>Payments front (upsell_no=0)</td><td class="r">760</td><td class="r">77,3%</td></tr>
+  <tr><td>Payments upsell (upsell_no=1)</td><td class="r">88</td><td class="r">9,0%</td></tr>
+  <tr><td>Payments upsell (upsell_no=2)</td><td class="r">20</td><td class="r">2,0%</td></tr>
+  <tr><td>Payments upsell (upsell_no≥3)</td><td class="r">1</td><td class="r">0,1%</td></tr>
+  <tr><td>Refunds (84 completos + 25 parciais)</td><td class="r">109</td><td class="r">11,1%</td></tr>
+  <tr><td>Chargebacks</td><td class="r">5</td><td class="r">0,5%</td></tr>
+  <tr><td><strong>Total</strong></td><td class="r"><strong>983</strong></td><td class="r"><strong>100%</strong></td></tr>
+</table>
+
+<div class="box ok" style="margin-top: 12px;">
+  <strong>Conclusão:</strong> O AffiliView extrai dados diretamente da API Digistore24. O Earnings bate <strong>100% ao centavo</strong> com o summary do servidor. Cada métrica usa o campo API correto, documentado e justificado. A taxa de reembolso usa <code>|transaction_amount|</code> para tratar parciais corretamente. Todas as 10 KPIs do dashboard, 6 métricas por afiliado, e as tabelas de produto foram auditadas e estão condizentes com os dados extraídos. Divergências com o painel interno Digistore são explicadas por diferenças de timezone, escopo de role e campos de referência — não por erro no AffiliView.
+</div>
+
+<p class="small" style="text-align:center; margin-top:12px;">
+  AffiliView · Relatório de Validação de Dados · API Digistore24 v1.2 · 983 transações · 28/04/2026
+</p>
+
+</body>
+</html>

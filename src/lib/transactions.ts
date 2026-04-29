@@ -6,7 +6,7 @@ export interface TransactionRow {
   orderId: string;
   buyerId: string;
   transactionType: string;
-  grossAmount: number;    // amount for payments; 0 for refunds/CB (API returns positive for refunds)
+  grossAmount: number;    // amount for payments; |transaction_amount| for refunds/CB (actual refunded amount)
   netAmount: number;      // grossAmount - vatAmount (payments only)
   earnings: number;       // earned_amount — negative for refunds/CB
   affiliate: string;

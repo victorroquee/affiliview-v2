@@ -55,8 +55,10 @@ export function useDigistoreAPI(): UseDigistoreAPIReturn {
           to,
           // Only vendor transactions (where we are the seller)
           "search[role]":             "vendor",
-          // Include all relevant transaction types accepted by the Digistore API
-          "search[transaction_type]": "payment,sale,upsell,refund,return,reversal,chargeback",
+          // Digistore API only accepts: payment, refund, chargeback.
+          // Upsells come as transaction_type="payment" with upsell_no >= 1.
+          // Types like "sale", "upsell", "return", "reversal" cause HTTP 400.
+          "search[transaction_type]": "payment,refund,chargeback",
           sort_by:    "date",
           sort_order: "asc",
           page_no:    String(page),
