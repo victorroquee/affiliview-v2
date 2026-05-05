@@ -32,7 +32,7 @@
 
 - [ ] **Phase 9: Infrastructure & Count Correctness** - Restore API proxy and fix affiliate count bug (21 vs 4) + inactive semantics
 - [x] **Phase 10: Visual Corrections** - Align color thresholds for margin and refund across all surfaces (completed 2026-05-05)
-- [ ] **Phase 11: Data Accuracy, Drawer & Hardening** - Fix AOV calc, regex classification, wire drawer, harden localStorage
+- [x] **Phase 11: Data Accuracy, Drawer & Hardening** - Fix AOV calc, regex classification, wire drawer, harden localStorage (completed 2026-05-05)
 
 ## Phase Details
 
@@ -77,8 +77,8 @@ Plans:
   5. Saving affiliate tags when localStorage is full does not throw an uncaught error — it fails silently or shows a graceful message
 **Plans**: 2 plans
 Plans:
-- [ ] 11-01-PLAN.md — Fix AOV contribution gross/net mismatch, regex classification, and localStorage hardening
-- [ ] 11-02-PLAN.md — Wire drawer top product display and close-on-period-change behavior
+- [x] 11-01-PLAN.md — Fix AOV contribution gross/net mismatch, regex classification, and localStorage hardening
+- [x] 11-02-PLAN.md — Wire drawer top product display and close-on-period-change behavior
 
 ## Progress
 
@@ -94,4 +94,4 @@ Plans:
 | 8. Auditoria de Divergencia | v1.1 | 3/3 | Complete | 2026-04-28 |
 | 9. Infrastructure & Count Correctness | v1.2 | 2/2 | Complete | - |
 | 10. Visual Corrections | v1.2 | 2/2 | Complete    | 2026-05-05 |
-| 11. Data Accuracy, Drawer & Hardening | v1.2 | 0/2 | Not started | - |
+| 11. Data Accuracy, Drawer & Hardening | v1.2 | 2/2 | Complete   | 2026-05-05 |
