@@ -318,6 +318,7 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
         rankingInfo={drawerRanking}
         filteredRows={filteredRows}
         onClose={() => setSelectedAffiliate(null)}
+        topProduct={selectedAffiliate ? topProducts.get(selectedAffiliate) : undefined}
       />
     </>
   );

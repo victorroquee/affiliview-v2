@@ -68,9 +68,10 @@ interface AffiliateDrawerProps {
   rankingInfo:  AffiliateRankingInfo | null;
   filteredRows: TransactionRow[];
   onClose:      () => void;
+  topProduct?:  string;
 }
 
-const AffiliateDrawer: React.FC<AffiliateDrawerProps> = ({ affiliate, rankingInfo, filteredRows, onClose }) => {
+const AffiliateDrawer: React.FC<AffiliateDrawerProps> = ({ affiliate, rankingInfo, filteredRows, onClose, topProduct }) => {
   const open = affiliate !== null;
   const onCloseRef = React.useRef(onClose);
   onCloseRef.current = onClose;
@@ -109,6 +110,9 @@ const AffiliateDrawer: React.FC<AffiliateDrawerProps> = ({ affiliate, rankingInf
         <div className="aff-drawer-header">
           <div className="aff-drawer-header-info">
             <div className="aff-drawer-name">{affiliate.name}</div>
+            {topProduct && (
+              <div className="aff-drawer-top-product" style={{ fontSize: "0.8rem", color: "var(--text-secondary, #888)", marginTop: 2 }}>{`Top: ${topProduct}`}</div>
+            )}
             <div className="aff-drawer-badges">
               <span className={`tier-badge ${RANKING_CLASS[ranking]}`}>{RANKING_LABEL[ranking]}</span>
               <span className={`status-badge ${affiliate.status.toLowerCase()}`}>{affiliate.status}</span>
