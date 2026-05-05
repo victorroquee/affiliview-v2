@@ -58,24 +58,24 @@ Requirements for milestone v1.2 Melhorias Afiliados & Upsell. Each maps to roadm
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| STAT-01 | — | Pending |
-| STAT-02 | — | Pending |
-| STAT-03 | — | Pending |
-| VIS-01 | — | Pending |
-| VIS-02 | — | Pending |
-| VIS-03 | — | Pending |
-| DATA-01 | — | Pending |
-| DATA-02 | — | Pending |
-| DATA-03 | — | Pending |
-| DRAW-01 | — | Pending |
-| DRAW-02 | — | Pending |
-| HARD-01 | — | Pending |
+| DATA-01 | Phase 9 | Pending |
+| STAT-01 | Phase 9 | Pending |
+| STAT-02 | Phase 9 | Pending |
+| STAT-03 | Phase 9 | Pending |
+| VIS-01 | Phase 10 | Pending |
+| VIS-02 | Phase 10 | Pending |
+| VIS-03 | Phase 10 | Pending |
+| DATA-02 | Phase 11 | Pending |
+| DATA-03 | Phase 11 | Pending |
+| DRAW-01 | Phase 11 | Pending |
+| DRAW-02 | Phase 11 | Pending |
+| HARD-01 | Phase 11 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 12 total
-- Mapped to phases: 0
-- Unmapped: 12 ⚠️
+- Mapped to phases: 12
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-05*
-*Last updated: 2026-05-05 after initial definition*
+*Last updated: 2026-05-04 — traceability updated after v1.2 roadmap*

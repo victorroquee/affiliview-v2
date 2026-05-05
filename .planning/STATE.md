@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Melhorias Afiliados & Upsell
-status: planning
-last_updated: "2026-05-05T03:05:05.732Z"
-last_activity: 2026-05-05
+status: ready
+last_updated: "2026-05-04T00:00:00.000Z"
+last_activity: 2026-05-04
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,46 +17,27 @@ progress:
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 9 — Infrastructure & Count Correctness
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-05 — Milestone v1.2 started
+Status: Ready to plan
+Last activity: 2026-05-04 — Roadmap for v1.2 created
+
+```
+[░░░░░░░░░░] 0% — Phase 9 of 11 (v1.2 phases: 0/3)
+```
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-22)
+See: .planning/PROJECT.md
 
 **Core value:** Know exactly how much margin each affiliate generates per product variant, so CPA can be optimized per-affiliate to maximize profitability.
-**Current focus:** Phase 08 — auditoria-de-divergencia-digistore24-vs-affiliview
+**Current focus:** Phase 9 — Infrastructure & Count Correctness
 
 ## Performance Metrics
 
-- Phases complete: 0 / 4 (v1.1)
-- Requirements mapped: 16 / 16
-- Requirements complete: 0 / 16
-
-## Recent Data Accuracy Fixes (2026-04-23)
-
-### AOV — VAT exclusion
-
-- AOV now uses `netAmount` (amount - vat_amount) instead of `grossAmount`
-- Fixes ~12% inflation from VAT inclusion
-
-### Gross Revenue — Front-only alignment
-
-- `gross` now sums only front payments (upsell_no=0), matching Digistore dashboard
-- `grossBruto` kept as total (front + upsells) for AOV and rate calculations
-
-### Earnings — Front-only alignment
-
-- `earningsTotal` now sums front payment earnings + refund/CB deductions
-- Matches Digistore's "Your Earnings" which shows front-order earnings
-
-### Transaction type safety
-
-- `transactionType` normalized to lowercase in normalizer
-- `isPayment()` changed from catch-all to strict whitelist (payment, sale, upsell)
-- `earned_amount` fallback enforces negative sign for refunds/CB
+- v1.2 phases complete: 0 / 3
+- v1.2 requirements mapped: 12 / 12
+- v1.2 requirements complete: 0 / 12
 
 ## Accumulated Context
 
@@ -71,18 +52,31 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 - Stack: React 19 + TypeScript + Vite 5 + Recharts + Tailwind-style CSS
 - Deploy: Vercel serverless functions for Digistore24 API proxy
 
-### Open Questions (v1.1)
+### Key Findings from v1.2 Research
 
-- Origem dos dados up1-3/down1-3 (Digistore24 API ou outro sistema?) — blocks BKND-01
-- Persistencia das tags de afiliados (localStorage vs backend?) — blocks TAG-01
-- Causa da discrepancia 21 vs 4 afiliados ativos (bug a investigar) — blocks STAT-02
+- `api/digistore.ts` was deleted — production requests get 404 (critical, fix first)
+- `computeAffiliateRankings` anchors ranking window to dataset maxDate instead of wall clock (Date.now()) — root cause of 21 vs 4 count bug
+- "Inativo" in code = 0 sales in 7-day window; spec = last front sale > 5 days ago — semantics differ, needs business alignment then fix
+- Refund color thresholds in ProductTable use >5 orange / >10 red; spec is ≤8 orange / >8 red
+- AOV contribution uses grossAmount as numerator against netAmount denominator — mismatch inflates numbers
+- `classifyUpsellProduct` regex matches "down10" as "down1" (missing word boundary)
+- `topProducts` Map computed in Affiliates.tsx but not passed as prop to AffiliateDrawer
+- No drawer-close handler on period filter change — stale mixed-period data risk
+- `useAffiliateTags` has no try/catch around localStorage writes
 
-### Roadmap Evolution
+### Research Convergence
 
-- Phase 8 added: Auditoria de Divergencia Digistore24 vs AffiliView — investigar causa raiz da divergencia de Gross (-13.4%), Earnings (-48.3%) entre painel Digistore24 e AffiliView
+All research confirms: v1.2 is a correctness milestone. Features are already built. No new libraries needed.
+
+### Roadmap Decisions
+
+- Phase 9 starts with DATA-01 (restore proxy) because production is broken without it
+- STAT-01/02/03 grouped in Phase 9 — all are ranking/status logic fixes in the same file
+- VIS-01/02/03 isolated in Phase 10 — pure UI color changes, no logic deps
+- DATA-02/03 + DRAW-01/02 + HARD-01 in Phase 11 — data accuracy + drawer wiring + defensive coding
 
 ## Session Continuity
 
-Last completed: Data accuracy audit — AOV, Gross, Earnings aligned with Digistore24
-Stopped at: Ready to plan Phase 4
-To resume: `/gsd-plan-phase 4`
+Last completed: Roadmap defined for v1.2
+Stopped at: Ready to plan Phase 9
+To resume: `/gsd-plan-phase 9`
