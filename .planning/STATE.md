@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Melhorias Afiliados & Upsell
-status: ready_to_plan
-stopped_at: Phase 9 context gathered
-last_updated: "2026-05-05T03:52:27.356Z"
-last_activity: 2026-05-05 -- Phase 09 execution started
+status: planning
+stopped_at: Phase 10 context gathered
+last_updated: "2026-05-05T10:58:32.135Z"
+last_activity: 2026-05-05
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 2
-  completed_plans: 0
-  percent: 33
+  completed_plans: 2
+  percent: 100
 ---
 
 # AffiliView — State
@@ -79,5 +79,5 @@ All research confirms: v1.2 is a correctness milestone. Features are already bui
 ## Session Continuity
 
 Last completed: Roadmap defined for v1.2
-Stopped at: Phase 9 context gathered
+Stopped at: Phase 10 context gathered
 To resume: `/gsd-plan-phase 9`
