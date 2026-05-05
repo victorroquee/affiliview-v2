@@ -1,45 +1,44 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
+/**
+ * Vercel serverless proxy to Digistore24 API.
+ *
+ * Injects DIGISTORE_API_KEY server-side so the secret never reaches the browser.
+ * Forwards all query params from the client to Digistore24's listTransactions endpoint.
+ */
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ): Promise<void> {
-  const apiKey = process.env.DIGISTORE_API_KEY;
-
+  const apiKey = process.env["DIGISTORE_API_KEY"];
   if (!apiKey) {
-    res.status(500).json({ result: "error", message: "DIGISTORE_API_KEY não configurada no servidor." });
+    res.status(500).json({ error: "DIGISTORE_API_KEY not configured" });
     return;
   }
 
-  // Reconstrói os query params recebidos do frontend
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(req.query)) {
-    if (Array.isArray(value)) {
-      value.forEach((v) => params.append(key, v));
-    } else if (value !== undefined) {
-      params.append(key, value);
-    }
-  }
+  // Forward all query params from the client request
+  const params = new URLSearchParams(
+    req.query as Record<string, string>
+  );
 
-  let upstream: Response;
+  const url = `https://www.digistore24.com/api/call/listTransactions?${params.toString()}`;
+
   try {
-    upstream = await fetch(
-      `https://www.digistore24.com/api/call/listTransactions?${params}`,
-      {
-        headers: {
-          "X-DS-API-KEY": apiKey,
-          Accept: "application/json",
-        },
-      }
-    );
-  } catch (err) {
-    res.status(502).json({ result: "error", message: `Erro ao contactar Digistore: ${(err as Error).message}` });
-    return;
+    const upstream = await fetch(url, {
+      method: "GET",
+      headers: {
+        "X-DS-API-KEY": apiKey,
+        "Accept": "application/json",
+      },
+    });
+
+    const contentType = upstream.headers.get("content-type") ?? "application/json";
+    const body = await upstream.text();
+
+    res.setHeader("Content-Type", contentType);
+    res.status(upstream.status).send(body);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown proxy error";
+    res.status(502).json({ error: message });
   }
-
-  const body = await upstream.text();
-
-  // Evita chain com setHeader (retorna void em Node http.ServerResponse)
-  res.setHeader("Content-Type", "application/json");
-  res.status(upstream.status).send(body);
 }
