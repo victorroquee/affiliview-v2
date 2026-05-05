@@ -94,7 +94,6 @@ export function getFulfillmentBreakdown(
   const cc = resolveCountryCode(countryCode);
   const zone = COUNTRY_ZONE[cc];
   if (!zone) {
-    console.warn(`[costTable] País sem zona de envio mapeada: "${cc}" — COGS zerado para esta transação.`);
     return { product: 0, shipping: 0, total: 0 };
   }
 
