@@ -7,7 +7,7 @@ interface KPICardProps {
   label: string;
   value: string;
   info?: string;
-  color?: "green" | "orange" | "red" | "";
+  color?: "green" | "orange" | "red" | "yellow" | "";
   trend?: string;
   trendDir?: "up" | "down";
 }

@@ -17,6 +17,7 @@ import LoadingDot from "../components/LoadingDot";
 import InfoTooltip from "../components/InfoTooltip";
 import AffiliateDrawer from "../components/AffiliateDrawer";
 import { useAffiliateTags } from "../hooks/useAffiliateTags";
+import { getMarginColor, getRefundColor } from "../utils/colorThresholds";
 
 interface AffiliatesPageProps {
   filteredRows: TransactionRow[];
@@ -227,7 +228,7 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
               </tr>
             ) : (
               filteredAffiliates.map((a, i) => {
-                const margemColor = a.margem >= 10 ? "green" : a.margem >= 5 ? "orange" : "red";
+                const margemColor = getMarginColor(a.margem);
                 const rankingInfo = rankings.get(a.name);
                 const ranking: AffiliateRanking = rankingInfo?.ranking ?? "Inativo";
                 const isSelected = selectedAffiliate === a.name;
@@ -280,7 +281,7 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
                     <td className="num">{formatEur(a.aov)}</td>
                     <td className="num">{formatEur(a.cpa)}</td>
                     <td className={`num ${margemColor}`}>{formatPct(a.margem)}</td>
-                    <td className={`num ${a.refundCbPct > 8 ? "red" : a.refundCbPct > 0 ? "orange" : ""}`}>
+                    <td className={`num ${getRefundColor(a.refundCbPct)}`}>
                       {formatPct(a.refundCbPct)}
                     </td>
                     <td>

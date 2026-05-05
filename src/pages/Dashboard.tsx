@@ -32,6 +32,7 @@ import {
 } from "../lib/transactions";
 import AffiliateDrawer from "../components/AffiliateDrawer";
 import { generateKPIReport } from "../lib/pdfExport";
+import { getRefundColor } from "../utils/colorThresholds";
 
 interface DashboardProps {
   filteredRows: TransactionRow[];
@@ -198,7 +199,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 label="Reembolso + Chargeback"
                 value={formatPct(metrics.refundCbPct)}
                 info={`Taxa value-based: (gross reembolsos + gross chargebacks) ÷ gross revenue total. Alerta: laranja ≤8%, vermelho >8%. Reembolso: ${formatPct(metrics.refundPct)} · Chargeback: ${formatPct(metrics.chargebackPct)}`}
-                color={metrics.refundCbPct > 8 ? "red" : metrics.refundCbPct > 0 ? "orange" : ""}
+                color={getRefundColor(metrics.refundCbPct)}
               />
             </div>
           </div>
