@@ -16,7 +16,11 @@ export function readTagsFromStorage(): Record<string, string[]> {
 }
 
 export function writeTagsToStorage(tags: Record<string, string[]>): void {
-  localStorage.setItem(LS_KEY, JSON.stringify(tags));
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(tags));
+  } catch {
+    // Silently ignore quota errors — tags are non-critical
+  }
 }
 
 export function addTagToMap(

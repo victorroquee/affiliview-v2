@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -88,5 +88,16 @@ describe("useAffiliateTags — localStorage helpers", () => {
     expect(raw).not.toBeNull();
     const parsed = readTagsFromStorage();
     expect(parsed).toEqual(tags);
+  });
+
+  // Test 8: HARD-01 — writeTagsToStorage does not throw on QuotaExceededError
+  it("writeTagsToStorage does not throw on QuotaExceededError", () => {
+    const setItemSpy = vi.spyOn(localStorage, "setItem").mockImplementation(() => {
+      throw new DOMException("QuotaExceededError", "QuotaExceededError");
+    });
+
+    expect(() => writeTagsToStorage({ aff: ["tag1"] })).not.toThrow();
+
+    setItemSpy.mockRestore();
   });
 });
