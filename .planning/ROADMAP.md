@@ -61,8 +61,8 @@ Plans:
   4. The BundlePerformanceTable shows a Reembolso % column with the correct color encoding
 **Plans**: 2 plans
 Plans:
-- [x] 09-01-PLAN.md — Restore API proxy + fix ranking logic (wall-clock anchor, recency Inativo, never-sold)
-- [x] 09-02-PLAN.md — Dashboard window label + KPI info text update
+- [ ] 10-01-PLAN.md — Create centralized color threshold helper + add .yellow CSS class
+- [ ] 10-02-PLAN.md — Apply helpers across all surfaces + fix tooltip thresholds
 **UI hint**: yes
 
 ### Phase 11: Data Accuracy, Drawer & Hardening
@@ -77,8 +77,8 @@ Plans:
   5. Saving affiliate tags when localStorage is full does not throw an uncaught error — it fails silently or shows a graceful message
 **Plans**: 2 plans
 Plans:
-- [x] 09-01-PLAN.md — Restore API proxy + fix ranking logic (wall-clock anchor, recency Inativo, never-sold)
-- [x] 09-02-PLAN.md — Dashboard window label + KPI info text update
+- [ ] 11-01-PLAN.md — [to be planned]
+- [ ] 11-02-PLAN.md — [to be planned]
 
 ## Progress
 
@@ -92,6 +92,6 @@ Plans:
 | 6. Dados de Backend e Upsell | v1.1 | 2/2 | Complete | 2026-04-26 |
 | 7. Tags de Afiliados | v1.1 | 2/2 | Complete | 2026-04-27 |
 | 8. Auditoria de Divergencia | v1.1 | 3/3 | Complete | 2026-04-28 |
-| 9. Infrastructure & Count Correctness | v1.2 | 0/2 | Planning | - |
-| 10. Visual Corrections | v1.2 | 0/? | Not started | - |
-| 11. Data Accuracy, Drawer & Hardening | v1.2 | 0/? | Not started | - |
+| 9. Infrastructure & Count Correctness | v1.2 | 2/2 | Complete | - |
+| 10. Visual Corrections | v1.2 | 0/2 | Planning | - |
+| 11. Data Accuracy, Drawer & Hardening | v1.2 | 0/2 | Not started | - |
