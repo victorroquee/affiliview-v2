@@ -334,12 +334,12 @@ export function computeAffiliateRankings(
  * Classifies an upsell product name into a canonical category.
  */
 export function classifyUpsellProduct(productName: string): string {
-  if (/^up\s?1\b|^up\(1\)/i.test(productName)) return "up1";
-  if (/^up\s?2\b|^up\(2\)/i.test(productName)) return "up2";
-  if (/^up\s?3\b|^up\(3\)/i.test(productName)) return "up3";
-  if (/^down\s?1\b/i.test(productName)) return "down1";
-  if (/^down\s?2\b/i.test(productName)) return "down2";
-  if (/^down\s?3\b/i.test(productName)) return "down3";
+  if (/^up\s?1(?!\d)|^up\(1\)/i.test(productName)) return "up1";
+  if (/^up\s?2(?!\d)|^up\(2\)/i.test(productName)) return "up2";
+  if (/^up\s?3(?!\d)|^up\(3\)/i.test(productName)) return "up3";
+  if (/^down\s?1(?!\d)/i.test(productName)) return "down1";
+  if (/^down\s?2(?!\d)/i.test(productName)) return "down2";
+  if (/^down\s?3(?!\d)/i.test(productName)) return "down3";
   return "other";
 }
 
@@ -395,17 +395,18 @@ export function computeAffiliateUpsells(
   const totalAOV        = frontSalesCount > 0 ? totalNet / frontSalesCount : 0;
 
   // Group upsell rows by productName
-  const upsellMap = new Map<string, { quantity: number; gross: number }>();
+  const upsellMap = new Map<string, { quantity: number; gross: number; net: number }>();
   for (const t of upsellRows) {
-    const e = upsellMap.get(t.productName) ?? { quantity: 0, gross: 0 };
+    const e = upsellMap.get(t.productName) ?? { quantity: 0, gross: 0, net: 0 };
     e.quantity += 1;
     e.gross    += t.grossAmount;
+    e.net      += t.netAmount;
     upsellMap.set(t.productName, e);
   }
 
   const upsells = Array.from(upsellMap.entries())
     .map(([productName, e]) => {
-      const aovContribution    = frontSalesCount > 0 ? e.gross / frontSalesCount : 0;
+      const aovContribution    = frontSalesCount > 0 ? e.net / frontSalesCount : 0;
       const aovContributionPct = totalAOV > 0 ? (aovContribution / totalAOV) * 100 : 0;
       return { productName, quantity: e.quantity, gross: e.gross, aovContribution, aovContributionPct };
     })
