@@ -77,8 +77,8 @@ Plans:
   5. Saving affiliate tags when localStorage is full does not throw an uncaught error — it fails silently or shows a graceful message
 **Plans**: 2 plans
 Plans:
-- [ ] 09-01-PLAN.md — Restore API proxy + fix ranking logic (wall-clock anchor, recency Inativo, never-sold)
-- [ ] 09-02-PLAN.md — Dashboard window label + KPI info text update
+- [x] 09-01-PLAN.md — Restore API proxy + fix ranking logic (wall-clock anchor, recency Inativo, never-sold)
+- [x] 09-02-PLAN.md — Dashboard window label + KPI info text update
 
 ## Progress
 
