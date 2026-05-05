@@ -22,17 +22,17 @@ Requirements for milestone v1.2 Melhorias Afiliados & Upsell. Each maps to roadm
 ### Dados & Cálculos
 
 - [ ] **DATA-01**: Restaurar api/digistore.ts (proxy Vercel deletado)
-- [ ] **DATA-02**: Corrigir AOV contribution — usar netAmount para numerador e denominador (gross/net mismatch)
-- [ ] **DATA-03**: Corrigir regex classifyUpsellProduct — word boundary para evitar "down10" → "down1"
+- [x] **DATA-02**: Corrigir AOV contribution — usar netAmount para numerador e denominador (gross/net mismatch)
+- [x] **DATA-03**: Corrigir regex classifyUpsellProduct — word boundary para evitar "down10" → "down1"
 
 ### Drawer do Afiliado
 
-- [ ] **DRAW-01**: Passar topProducts Map como prop para AffiliateDrawer (produto mais rodado)
-- [ ] **DRAW-02**: Fechar drawer ao mudar filtro de período (evitar dados misturados)
+- [x] **DRAW-01**: Passar topProducts Map como prop para AffiliateDrawer (produto mais rodado)
+- [x] **DRAW-02**: Fechar drawer ao mudar filtro de período (evitar dados misturados)
 
 ### Hardening
 
-- [ ] **HARD-01**: localStorage try/catch para QuotaExceededError em useAffiliateTags
+- [x] **HARD-01**: localStorage try/catch para QuotaExceededError em useAffiliateTags
 
 ## Future Requirements
 
@@ -65,11 +65,11 @@ Requirements for milestone v1.2 Melhorias Afiliados & Upsell. Each maps to roadm
 | VIS-01 | Phase 10 | Complete |
 | VIS-02 | Phase 10 | Complete |
 | VIS-03 | Phase 10 | Complete |
-| DATA-02 | Phase 11 | Pending |
-| DATA-03 | Phase 11 | Pending |
-| DRAW-01 | Phase 11 | Pending |
-| DRAW-02 | Phase 11 | Pending |
-| HARD-01 | Phase 11 | Pending |
+| DATA-02 | Phase 11 | Complete |
+| DATA-03 | Phase 11 | Complete |
+| DRAW-01 | Phase 11 | Complete |
+| DRAW-02 | Phase 11 | Complete |
+| HARD-01 | Phase 11 | Complete |
 
 **Coverage:**
 - v1.2 requirements: 12 total

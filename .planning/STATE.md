@@ -2,26 +2,26 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Melhorias Afiliados & Upsell
-status: executing
+status: milestone_complete
 stopped_at: Phase 11 context gathered
 last_updated: "2026-05-05T11:54:40.099Z"
 last_activity: 2026-05-05 -- Phase 11 execution started
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
   completed_plans: 4
-  percent: 67
+  percent: 100
 ---
 
 # AffiliView — State
 
 ## Current Position
 
-Phase: 11 (Data Accuracy, Drawer & Hardening) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 11
-Last activity: 2026-05-05 -- Phase 11 execution started
+Phase: 11
+Plan: Not started
+Status: Milestone complete
+Last activity: 2026-05-05
 
 ```
 [░░░░░░░░░░] 0% — Phase 9 of 11 (v1.2 phases: 0/3)
