@@ -31,7 +31,7 @@
 ### v1.2 Melhorias Afiliados & Upsell (Phases 9-11)
 
 - [ ] **Phase 9: Infrastructure & Count Correctness** - Restore API proxy and fix affiliate count bug (21 vs 4) + inactive semantics
-- [ ] **Phase 10: Visual Corrections** - Align color thresholds for margin and refund across all surfaces
+- [x] **Phase 10: Visual Corrections** - Align color thresholds for margin and refund across all surfaces (completed 2026-05-05)
 - [ ] **Phase 11: Data Accuracy, Drawer & Hardening** - Fix AOV calc, regex classification, wire drawer, harden localStorage
 
 ## Phase Details
@@ -61,8 +61,8 @@ Plans:
   4. The BundlePerformanceTable shows a Reembolso % column with the correct color encoding
 **Plans**: 2 plans
 Plans:
-- [ ] 10-01-PLAN.md — Create centralized color threshold helper + add .yellow CSS class
-- [ ] 10-02-PLAN.md — Apply helpers across all surfaces + fix tooltip thresholds
+- [x] 10-01-PLAN.md — Create centralized color threshold helper + add .yellow CSS class
+- [x] 10-02-PLAN.md — Apply helpers across all surfaces + fix tooltip thresholds
 **UI hint**: yes
 
 ### Phase 11: Data Accuracy, Drawer & Hardening
@@ -93,5 +93,5 @@ Plans:
 | 7. Tags de Afiliados | v1.1 | 2/2 | Complete | 2026-04-27 |
 | 8. Auditoria de Divergencia | v1.1 | 3/3 | Complete | 2026-04-28 |
 | 9. Infrastructure & Count Correctness | v1.2 | 2/2 | Complete | - |
-| 10. Visual Corrections | v1.2 | 0/2 | Planning | - |
+| 10. Visual Corrections | v1.2 | 2/2 | Complete   | 2026-05-05 |
 | 11. Data Accuracy, Drawer & Hardening | v1.2 | 0/2 | Not started | - |
