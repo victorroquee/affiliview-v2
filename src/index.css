@@ -49,6 +49,9 @@
   --amber:        #B45309;
   --amber-bg:     #FFFBEB;
   --amber-bd:     #fde68a;
+  --yellow:       #A16207;
+  --yellow-bg:    #FEFCE8;
+  --yellow-bd:    #fef08a;
   --red:          #C92A2A;
   --red-bg:       #FFF0F0;
   --red-bd:       #fecaca;
@@ -576,6 +579,7 @@ input  { font-family: inherit; }
 .kpi-card-value.green  { color: var(--green); }
 .kpi-card-value.red    { color: var(--red); }
 .kpi-card-value.orange { color: var(--amber); }
+.kpi-card-value.yellow { color: var(--yellow); }
 
 .kpi-card-sub {
   font-size: 11px;
@@ -802,6 +806,7 @@ tbody tr:hover td { background: var(--bg-secondary); }
 td.green,  .num.green  { color: var(--green);  font-weight: 600; }
 td.red,    .num.red    { color: var(--red);    font-weight: 600; }
 td.orange, .num.orange { color: var(--amber);  font-weight: 600; }
+td.yellow, .num.yellow { color: var(--yellow); font-weight: 600; }
 
 /* Status badges (affiliates table) */
 .status-badge {
@@ -931,6 +936,7 @@ td.orange, .num.orange { color: var(--amber);  font-weight: 600; }
 .aff-metric-value.green  { color: var(--green); }
 .aff-metric-value.red    { color: var(--red); }
 .aff-metric-value.orange { color: var(--amber); }
+.aff-metric-value.yellow { color: var(--yellow); }
 
 /* Tier breakdown table */
 .aff-tier-table {
@@ -1351,6 +1357,7 @@ td.orange, .num.orange { color: var(--amber);  font-weight: 600; }
 .aff-drawer-metric-value.green  { color: var(--green); }
 .aff-drawer-metric-value.red    { color: var(--red); }
 .aff-drawer-metric-value.orange { color: var(--amber); }
+.aff-drawer-metric-value.yellow { color: var(--yellow); }
 
 /* Tier table inside drawer */
 .aff-drawer-tier-table {
@@ -1604,6 +1611,25 @@ td.orange, .num.orange { color: var(--amber);  font-weight: 600; }
 }
 
 /* ── Footer ─────────────────────────────────────────────────────────────── */
+.btn-export-pdf {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-1);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-export-pdf:hover {
+  background: var(--hover);
+  border-color: var(--accent);
+}
+
 .footer {
   margin-top: 32px;
   padding: 16px 0 4px;
