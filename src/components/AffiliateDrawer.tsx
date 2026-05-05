@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { useAffiliateTags } from "../hooks/useAffiliateTags";
+import { getMarginColor, getRefundColor } from "../utils/colorThresholds";
 import {
   type AffiliateRow,
   type AffiliateRanking,
@@ -94,7 +95,7 @@ const AffiliateDrawer: React.FC<AffiliateDrawerProps> = ({ affiliate, rankingInf
   if (!affiliate) return null;
 
   const ranking: AffiliateRanking = rankingInfo?.ranking ?? "Inativo";
-  const margemColor = affiliate.margem >= 10 ? "green" : affiliate.margem >= 5 ? "orange" : "red";
+  const margemColor = getMarginColor(affiliate.margem);
   const next    = nextTier(ranking);
   const nextMin = next && TIER_MIN[next] != null ? TIER_MIN[next]! : null;
 
@@ -195,7 +196,7 @@ const AffiliateDrawer: React.FC<AffiliateDrawerProps> = ({ affiliate, rankingInf
                 { label: "Ticket Médio", value: formatEur(affiliate.aov),        cls: "" },
                 { label: "CPA",          value: formatEur(affiliate.cpa),        cls: "" },
                 { label: "Margem",       value: formatPct(affiliate.margem),     cls: margemColor },
-                { label: "Refund+CB",    value: formatPct(affiliate.refundCbPct), cls: affiliate.refundCbPct > 8 ? "red" : affiliate.refundCbPct > 0 ? "orange" : ""},
+                { label: "Refund+CB",    value: formatPct(affiliate.refundCbPct), cls: getRefundColor(affiliate.refundCbPct)},
               ].map(({ label, value, cls }) => (
                 <div key={label} className="aff-drawer-metric">
                   <div className="aff-drawer-metric-label">{label}</div>

@@ -1,6 +1,7 @@
 import React from "react";
 import type { SimulatedAffiliateResult } from "../../lib/cpa/types";
 import { formatEur, formatPct, formatInt } from "../../lib/transactions";
+import { getRefundColor } from "../../utils/colorThresholds";
 import InfoTooltip from "../InfoTooltip";
 import StatusBadge from "./StatusBadge";
 
@@ -62,9 +63,10 @@ const CpaVariavelTable: React.FC<CpaVariavelTableProps> = ({ results, marginTarg
               ? domV.ltvProfit >= 0 ? "var(--green-text)" : "var(--red)"
               : undefined;
 
-            const refColor: string | undefined = aff.refundRate > 10
+            const refClass = getRefundColor(aff.refundRate);
+            const refColor: string | undefined = refClass === "red"
               ? "var(--red)"
-              : aff.refundRate > 5
+              : refClass === "orange"
               ? "var(--amber)"
               : undefined;
 
