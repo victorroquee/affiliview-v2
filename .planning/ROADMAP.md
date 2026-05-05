@@ -47,8 +47,8 @@
   4. The dashboard shows a visible count and list of inactive affiliates
 **Plans**: 2 plans
 Plans:
-- [ ] 09-01-PLAN.md — Restore API proxy + fix ranking logic (wall-clock anchor, recency Inativo, never-sold)
-- [ ] 09-02-PLAN.md — Dashboard window label + KPI info text update
+- [x] 09-01-PLAN.md — Restore API proxy + fix ranking logic (wall-clock anchor, recency Inativo, never-sold)
+- [x] 09-02-PLAN.md — Dashboard window label + KPI info text update
 
 ### Phase 10: Visual Corrections
 **Goal**: Margin and refund percentages display with correct color thresholds on every screen
@@ -61,8 +61,8 @@ Plans:
   4. The BundlePerformanceTable shows a Reembolso % column with the correct color encoding
 **Plans**: 2 plans
 Plans:
-- [ ] 09-01-PLAN.md — Restore API proxy + fix ranking logic (wall-clock anchor, recency Inativo, never-sold)
-- [ ] 09-02-PLAN.md — Dashboard window label + KPI info text update
+- [x] 09-01-PLAN.md — Restore API proxy + fix ranking logic (wall-clock anchor, recency Inativo, never-sold)
+- [x] 09-02-PLAN.md — Dashboard window label + KPI info text update
 **UI hint**: yes
 
 ### Phase 11: Data Accuracy, Drawer & Hardening
