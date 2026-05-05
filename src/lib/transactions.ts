@@ -333,7 +333,7 @@ export function computeAffiliateRankings(
 /**
  * Classifies an upsell product name into a canonical category.
  */
-function classifyUpsellProduct(productName: string): string {
+export function classifyUpsellProduct(productName: string): string {
   if (/^up\s?1\b|^up\(1\)/i.test(productName)) return "up1";
   if (/^up\s?2\b|^up\(2\)/i.test(productName)) return "up2";
   if (/^up\s?3\b|^up\(3\)/i.test(productName)) return "up3";

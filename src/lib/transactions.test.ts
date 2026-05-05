@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { computeAffiliateRankings } from "./transactions";
+import { computeAffiliateRankings, computeAffiliateUpsells, classifyUpsellProduct } from "./transactions";
 import type { TransactionRow } from "./transactions";
 
 function makeRow(overrides: Partial<TransactionRow>): TransactionRow {
@@ -122,5 +122,45 @@ describe("computeAffiliateRankings", () => {
     const rankings = computeAffiliateRankings([refundRow, paymentRow]);
     expect(rankings.has("refundOnly")).toBe(true);
     expect(rankings.get("refundOnly")!.ranking).toBe("Inativo");
+  });
+});
+
+describe("classifyUpsellProduct", () => {
+  it("DATA-03: 'down10 Slimjara' returns 'other' not 'down1'", () => {
+    expect(classifyUpsellProduct("down10 Slimjara")).toBe("other");
+  });
+
+  it("DATA-03: 'down1 Slimjara' still returns 'down1'", () => {
+    expect(classifyUpsellProduct("down1 Slimjara")).toBe("down1");
+  });
+
+  it("DATA-03: 'down 1 Slimjara' still returns 'down1'", () => {
+    expect(classifyUpsellProduct("down 1 Slimjara")).toBe("down1");
+  });
+
+  it("DATA-03: 'up10' returns 'other' not 'up1'", () => {
+    expect(classifyUpsellProduct("up10")).toBe("other");
+  });
+
+  it("DATA-03: 'up1 Slimjara' still returns 'up1'", () => {
+    expect(classifyUpsellProduct("up1 Slimjara")).toBe("up1");
+  });
+
+  it("DATA-03: 'up 2 Slimjara' returns 'up2'", () => {
+    expect(classifyUpsellProduct("up 2 Slimjara")).toBe("up2");
+  });
+});
+
+describe("computeAffiliateUpsells — AOV contribution", () => {
+  it("DATA-02: aovContribution uses netAmount not grossAmount", () => {
+    const rows: TransactionRow[] = [
+      // Front sale
+      makeRow({ affiliate: "aff1", upsellNo: 0, grossAmount: 100, netAmount: 80 }),
+      // Upsell
+      makeRow({ affiliate: "aff1", upsellNo: 1, grossAmount: 50, netAmount: 40, productName: "Up1 Slimjara" }),
+    ];
+    const result = computeAffiliateUpsells(rows, "aff1");
+    // aovContribution should be net(40) / frontSalesCount(1) = 40, NOT gross(50) / 1 = 50
+    expect(result.upsells[0].aovContribution).toBe(40);
   });
 });
