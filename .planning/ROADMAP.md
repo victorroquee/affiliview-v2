@@ -45,7 +45,10 @@
   2. The affiliate count labeled "Ativo" matches the actual number of affiliates with 10+ front sales in the last 7 days relative to today's date
   3. An affiliate whose last front sale was more than 5 days ago is labeled "Inativo" — not "Ativo" or "Em Rampa"
   4. The dashboard shows a visible count and list of inactive affiliates
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 09-01-PLAN.md — Restore API proxy + fix ranking logic (wall-clock anchor, recency Inativo, never-sold)
+- [ ] 09-02-PLAN.md — Dashboard window label + KPI info text update
 
 ### Phase 10: Visual Corrections
 **Goal**: Margin and refund percentages display with correct color thresholds on every screen
@@ -56,7 +59,10 @@
   2. A margin between 5% and 9.9% shows yellow — not green — on every surface
   3. A refund rate of 8% or below shows orange and above 8% shows red, consistently across all screens
   4. The BundlePerformanceTable shows a Reembolso % column with the correct color encoding
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 09-01-PLAN.md — Restore API proxy + fix ranking logic (wall-clock anchor, recency Inativo, never-sold)
+- [ ] 09-02-PLAN.md — Dashboard window label + KPI info text update
 **UI hint**: yes
 
 ### Phase 11: Data Accuracy, Drawer & Hardening
@@ -69,7 +75,10 @@
   3. The affiliate drawer displays the affiliate's top-selling product from the last 7 days
   4. Changing the date period filter while a drawer is open closes the drawer (no stale mixed-period data)
   5. Saving affiliate tags when localStorage is full does not throw an uncaught error — it fails silently or shows a graceful message
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 09-01-PLAN.md — Restore API proxy + fix ranking logic (wall-clock anchor, recency Inativo, never-sold)
+- [ ] 09-02-PLAN.md — Dashboard window label + KPI info text update
 
 ## Progress
 
@@ -83,6 +92,6 @@
 | 6. Dados de Backend e Upsell | v1.1 | 2/2 | Complete | 2026-04-26 |
 | 7. Tags de Afiliados | v1.1 | 2/2 | Complete | 2026-04-27 |
 | 8. Auditoria de Divergencia | v1.1 | 3/3 | Complete | 2026-04-28 |
-| 9. Infrastructure & Count Correctness | v1.2 | 0/? | Not started | - |
+| 9. Infrastructure & Count Correctness | v1.2 | 0/2 | Planning | - |
 | 10. Visual Corrections | v1.2 | 0/? | Not started | - |
 | 11. Data Accuracy, Drawer & Hardening | v1.2 | 0/? | Not started | - |
