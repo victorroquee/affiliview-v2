@@ -239,11 +239,12 @@ const AffiliateDrawer: React.FC<AffiliateDrawerProps> = ({ affiliate, rankingInf
               <div className="tier-bars-list">
                 {(
                   [
-                    { key: "t1" as const, label: "Tier 1", cls: "tier-1", threshold: 15000, field: "t1" as const },
-                    { key: "t2" as const, label: "Tier 2", cls: "tier-2", threshold: 5000,  field: "t2" as const },
-                    { key: "t3" as const, label: "Tier 3", cls: "tier-3", threshold: 1000,  field: "t3" as const },
+                    { key: "t1" as const, label: "Tier 1" as const, cls: "tier-1", field: "t1" as const },
+                    { key: "t2" as const, label: "Tier 2" as const, cls: "tier-2", field: "t2" as const },
+                    { key: "t3" as const, label: "Tier 3" as const, cls: "tier-3", field: "t3" as const },
                   ] as const
-                ).map(({ label, cls, threshold, field }) => {
+                ).map(({ label, cls, field }) => {
+                  const threshold = TIER_MIN[label]!;
                   const vals   = rankingInfo.days.map((d) => d[field]);
                   const first3 = vals.slice(0, 3).every(Boolean);
                   const last4n = vals.slice(3).filter(Boolean).length;
