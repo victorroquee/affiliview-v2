@@ -15,9 +15,9 @@ Requirements for milestone v1.2 Melhorias Afiliados & Upsell. Each maps to roadm
 
 ### Correções Visuais
 
-- [ ] **VIS-01**: Cores de margem: ≥10% verde, 5-10% amarelo, <5% vermelho — consistente em todas as telas
-- [ ] **VIS-02**: Cores de reembolso: ≤8% laranja, >8% vermelho — consistente em todas as telas
-- [ ] **VIS-03**: Reembolso % adicionado na tabela Performance por kit (BundlePerformanceTable)
+- [x] **VIS-01**: Cores de margem: ≥10% verde, 5-10% amarelo, <5% vermelho — consistente em todas as telas
+- [x] **VIS-02**: Cores de reembolso: ≤8% laranja, >8% vermelho — consistente em todas as telas
+- [x] **VIS-03**: Reembolso % adicionado na tabela Performance por kit (BundlePerformanceTable)
 
 ### Dados & Cálculos
 
@@ -62,9 +62,9 @@ Requirements for milestone v1.2 Melhorias Afiliados & Upsell. Each maps to roadm
 | STAT-01 | Phase 9 | Pending |
 | STAT-02 | Phase 9 | Pending |
 | STAT-03 | Phase 9 | Pending |
-| VIS-01 | Phase 10 | Pending |
-| VIS-02 | Phase 10 | Pending |
-| VIS-03 | Phase 10 | Pending |
+| VIS-01 | Phase 10 | Complete |
+| VIS-02 | Phase 10 | Complete |
+| VIS-03 | Phase 10 | Complete |
 | DATA-02 | Phase 11 | Pending |
 | DATA-03 | Phase 11 | Pending |
 | DRAW-01 | Phase 11 | Pending |
