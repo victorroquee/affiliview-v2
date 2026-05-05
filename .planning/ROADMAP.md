@@ -77,8 +77,8 @@ Plans:
   5. Saving affiliate tags when localStorage is full does not throw an uncaught error — it fails silently or shows a graceful message
 **Plans**: 2 plans
 Plans:
-- [ ] 11-01-PLAN.md — [to be planned]
-- [ ] 11-02-PLAN.md — [to be planned]
+- [ ] 11-01-PLAN.md — Fix AOV contribution gross/net mismatch, regex classification, and localStorage hardening
+- [ ] 11-02-PLAN.md — Wire drawer top product display and close-on-period-change behavior
 
 ## Progress
 
