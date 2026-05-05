@@ -184,15 +184,10 @@ export function computeAffiliateRankings(
   const payRows = allRows.filter(isPayment);
   if (payRows.length === 0) return new Map();
 
-  // Data mais recente no dataset
-  let maxDate = payRows[0]!.date;
-  for (const t of payRows) {
-    if (t.date > maxDate) maxDate = t.date;
-  }
-
-  // Janela de 7 dias: de maxDate-6 até maxDate
+  // Wall-clock anchor: today is the reference point (D-01)
+  const todayUTC = new Date();
   const windowStart = new Date(Date.UTC(
-    maxDate.getUTCFullYear(), maxDate.getUTCMonth(), maxDate.getUTCDate() - 6,
+    todayUTC.getUTCFullYear(), todayUTC.getUTCMonth(), todayUTC.getUTCDate() - 6,
     0, 0, 0, 0
   ));
 
@@ -250,8 +245,18 @@ export function computeAffiliateRankings(
         break;
       }
     }
+    // Recency-based Inativo classification (D-04)
+    // Tiers are immune to 5-day rule (Pitfall 3)
+    const INATIVO_DAYS = 5;
+    const lastDate = lastSaleMap.get(name) ?? null;
+    const daysSinceLast = lastDate
+      ? Math.floor((Date.now() - new Date(lastDate + "T00:00:00Z").getTime()) / 86400000)
+      : Infinity;
+
     if (!assigned) {
-      if (data.frontSales >= ATIVO_MIN_SALES) {
+      if (daysSinceLast > INATIVO_DAYS) {
+        assigned = "Inativo";
+      } else if (data.frontSales >= ATIVO_MIN_SALES) {
         assigned = "Ativo";
       } else if (data.frontSales >= 1) {
         assigned = "Em Rampa";
@@ -295,6 +300,28 @@ export function computeAffiliateRankings(
       windowStart: dateKeys[0]!,
       windowEnd: dateKeys[6]!,
       lastFrontSaleDate: lastDate,
+    });
+  }
+
+  // Add affiliates who appear in allRows but have zero payment transactions (D-05)
+  // These are refund-only or non-payment affiliates — classify as Inativo
+  const allAffiliateNames = new Set<string>();
+  for (const t of allRows) {
+    const name = t.affiliate.trim();
+    if (name) allAffiliateNames.add(name);
+  }
+  for (const name of allAffiliateNames) {
+    if (rankings.has(name)) continue;
+    const emptyDays: AffiliateDayDetail[] = dateKeys.map((dk) => ({
+      date: dk, gross: 0, frontSales: 0, t1: false, t2: false, t3: false,
+    }));
+    rankings.set(name, {
+      ranking: "Inativo",
+      days: emptyDays,
+      frontSalesInWindow: 0,
+      windowStart: dateKeys[0]!,
+      windowEnd: dateKeys[6]!,
+      lastFrontSaleDate: null,
     });
   }
 

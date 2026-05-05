@@ -78,22 +78,30 @@ describe("computeAffiliateRankings", () => {
   });
 
   it("STAT-02: Tier 1 affiliate immune to 5-day rule", () => {
-    // Create 7 rows for tierAffiliate, one per day from 2026-04-22 to 2026-04-28
-    // (all > 5 days ago from pinned today 2026-05-04)
-    // Each with grossAmount=16000 to qualify for Tier 1 (>=15000 per day, 7 consecutive)
+    // Window is 2026-04-28 to 2026-05-04 (pinned today = 2026-05-04)
+    // Tier 1 requires gross >= 15000 on all 7 window days
+    // Last FRONT sale (upsellNo=0) is on 2026-04-28 (6 days ago, > 5 days)
+    // Days 2026-04-29 to 2026-05-04 have upsell-only sales (upsellNo=1)
     const rows: TransactionRow[] = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(Date.UTC(2026, 3, 22 + i, 10, 0, 0));
+    // Day 1 (Apr 28): front sale with high gross
+    rows.push(makeRow({
+      date: new Date(Date.UTC(2026, 3, 28, 10, 0, 0)),
+      affiliate: "tierAffiliate",
+      grossAmount: 16000,
+      upsellNo: 0,
+    }));
+    // Days 2-7 (Apr 29 - May 4): upsell sales with high gross
+    for (let i = 1; i < 7; i++) {
       rows.push(makeRow({
-        date: d,
+        date: new Date(Date.UTC(2026, 3, 28 + i, 10, 0, 0)),
         affiliate: "tierAffiliate",
         grossAmount: 16000,
-        upsellNo: 0,
+        upsellNo: 1, // upsell — does NOT count as front sale
       }));
     }
     const rankings = computeAffiliateRankings(rows);
     const info = rankings.get("tierAffiliate")!;
-    // Tier 1 should NOT be overridden to Inativo despite last sale being > 5 days ago
+    // Tier 1 should NOT be overridden to Inativo despite last front sale being > 5 days ago
     expect(info.ranking).toBe("Tier 1");
   });
 
