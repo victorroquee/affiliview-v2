@@ -10,6 +10,7 @@ import {
   Users,
   BarChart2,
   UserX,
+  FileDown,
 } from "lucide-react";
 import KPICard from "../components/KPICard";
 import LoadingDot from "../components/LoadingDot";
@@ -30,6 +31,7 @@ import {
   formatInt,
 } from "../lib/transactions";
 import AffiliateDrawer from "../components/AffiliateDrawer";
+import { generateKPIReport } from "../lib/pdfExport";
 
 interface DashboardProps {
   filteredRows: TransactionRow[];
@@ -79,6 +81,14 @@ const Dashboard: React.FC<DashboardProps> = ({
     return [...rankings.values()].filter(r => r.ranking === "Inativo").length;
   }, [rankings]);
 
+  const rankingWindowLabel = useMemo(() => {
+    const values = [...rankings.values()];
+    if (values.length === 0) return null;
+    const first = values[0]!;
+    const fmt = (iso: string) => iso.slice(8, 10) + "/" + iso.slice(5, 7);
+    return `${fmt(first.windowStart)} \u2014 ${fmt(first.windowEnd)}`;
+  }, [rankings]);
+
   const drawerRanking: AffiliateRankingInfo | null =
     drawerAffiliate ? (rankings.get(drawerAffiliate.name) ?? null) : null;
 
@@ -123,8 +133,36 @@ const Dashboard: React.FC<DashboardProps> = ({
     );
   }
 
+  const handleExportPDF = () => {
+    if (!metrics) return;
+    const dates = filteredRows.map((r) => r.date);
+    const minDate = new Date(Math.min(...dates.map((d) => d.getTime())));
+    const maxDate = new Date(Math.max(...dates.map((d) => d.getTime())));
+    const fmt = (d: Date) =>
+      d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const periodLabel = `${fmt(minDate)} – ${fmt(maxDate)}${periodDays ? ` (${periodDays}d)` : ""}`;
+
+    generateKPIReport({
+      metrics,
+      affiliates: affiliatesWithoutMail,
+      rankings,
+      periodLabel,
+      activosCount,
+      emRampaCount,
+      inativoCount,
+    });
+  };
+
   return (
     <>
+      {/* ── Export PDF ── */}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+        <button className="btn-export-pdf" onClick={handleExportPDF}>
+          <FileDown size={14} strokeWidth={1.6} />
+          Exportar PDF
+        </button>
+      </div>
+
       {/* ── Bloco: Receita ── */}
           <div className="kpi-group">
             <div className="kpi-group-label">Receita</div>
@@ -167,7 +205,14 @@ const Dashboard: React.FC<DashboardProps> = ({
 
           {/* ── Bloco: Atividade ── */}
           <div className="kpi-group">
-            <div className="kpi-group-label">Atividade</div>
+            <div className="kpi-group-label">
+              Atividade
+              {rankingWindowLabel && (
+                <span style={{ fontWeight: 400, fontSize: 12, color: "var(--text-3)", marginLeft: 8 }}>
+                  {rankingWindowLabel}
+                </span>
+              )}
+            </div>
             <div className="kpi-grid-5">
               <KPICard icon={ShoppingCart} label="Vendas Totais"     value={formatInt(metrics.sales)}                     info="Contagem de pagamentos aprovados com upsell_no=0 (pedidos principais/frontais). Upsells e bump orders não são contados aqui." />
               <KPICard icon={Zap}          label="Ativados ≥ €2K"    value={formatInt(metrics.activated)}                 info="Afiliados cujo affiliate_amount acumulado no período é ≥ €2.000. Indica afiliados operando em escala ativa com alto volume de comissões." />
@@ -182,7 +227,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 icon={UserX}
                 label="Inativos no Período"
                 value={formatInt(inativoCount)}
-                info="Afiliados com 0 vendas front nos últimos 7 dias (janela de ranking). Clique em 'Inativos' na aba de afiliados para ver a lista completa."
+                info="Afiliados cuja ultima venda front foi ha mais de 5 dias. Veja a lista completa na aba Afiliados → Inativos."
               />
             </div>
           </div>
