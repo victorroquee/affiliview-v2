@@ -19,7 +19,7 @@ const App: React.FC = () => {
 
   const [period, setPeriod] = useState<PeriodFilter>(INITIAL_PERIOD);
 
-  const { rows, loading, error, lastFetched, fetch: fetchData } =
+  const { rows, loading, error, fetch: fetchData } =
     useDigistoreAPI();
 
   const lastParamsRef = useRef({ from: "-30d", to: "now" });

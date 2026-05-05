@@ -11,7 +11,7 @@ const localStorageMock = (() => {
   };
 })();
 
-Object.defineProperty(global, "localStorage", { value: localStorageMock, writable: true });
+Object.defineProperty(globalThis, "localStorage", { value: localStorageMock, writable: true });
 
 // Import the hook logic directly — we test the pure functions, not the React hook
 import {

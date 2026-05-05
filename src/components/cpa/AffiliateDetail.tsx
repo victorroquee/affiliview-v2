@@ -4,7 +4,7 @@ import type { AffiliateResult, SimulatedAffiliateResult } from "../../lib/cpa/ty
 import { formatEur as fmtEur, formatPct as fmtPct, formatInt as fmtInt } from "../../lib/transactions";
 import VariantCard from "./VariantCard";
 import InfoTooltip from "../InfoTooltip";
-import { getRefundColor } from "../../utils/colorThresholds";
+
 
 interface SummaryCardProps {
   label: string;
