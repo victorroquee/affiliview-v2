@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   CircleDollarSign,
   TrendingUp,
@@ -51,6 +51,11 @@ const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const [productFilter, setProductFilter] = useState<string>("all");
   const [drawerAffiliate, setDrawerAffiliate] = useState<AffiliateRow | null>(null);
+
+  // Close drawer when period filter changes to prevent stale mixed-period data (DRAW-02)
+  useEffect(() => {
+    setDrawerAffiliate(null);
+  }, [periodDays]);
 
   const metrics: PeriodMetrics | null = useMemo(() => {
     if (filteredRows.length === 0) return null;

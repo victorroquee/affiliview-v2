@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   type TransactionRow,
   type AffiliateRow,
@@ -61,6 +61,11 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
   const [statusFilter, setStatusFilter] = useState<AffiliateRanking | "all">("all");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const { getTagsFor, allTags } = useAffiliateTags();
+
+  // Close drawer when period filter changes to prevent stale mixed-period data (DRAW-02)
+  useEffect(() => {
+    setSelectedAffiliate(null);
+  }, [periodDays]);
 
   const affiliates: AffiliateRow[] = useMemo(() => {
     if (filteredRows.length === 0) return [];
