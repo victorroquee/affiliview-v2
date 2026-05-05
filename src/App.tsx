@@ -5,16 +5,14 @@ import AffiliatesPage from "./pages/Affiliates";
 import CpaCalculator from "./pages/CpaCalculator";
 import CpaFixo from "./pages/CpaFixo";
 import CpaVariavel from "./pages/CpaVariavel";
-import MailSalesPage from "./pages/MailSales";
 import PeriodBar from "./components/PeriodBar";
-import ConnectionStatus from "./components/ConnectionStatus";
 import { useDigistoreAPI } from "./hooks/useDigistoreAPI";
 import { useFilters } from "./hooks/useFilters";
 import { periodToApiParams } from "./utils/digiNormalizer";
 import type { PeriodFilter } from "./hooks/useFilters";
 import { INITIAL_PERIOD } from "./hooks/useFilters";
 
-type Page = "dashboard" | "affiliates" | "calculator" | "cpa-fixo" | "cpa-variavel" | "mail";
+type Page = "dashboard" | "affiliates" | "calculator" | "cpa-fixo" | "cpa-variavel";
 
 const App: React.FC = () => {
   const [page, setPage] = useState<Page>("dashboard");
@@ -68,12 +66,9 @@ const App: React.FC = () => {
             totalRows={filteredRows.length}
             isDateRangeValid={isDateRangeValid}
           />
-          <ConnectionStatus
-            loading={loading}
-            error={error}
-            lastFetched={lastFetched}
-            onRefresh={handleRefresh}
-          />
+          <button className="refresh-btn" onClick={handleRefresh} disabled={loading}>
+            {loading ? "…" : "↻"}
+          </button>
         </div>
 
         {/* ── Page content ── */}
@@ -100,11 +95,6 @@ const App: React.FC = () => {
             />
           ) : page === "cpa-variavel" ? (
             <CpaVariavel
-              filteredRows={filteredRows}
-              loading={loading}
-            />
-          ) : page === "mail" ? (
-            <MailSalesPage
               filteredRows={filteredRows}
               loading={loading}
             />

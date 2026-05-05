@@ -1,7 +1,7 @@
 import React from "react";
-import { LayoutDashboard, Users, Calculator, TrendingUp, DollarSign, Mail } from "lucide-react";
+import { LayoutDashboard, Users, Calculator, TrendingUp, DollarSign } from "lucide-react";
 
-type Page = "dashboard" | "affiliates" | "calculator" | "cpa-fixo" | "cpa-variavel" | "mail";
+type Page = "dashboard" | "affiliates" | "calculator" | "cpa-fixo" | "cpa-variavel";
 
 interface SidebarProps {
   activePage: Page;
@@ -63,19 +63,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, onNavigate }) => {
         >
           <DollarSign size={15} strokeWidth={1.4} />
           CPA Fixo
-        </button>
-      </nav>
-
-      {/* Recuperação */}
-      <span className="sidebar-section-label">Recuperação</span>
-
-      <nav className="sidebar-nav">
-        <button
-          className={`sidebar-link ${activePage === "mail" ? "active" : ""}`}
-          onClick={() => onNavigate("mail")}
-        >
-          <Mail size={15} strokeWidth={1.4} />
-          Mail Vendas
         </button>
       </nav>
 
