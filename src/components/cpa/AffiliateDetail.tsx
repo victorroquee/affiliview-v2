@@ -4,6 +4,7 @@ import type { AffiliateResult, SimulatedAffiliateResult } from "../../lib/cpa/ty
 import { formatEur as fmtEur, formatPct as fmtPct, formatInt as fmtInt } from "../../lib/transactions";
 import VariantCard from "./VariantCard";
 import InfoTooltip from "../InfoTooltip";
+import { getRefundColor } from "../../utils/colorThresholds";
 
 interface SummaryCardProps {
   label: string;
@@ -31,8 +32,8 @@ interface AffiliateDetailProps {
 }
 
 const AffiliateDetail: React.FC<AffiliateDetailProps> = ({ aff, marginTarget, setCustomCpa, onBack }) => {
-  const refundHigh = aff.refundRate > 10;
-  const refundMid  = aff.refundRate > 5;
+  const refundHigh = aff.refundRate > 8;
+  const refundMid  = aff.refundRate > 0 && aff.refundRate <= 8;
 
   return (
     <div className="aff-detail">
@@ -63,7 +64,7 @@ const AffiliateDetail: React.FC<AffiliateDetailProps> = ({ aff, marginTarget, se
           label="Refund + CB"
           value={fmtPct(aff.refundRate)}
           color={refundHigh ? "var(--red)" : refundMid ? "var(--amber)" : undefined}
-          info="Taxa count-based de reembolsos + chargebacks do afiliado. Laranja >5%, vermelho >10%. Impacta diretamente o CPA máximo calculável."
+          info="Taxa count-based de reembolsos + chargebacks do afiliado. Laranja ≤8%, vermelho >8%. Impacta diretamente o CPA máximo calculável."
         />
         <SummaryCard
           label="Lucro líquido"

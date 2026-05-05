@@ -3,6 +3,7 @@ import type { AffiliateResult } from "../../lib/cpa/types";
 import { formatEur as fmtEur, formatPct as fmtPct, formatInt as fmtInt } from "../../lib/transactions";
 import StatusBadge from "./StatusBadge";
 import InfoTooltip from "../InfoTooltip";
+import { getRefundColor } from "../../utils/colorThresholds";
 
 interface CPATableProps {
   results:  AffiliateResult[];
@@ -26,7 +27,7 @@ const CPATable: React.FC<CPATableProps> = ({ results, onSelect }) => {
             <th>Afiliado</th>
             <th style={{ textAlign: "right" }}>Fronts <InfoTooltip text="Total de pedidos frontais (upsell_no=0) atribuídos ao afiliado no período selecionado." /></th>
             <th style={{ textAlign: "right" }}>Lucro líquido <InfoTooltip text="Earnings totais − COGs totais do afiliado. Verde = lucrativo, vermelho = operação deficitária no período." /></th>
-            <th style={{ textAlign: "right" }}>Reembolso <InfoTooltip text="Taxa count-based de reembolsos + chargebacks do afiliado. Laranja >5%, vermelho >10%. Afeta o CPA máximo sustentável." /></th>
+            <th style={{ textAlign: "right" }}>Reembolso <InfoTooltip text="Taxa count-based de reembolsos + chargebacks do afiliado. Laranja ≤8%, vermelho >8%. Afeta o CPA máximo sustentável." /></th>
             <th style={{ textAlign: "right" }}>Upsell conv. <InfoTooltip text="% de pedidos front que geraram ao menos um upsell associado. Indicador de qualidade e intenção de compra do tráfego." /></th>
             <th style={{ textAlign: "right" }}>Kit dom. <InfoTooltip text="Variante (quantidade de potes) mais vendida por este afiliado — usada como referência principal para o cálculo de CPA." /></th>
             <th style={{ textAlign: "right" }}>CPA atual <InfoTooltip text="Valor de comissão por pedido front atualmente configurado para o afiliado na variante dominante." /></th>
@@ -40,9 +41,10 @@ const CPATable: React.FC<CPATableProps> = ({ results, onSelect }) => {
           {results.map((aff) => {
             const domV = aff.variants.find(v => v.variant === aff.domVariant);
 
-            const refColor: string | undefined = aff.refundRate > 10
+            const refColorClass = getRefundColor(aff.refundRate);
+            const refColor: string | undefined = refColorClass === "red"
               ? "var(--red)"
-              : aff.refundRate > 5
+              : refColorClass === "orange"
               ? "var(--amber)"
               : undefined;
 

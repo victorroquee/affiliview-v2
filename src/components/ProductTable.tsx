@@ -1,6 +1,7 @@
 import React from "react";
 import { formatEur, formatPct, formatInt, type ProductSummaryRow, type BundleRow, type AffiliateRow, type AffiliateRanking, type AffiliateRankingInfo } from "../lib/transactions";
 import InfoTooltip from "./InfoTooltip";
+import { getRefundColor } from "../utils/colorThresholds";
 
 const RANKING_CLASS: Record<AffiliateRanking, string> = {
   "Tier 1": "tier-1", "Tier 2": "tier-2", "Tier 3": "tier-3",
@@ -29,7 +30,7 @@ export const ProductSummaryTable: React.FC<ProductSummaryTableProps> = ({ data }
             <th style={{ textAlign: "right" }}>Ticket Médio <InfoTooltip text="Gross total (front + upsells + bumps) ÷ nº de vendas front. Valor médio total por pedido neste produto, incluindo upsells e bumps." /></th>
             <th style={{ textAlign: "right" }}>Vendas Front <InfoTooltip text="Contagem de pagamentos aprovados com upsell_no=0 atribuídos a este produto no período." /></th>
             <th style={{ textAlign: "right" }}>Total Vendas <InfoTooltip text="Vendas frontais + upsells atribuídos a este produto. Inclui todos os tipos de transação do produto." /></th>
-            <th style={{ textAlign: "right" }}>Reembolso % <InfoTooltip text="Value-based: valor dos reembolsos ÷ gross revenue front. Laranja >5%, vermelho >10%. Impacta diretamente o Net Revenue." /></th>
+            <th style={{ textAlign: "right" }}>Reembolso % <InfoTooltip text="Value-based: valor dos reembolsos ÷ gross revenue front. Laranja ≤8%, vermelho >8%. Impacta diretamente o Net Revenue." /></th>
             <th style={{ textAlign: "right" }}>Chargeback % <InfoTooltip text="Value-based: valor dos chargebacks ÷ gross revenue front. Laranja >1%, vermelho >2%. Chargebacks têm custo adicional de disputa." /></th>
           </tr>
         </thead>
@@ -43,7 +44,7 @@ export const ProductSummaryTable: React.FC<ProductSummaryTableProps> = ({ data }
               <td className="num">{formatEur(row.aov)}</td>
               <td className="num">{formatInt(row.frontSales)}</td>
               <td className="num">{formatInt(row.totalSales)}</td>
-              <td className={`num ${row.returnPct > 10 ? "red" : row.returnPct > 5 ? "orange" : ""}`}>
+              <td className={`num ${getRefundColor(row.returnPct)}`}>
                 {formatPct(row.returnPct)}
               </td>
               <td className={`num ${row.cbPct > 2 ? "red" : row.cbPct > 1 ? "orange" : ""}`}>
@@ -100,7 +101,7 @@ export const BundlePerformanceTable: React.FC<BundlePerformanceTableProps> = ({ 
               <td className={`num ${row.chargebacks > 0 ? "red" : ""}`}>
                 {formatInt(row.chargebacks)}
               </td>
-              <td className={`num ${row.refundPct > 8 ? "red" : row.refundPct > 0 ? "orange" : ""}`}>
+              <td className={`num ${getRefundColor(row.refundPct)}`}>
                 {formatPct(row.refundPct)}
               </td>
             </tr>
