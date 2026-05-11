@@ -848,7 +848,10 @@ export function computePeriod(
       e.sales      += 1;               // count only front orders as "sales"
       e.frontGross += t.grossAmount;   // AOV numerator: only upsell_no === 0 gross
     }
-    e.liq += t.earnings - getFulfillmentCost(t.productName, t.country, t.upsellNo === 0);
+    // liq: only front payments contribute (parallel with global valorLiq — upsells are digital, no COGS)
+    if (t.upsellNo === 0) {
+      e.liq += t.earnings - getFulfillmentCost(t.productName, t.country, true);
+    }
     affMap.set(n, e);
   }
   for (const t of refCbTxs) {
@@ -859,7 +862,10 @@ export function computePeriod(
       refundAmt: 0, cbAmt: 0, totalTx: 0, affiliateAmt: 0,
     };
     e.earnings += t.earnings;  // negative — reduces earnings
-    e.liq      += t.earnings;  // refund: only earnings returned (fulfillment is sunk cost)
+    // liq: only front refunds/CB contribute (parallel with global valorLiq)
+    if (t.upsellNo === 0) {
+      e.liq += t.earnings;    // refund: only earnings returned (fulfillment is sunk cost)
+    }
     if (isRefund(t))     e.refundAmt += t.grossAmount;  // gross revertido para taxa de reembolso
     if (isChargeback(t)) e.cbAmt     += t.grossAmount;
     affMap.set(n, e);

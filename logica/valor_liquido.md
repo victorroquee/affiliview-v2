@@ -58,12 +58,18 @@ Quando um refund/chargeback ocorre:
 - **Não há recuperação dos custos de fulfillment** — o produto já foi fabricado e enviado (custo afundado/sunk cost)
 
 ```typescript
-// Pagamentos: liq = earned_amount − fulfillment_cost
-e.liq += t.earnings - getFulfillmentCost(t.productName, t.country, t.upsellNo === 0);
+// Pagamentos frontais: liq = earned_amount − fulfillment_cost (apenas upsell_no === 0)
+if (t.upsellNo === 0) {
+  e.liq += t.earnings - getFulfillmentCost(t.productName, t.country, true);
+}
 
-// Refunds/CBs: apenas earned_amount (negativo) — sem recuperar COGS
-e.liq += t.earnings;  // valor negativo (estorno da comissão recebida)
+// Refunds/CBs frontais: apenas earned_amount (negativo) — sem recuperar COGS
+if (t.upsellNo === 0) {
+  e.liq += t.earnings;  // valor negativo (estorno da comissão recebida)
+}
 ```
+
+> **Importante**: O cálculo de `liq` por afiliado aplica COGS **somente a transações frontais** (`upsell_no === 0`), mantendo paralelismo com o `valorLiq` global do dashboard. Upsells são digitais e não geram COGS.
 
 ---
 
