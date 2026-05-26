@@ -40,7 +40,7 @@ Gross Revenue = SUM(amount WHERE payment — ALL upsell_no values)
 ## Regras
 
 - Inclui TODOS os pagamentos (front + upsells + bumps) — alinhado com Digistore24
-- Inclui os tres produtos: **Erectus X**, **Slimjara** e **Memoguard**
+- Inclui todos os produtos: **Slimjara**, **LipoGandha**, **LipoSkin**, **Erectus X**, **MemoGuard**
 - Refunds e chargebacks nao reduzem o Gross — seu impacto vai para o Earnings via `earned_amount` negativo
 - O periodo filtrado segue horario **UTC**
 

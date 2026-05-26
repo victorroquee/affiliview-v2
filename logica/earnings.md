@@ -44,7 +44,7 @@ Para refunds e chargebacks, `earned_amount` e o valor estornado (negativo).
 
 - Inclui TODOS os pagamentos (front + upsells + bumps) — alinhado com Digistore24
 - Refunds e chargebacks (negativos) sao incluidos na soma, reduzindo o total
-- Inclui os tres produtos: **Erectus X**, **Slimjara** e **Memoguard**
+- Inclui todos os produtos: **Slimjara**, **LipoGandha**, **LipoSkin**, **Erectus X**, **MemoGuard**
 - O periodo filtrado segue horario **UTC**
 - **Valor Liquido** usa uma base de earnings separada (somente front) — ver valor_liquido.md
 
