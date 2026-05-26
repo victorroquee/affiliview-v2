@@ -371,7 +371,7 @@ const CpaFixo: React.FC<CpaFixoProps> = ({ filteredRows, loading }) => {
             {filtered.map((aff) => {
               const isActive    = selected === aff.name;
               const topVariant  = Object.entries(aff.orders_por_variante).sort((a, b) => b[1] - a[1])[0];
-              const refColor    = aff.reembolso_rate > 0.10 ? "red" : aff.reembolso_rate > 0.05 ? "amber" : "";
+              const refColor    = aff.reembolso_rate > 0.08 ? "red" : aff.reembolso_rate > 0 ? "amber" : "";
               return (
                 <button key={aff.name} className={`cpaf-aff-item ${isActive ? "active" : ""}`}
                   onClick={() => setSelected(isActive ? null : aff.name)}>
@@ -426,7 +426,7 @@ const CpaFixo: React.FC<CpaFixoProps> = ({ filteredRows, loading }) => {
                   <div className="cpaf-chip-label">Gross Total</div>
                   <div className="cpaf-chip-value">{fmt(selectedAff.gross_bruto)}</div>
                 </div>
-                <div className={`cpaf-chip ${selectedAff.reembolso_rate > 0.10 ? "red" : selectedAff.reembolso_rate > 0.05 ? "amber" : ""}`}>
+                <div className={`cpaf-chip ${selectedAff.reembolso_rate > 0.08 ? "red" : selectedAff.reembolso_rate > 0 ? "amber" : ""}`}>
                   <div className="cpaf-chip-label">Reembolso</div>
                   <div className="cpaf-chip-value">{fmtPct(selectedAff.reembolso_rate)}</div>
                 </div>
