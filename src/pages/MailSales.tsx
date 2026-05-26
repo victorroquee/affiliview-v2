@@ -167,7 +167,7 @@ const MailSalesPage: React.FC<MailSalesProps> = ({ filteredRows, loading }) => {
             label="Taxa de Reembolso"
             value={formatPct(m.refundPct * 100)}
             info="Taxa de reembolso específica das vendas do Maileonardo (gross reembolsos ÷ gross pagamentos)."
-            color={m.refundPct > 0.10 ? "red" : m.refundPct > 0.05 ? "orange" : ""}
+            color={m.refundPct > 0.08 ? "red" : m.refundPct > 0 ? "orange" : ""}
           />
         </div>
       </div>
