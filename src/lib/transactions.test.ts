@@ -19,6 +19,7 @@ function makeRow(overrides: Partial<TransactionRow>): TransactionRow {
     upsellNo: 0,
     affiliateAmount: 10,
     vatAmount: 10,
+    productId: "",
     ...overrides,
   };
 }

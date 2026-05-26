@@ -1,21 +1,36 @@
 # Componente: Custo de Produto
 
 ## O que é
-Custo de fabricação dos frascos/unidades vendidas. É calculado automaticamente com base na quantidade de frascos identificada no nome do produto (`main_product_name`), multiplicada pelo custo unitário de produção. É um dos dois componentes deduzidos do Earnings para chegar ao **Valor Líquido**.
+Custo de fabricação dos frascos/unidades vendidas. É calculado automaticamente com base na quantidade de frascos identificada no nome do produto (`main_product_name`), multiplicada pelo custo unitário de produção **específico de cada produto**. É um dos dois componentes deduzidos do Earnings para chegar ao **Valor Líquido**.
 
 ---
 
 ## Fórmula
 
 ```
-Custo de Produto = Número de Frascos × €3,26 por frasco
+Custo de Produto = Número de Frascos × Custo por Frasco (varia por produto)
 ```
+
+---
+
+## Produtos e Categorias
+
+| Categoria | Brand | SKU (ShipOffers) | Custo/frasco |
+|-----------|-------|------------------|-------------|
+| Weight Loss | **Slimjara** | 6426-EU/WGHTLBLND | €3,26 |
+| Metabolism | **LipoGandha** | 6462-EU/METABLND | €3,26 |
+| Nerve | **Liposkin** | 6424-EU/NRVEBLND | €3,64 |
+| Virility | **Erectus** | 6427-EU/VRTYBLND | €3,24 |
+| — | **Memoguard** | — | €3,26 |
+
+**Default** (produto não reconhecido): €3,26
 
 ---
 
 ## Origem e Extração
 - **Fonte**: API Digistore24 — campo `main_product_name`
 - A quantidade de frascos é detectada pelo nome do produto (não existe campo separado para isso na API)
+- A categoria do produto é detectada pelo nome (slimjara, lipogandha, liposkin, erectus, memoguard)
 - Aplica-se somente a transações de pagamento (`transaction_type === "payment"`)
 
 ---
@@ -26,61 +41,49 @@ O sistema identifica a quantidade de frascos lendo o nome do produto. A detecç�
 
 ### 1ª tentativa — Leitura de palavras-chave no nome
 O sistema busca um número seguido de palavras como: "bottle", "garrafa", "b", "pack", "un", "capsule", "flasche" (e variações). Exemplos que funcionam:
-- `"Erectus X - 6 Bottles"` → detecta **6 frascos**
+- `"Erectus - 6 Bottles"` → detecta **6 frascos**
 - `"Slimjara 3 Garrafas"` → detecta **3 frascos**
-- `"Memoguard - 2 Capsules"` → detecta **2 frascos** ("capsule" incluído)
-- `"Erectus X - 2b"` → detecta **2 frascos**
+- `"Memoguard - 2 Capsules"` → detecta **2 frascos**
 
 ### 2ª tentativa — Busca de números conhecidos no nome (fallback)
 Se a 1ª tentativa não encontrar, o sistema procura os números: 12, 9, 6, 3, 2 no nome do produto (nesta ordem).
-- `"Erectus X Gold 6"` → detecta **6 frascos**
+- `"Erectus Gold 6"` → detecta **6 frascos**
 
 ### 3ª tentativa — Default
 Se nenhum número for identificado → assume **1 frasco**
 
 ---
 
-## Custo por Frasco
+## Tabela de Custo por Quantidade (exemplos)
 
-O custo unitário de produção por frasco é:
-```
-€3,26 por frasco
-```
-
-Este valor é fixo e hardcoded no sistema.
+| Produto | 1 frasco | 3 frascos | 6 frascos |
+|---------|---------|----------|----------|
+| Slimjara | €3,26 | €9,78 | €19,56 |
+| LipoGandha | €3,26 | €9,78 | €19,56 |
+| Liposkin | €3,64 | €10,92 | €21,84 |
+| Erectus | €3,24 | €9,72 | €19,44 |
+| Memoguard | €3,26 | €9,78 | €19,56 |
 
 ---
 
-## Tabela de Custo por Quantidade
+## Regras de Front/Upsell por Product ID
 
-| Frascos | Custo de Produto |
-|---------|-----------------|
-| 1 frasco | €3,26 |
-| 2 frascos | €6,52 |
-| 3 frascos | €9,78 |
-| 6 frascos | €19,56 |
-| 9 frascos | €29,34 |
-| 12 frascos | €39,12 |
+O campo `main_product_id` da API codifica se o produto é front ou upsell pelo sufixo numérico:
+- **Sem sufixo ou 1-8** → front offer (mesmo produto, bundles diferentes)
+- **9+** → upsell
+
+Exemplos:
+- `S9V2LXKN` (front), `S9V2LXKN1` (front), `S9V2LXKN9` (upsell)
+- `3LM55YMS` (front), `3LM55YMS1` (front)
 
 ---
 
 ## Regras
 
-- Aplica-se a todos os produtos: **Erectus X**, **Slimjara** e **Memoguard**
-- Mesmo custo unitário (€3,26) para todos os produtos
+- Custo unitário **varia por produto** (Liposkin €3,64, Erectus €3,24, demais €3,26)
 - Calculado por transação individualmente
 - Se o nome do produto não indicar a quantidade, assume 1 frasco (pode subestimar o custo)
-
----
-
-## Exemplo Prático
-
-| Produto | main_product_name (API) | Frascos Detectados | Custo de Produto |
-|---------|------------------------|-------------------|-----------------|
-| Erectus X | M3 - Erectus X - 6 Bottles | 6 | €19,56 |
-| Slimjara | M1 - Slimjara - 3 Garrafas | 3 | €9,78 |
-| Memoguard | M2 - Memoguard - 2 Capsules | 2 | €6,52 |
-| Produto desconhecido | Produto sem número | 1 (default) | €3,26 |
+- Se o produto não for reconhecido, usa o custo default de €3,26
 
 ---
 
@@ -90,54 +93,33 @@ Este valor é fixo e hardcoded no sistema.
 
 ---
 
-## Observações
-- O valor €3,26 deve ser atualizado manualmente no sistema caso o custo de fabricação mude
-- A palavra-chave "capsule" foi adicionada à 1ª tentativa para melhor detecção dos produtos Memoguard
-
----
-
 ## Implementação no Código
 
 **Arquivo**: `src/lib/costTable.ts`
 
-Custo unitário por frasco (constante fixo):
+Custo por produto (mapa por categoria):
 
 ```typescript
-export const PRODUCT_COST_PER_BOTTLE = 3.26;
+export const PRODUCT_COSTS: Record<ProductCategory, number> = {
+  slimjara:   3.26,
+  lipoGandha: 3.26,
+  liposkin:   3.64,
+  erectus:    3.24,
+  memoguard:  3.26,
+};
 ```
 
-Função que detecta o número de frascos a partir do nome do produto:
+Detecção de categoria e custo:
 
 ```typescript
-export function detectBottles(productName: string): number {
-  const n = productName.toLowerCase();
-
-  // 1ª tentativa: número seguido de palavra-chave
-  const m = n.match(/(\d+)\s*(bottle|garrafa|b\b|pack|un|capsule|flasche)/i);
-  if (m) return parseInt(m[1]);
-
-  // 2ª tentativa: fallback por números conhecidos no nome (ordem decrescente)
-  if (n.includes("12")) return 12;
-  if (n.includes("9"))  return 9;
-  if (n.includes("6"))  return 6;
-  if (n.includes("3"))  return 3;
-  if (n.includes("2"))  return 2;
-
-  // Default: assume 1 frasco
-  return 1;
-}
+export function detectProductCategory(productName: string): ProductCategory | null { ... }
+export function getProductCostPerBottle(productName: string): number { ... }
 ```
 
 O custo de produto é calculado dentro de `getFulfillmentBreakdown()`:
 
 ```typescript
-const bottles = detectBottles(productName);
-// Aproxima para o tamanho de pacote mais próximo na tabela (1, 2, 3, 6, 9, 12)
-const closestCount = validCounts.reduce((prev, curr) =>
-  Math.abs(curr - bottles) < Math.abs(prev - bottles) ? curr : prev
-);
-
-const productCost = closestCount * PRODUCT_COST_PER_BOTTLE; // ex: 6 × €3,26 = €19,56
+const productCost = closestCount * getProductCostPerBottle(productName);
 ```
 
 **Utilizado em**: `src/lib/transactions.ts` via `getFulfillmentBreakdown()` no cálculo do Valor Líquido

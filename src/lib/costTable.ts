@@ -1,16 +1,45 @@
 // ─── Constants ────────────────────────────────────────────────────────────────
-export const PRODUCT_COST_PER_BOTTLE = 3.26;
 export const CUSTOMER_SHIPPING_AMOUNT = 20;
 export const CUSTOMER_SHIPPING_COUNTRIES = new Set(["LU", "CH"]);
+
+// ─── Per-Product Cost (€ per bottle) ────────────────────────────────────────
+export type ProductCategory = "slimjara" | "lipoGandha" | "liposkin" | "erectus" | "memoguard";
+
+const DEFAULT_COST_PER_BOTTLE = 3.26;
+
+export const PRODUCT_COSTS: Record<ProductCategory, number> = {
+  slimjara:   3.26,
+  lipoGandha: 3.26,
+  liposkin:   3.64,
+  erectus:    3.24,
+  memoguard:  3.26,
+};
+
+/** Detect product category from product name */
+export function detectProductCategory(productName: string): ProductCategory | null {
+  const n = productName.toLowerCase();
+  if (n.includes("slimjara"))    return "slimjara";
+  if (n.includes("lipogandha"))  return "lipoGandha";
+  if (n.includes("liposkin"))    return "liposkin";
+  if (n.includes("erectus"))     return "erectus";
+  if (n.includes("memoguard"))   return "memoguard";
+  return null;
+}
+
+/** Get cost per bottle for a given product name */
+export function getProductCostPerBottle(productName: string): number {
+  const cat = detectProductCategory(productName);
+  return cat ? PRODUCT_COSTS[cat] : DEFAULT_COST_PER_BOTTLE;
+}
 
 // ─── Zone Types ───────────────────────────────────────────────────────────────
 export type ZoneKey = "z1" | "z2" | "z3" | "z4" | "z5" | "z6" | "z7" | "uk";
 
 // ─── Shipping Table (€ per zone × bottle count) ──────────────────────────────
 export const SHIPPING_TABLE: Record<number, Record<ZoneKey, number>> = {
-  1:  { z1: 9.30, z2: 10.14, z3: 11.82, z4: 13.66, z5: 17.81, z6: 25.19, z7: 51.03, uk: 10.14 },
-  2:  { z1: 9.30, z2: 10.14, z3: 11.82, z4: 13.66, z5: 17.81, z6: 25.19, z7: 51.03, uk: 10.14 },
-  3:  { z1: 9.30, z2: 10.14, z3: 11.82, z4: 13.66, z5: 17.81, z6: 25.19, z7: 51.03, uk: 10.14 },
+  1:  { z1: 7.58, z2: 8.25, z3: 9.60, z4: 11.07, z5: 14.39, z6: 20.29, z7: 40.96, uk: 8.25 },
+  2:  { z1: 7.58, z2: 8.25, z3: 9.60, z4: 11.07, z5: 14.39, z6: 20.29, z7: 40.96, uk: 8.25 },
+  3:  { z1: 7.58, z2: 8.25, z3: 9.60, z4: 11.07, z5: 14.39, z6: 20.29, z7: 40.96, uk: 8.25 },
   6:  { z1: 9.42, z2: 10.26, z3: 11.94, z4: 13.78, z5: 17.93, z6: 25.31, z7: 51.15, uk: 10.26 },
   9:  { z1: 9.60, z2: 10.59, z3: 12.77, z4: 14.13, z5: 18.30, z6: 26.66, z7: 52.56, uk: 10.59 },
   12: { z1: 9.60, z2: 10.59, z3: 12.77, z4: 14.13, z5: 18.30, z6: 26.66, z7: 52.56, uk: 10.59 },
@@ -102,7 +131,7 @@ export function getFulfillmentBreakdown(
     Math.abs(curr - bottles) < Math.abs(prev - bottles) ? curr : prev
   );
 
-  const productCost = closestCount * PRODUCT_COST_PER_BOTTLE;
+  const productCost = closestCount * getProductCostPerBottle(productName);
   let shippingCost = SHIPPING_TABLE[closestCount][zone];
 
   // Z6 discount: only for front sales (produto M) in LU and CH

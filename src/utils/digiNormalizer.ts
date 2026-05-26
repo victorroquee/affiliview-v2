@@ -164,6 +164,7 @@ export function normalizeDigiTransaction(t: DigiAPITransaction): TransactionRow 
     upsellNo,
     affiliateAmount,
     vatAmount,
+    productId:       str("main_product_id"),
   };
 }
 
