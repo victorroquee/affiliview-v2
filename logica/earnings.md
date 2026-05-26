@@ -102,9 +102,12 @@ const earningsKPI =
   refCbTxs.reduce((s, t) => s + t.earnings, 0);
 
 // earningsFront = front-only (base para Valor Liquido — COGS aplica somente a front)
+// Only front refunds/CB (upsellNo === 0) deducted — upsell refunds must not reduce
+// a base that never included upsell earnings.
+const frontRefCbForEarnings = refCbTxs.filter((t) => t.upsellNo === 0);
 const earningsFront =
   frontPayments.reduce((s, t) => s + t.earnings, 0) +
-  refCbTxs.reduce((s, t) => s + t.earnings, 0);
+  frontRefCbForEarnings.reduce((s, t) => s + t.earnings, 0);
 ```
 
 **Exibido em**: `src/pages/Dashboard.tsx` — cartao "Earnings"
