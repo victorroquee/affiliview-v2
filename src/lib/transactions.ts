@@ -514,26 +514,6 @@ export function isMaileonardo(affiliate: string): boolean {
   return affiliate.toLowerCase().includes("maileonardo");
 }
 
-// ─── Product ID suffix rule ─────────────────────────────────────────────────
-// Products with the same base ID share a funnel. The numeric suffix determines:
-//   - No suffix or 1-8 → front offer (same product, different bundles)
-//   - 9+               → upsell
-//
-// Examples: S9V2LXKN (front), S9V2LXKN1 (front), S9V2LXKN9 (upsell)
-
-/** Extract base product ID and numeric suffix from a Digistore product ID */
-export function parseProductId(productId: string): { base: string; suffix: number | null } {
-  const m = productId.match(/^(.+?)(\d+)$/);
-  if (!m) return { base: productId, suffix: null };
-  return { base: m[1], suffix: parseInt(m[2], 10) };
-}
-
-/** Returns true if the product ID suffix indicates an upsell (9+) */
-export function isUpsellByProductId(productId: string): boolean {
-  const { suffix } = parseProductId(productId);
-  return suffix !== null && suffix >= 9;
-}
-
 /**
  * Returns true if this is a front (non-upsell) payment.
  * Uses upsellNo (0 = front) from the API; falls back to name-based detection for CSV data.
