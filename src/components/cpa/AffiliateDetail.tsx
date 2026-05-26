@@ -2,6 +2,7 @@ import React from "react";
 import { ArrowLeft } from "lucide-react";
 import type { AffiliateResult, SimulatedAffiliateResult } from "../../lib/cpa/types";
 import { formatEur as fmtEur, formatPct as fmtPct, formatInt as fmtInt } from "../../lib/transactions";
+import { getRefundColor } from "../../utils/colorThresholds";
 import VariantCard from "./VariantCard";
 import InfoTooltip from "../InfoTooltip";
 
@@ -32,8 +33,9 @@ interface AffiliateDetailProps {
 }
 
 const AffiliateDetail: React.FC<AffiliateDetailProps> = ({ aff, marginTarget, setCustomCpa, onBack }) => {
-  const refundHigh = aff.refundRate > 8;
-  const refundMid  = aff.refundRate > 0 && aff.refundRate <= 8;
+  const refClass   = getRefundColor(aff.refundRate);
+  const refundHigh = refClass === "red";
+  const refundMid  = refClass === "orange";
 
   return (
     <div className="aff-detail">

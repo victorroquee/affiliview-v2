@@ -21,6 +21,7 @@ import {
   formatPct,
   formatInt,
 } from "../lib/transactions";
+import { getRefundColor } from "../utils/colorThresholds";
 
 // ─── Metrics ──────────────────────────────────────────────────────────────────
 type MailMetrics = {
@@ -167,7 +168,7 @@ const MailSalesPage: React.FC<MailSalesProps> = ({ filteredRows, loading }) => {
             label="Taxa de Reembolso"
             value={formatPct(m.refundPct * 100)}
             info="Taxa de reembolso específica das vendas do Maileonardo (gross reembolsos ÷ gross pagamentos)."
-            color={m.refundPct > 0.08 ? "red" : m.refundPct > 0 ? "orange" : ""}
+            color={getRefundColor(m.refundPct * 100)}
           />
         </div>
       </div>
