@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { useAffiliateTags } from "../hooks/useAffiliateTags";
+import { useAffiliateSource, AFFILIATE_SOURCES, SOURCE_KEYS } from "../hooks/useAffiliateSource";
 import { getMarginColor, getRefundColor } from "../utils/colorThresholds";
 import {
   type AffiliateRow,
@@ -77,7 +78,9 @@ const AffiliateDrawer: React.FC<AffiliateDrawerProps> = ({ affiliate, rankingInf
   onCloseRef.current = onClose;
 
   const { getTagsFor, addTag, removeTag } = useAffiliateTags();
+  const { getSourceFor, getSourceDef, setSource, removeSource } = useAffiliateSource();
   const [tagInput, setTagInput] = useState("");
+  const [showSourcePicker, setShowSourcePicker] = useState(false);
 
   const currentTags = affiliate ? getTagsFor(affiliate.name) : [];
 
@@ -122,6 +125,83 @@ const AffiliateDrawer: React.FC<AffiliateDrawerProps> = ({ affiliate, rankingInf
         </div>
 
         <div className="aff-drawer-body">
+
+          {/* ── Fonte do Afiliado ── */}
+          <div className="aff-drawer-section">
+            <div className="aff-drawer-section-title">Fonte do Afiliado</div>
+            {(() => {
+              const sourceKey = getSourceFor(affiliate.name);
+              const sourceDef = getSourceDef(affiliate.name);
+              if (sourceDef && sourceKey) {
+                return (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span
+                      className="source-badge"
+                      style={{ background: sourceDef.bg, color: sourceDef.color, padding: "3px 10px", borderRadius: 4, fontSize: 12, fontWeight: 600 }}
+                    >
+                      {sourceDef.label}
+                    </span>
+                    <button
+                      onClick={() => setShowSourcePicker(!showSourcePicker)}
+                      style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "var(--text-3)", textDecoration: "underline" }}
+                    >
+                      alterar
+                    </button>
+                    <button
+                      onClick={() => removeSource(affiliate.name)}
+                      style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "var(--text-3)" }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                );
+              }
+              return (
+                <button
+                  onClick={() => setShowSourcePicker(!showSourcePicker)}
+                  style={{
+                    background: "var(--bg-2)",
+                    border: "1px dashed var(--border)",
+                    borderRadius: 6,
+                    padding: "6px 12px",
+                    cursor: "pointer",
+                    fontSize: 12,
+                    color: "var(--text-3)",
+                    width: "100%",
+                    textAlign: "left",
+                  }}
+                >
+                  + Adicionar fonte de afiliado
+                </button>
+              );
+            })()}
+            {showSourcePicker && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                {SOURCE_KEYS.map((key) => {
+                  const def = AFFILIATE_SOURCES[key]!;
+                  const isActive = getSourceFor(affiliate.name) === key;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => { setSource(affiliate.name, key); setShowSourcePicker(false); }}
+                      style={{
+                        background: isActive ? def.color : def.bg,
+                        color: isActive ? "#fff" : def.color,
+                        border: `1px solid ${def.color}`,
+                        borderRadius: 4,
+                        padding: "4px 10px",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {def.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {/* ── Tags ── */}
           <div className="aff-drawer-section">

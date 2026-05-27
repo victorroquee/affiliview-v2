@@ -17,6 +17,7 @@ import LoadingDot from "../components/LoadingDot";
 import InfoTooltip from "../components/InfoTooltip";
 import AffiliateDrawer from "../components/AffiliateDrawer";
 import { useAffiliateTags } from "../hooks/useAffiliateTags";
+import { useAffiliateSource, AFFILIATE_SOURCES, SOURCE_KEYS } from "../hooks/useAffiliateSource";
 import { getMarginColor, getRefundColor } from "../utils/colorThresholds";
 
 interface AffiliatesPageProps {
@@ -60,7 +61,9 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
   const [selectedAffiliate, setSelectedAffiliate] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<AffiliateRanking | "all">("all");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const [sourceFilter, setSourceFilter] = useState<string | null>(null);
   const { getTagsFor, allTags } = useAffiliateTags();
+  const { getSourceFor, getSourceDef, activeSources } = useAffiliateSource();
 
   // Close drawer when period filter changes to prevent stale mixed-period data (DRAW-02)
   useEffect(() => {
@@ -123,12 +126,16 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
         });
       }
     }
-    // Tag filter (new)
+    // Tag filter
     if (tagFilter) {
       result = result.filter(a => getTagsFor(a.name).includes(tagFilter));
     }
+    // Source filter
+    if (sourceFilter) {
+      result = result.filter(a => getSourceFor(a.name) === sourceFilter);
+    }
     return result;
-  }, [sortedAffiliates, statusFilter, rankings, tagFilter, getTagsFor]);
+  }, [sortedAffiliates, statusFilter, rankings, tagFilter, getTagsFor, sourceFilter, getSourceFor]);
 
   const drawerAffiliate = affiliates.find((a) => a.name === selectedAffiliate) ?? null;
   const drawerRanking   = selectedAffiliate ? (rankings.get(selectedAffiliate) ?? null) : null;
@@ -181,6 +188,31 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
               </button>
             ))}
           </div>
+          {activeSources().length > 0 && (
+            <div className="product-tabs" style={{ marginTop: 4 }}>
+              <span>Fonte:</span>
+              <button
+                className={`product-tab ${sourceFilter === null ? "active" : ""}`}
+                onClick={() => setSourceFilter(null)}
+              >
+                Todas
+              </button>
+              {SOURCE_KEYS.map(key => {
+                const def = AFFILIATE_SOURCES[key]!;
+                const isActive = sourceFilter === key;
+                return (
+                  <button
+                    key={key}
+                    className={`product-tab ${isActive ? "active" : ""}`}
+                    onClick={() => setSourceFilter(isActive ? null : key)}
+                    style={isActive ? { background: def.bg, color: def.color, borderColor: def.color } : {}}
+                  >
+                    {def.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           {allTags.length > 0 && (
             <div className="product-tabs" style={{ marginTop: 4 }}>
               <span>Tags:</span>
@@ -246,7 +278,18 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
                   >
                     <td style={{ color: "var(--text-3)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>{i + 1}</td>
                     <td style={{ fontWeight: 600 }}>
-                      {a.name}
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        {a.name}
+                        {(() => {
+                          const sd = getSourceDef(a.name);
+                          if (!sd) return null;
+                          return (
+                            <span style={{ fontSize: 10, fontWeight: 600, background: sd.bg, color: sd.color, padding: "1px 7px", borderRadius: 3 }}>
+                              {sd.label}
+                            </span>
+                          );
+                        })()}
+                      </div>
                       {getTagsFor(a.name).length > 0 && (
                         <div style={{ display: "flex", gap: 3, marginTop: 2, flexWrap: "wrap" }}>
                           {getTagsFor(a.name).map(tag => (
