@@ -153,7 +153,7 @@ describe("classifyUpsellProduct", () => {
 });
 
 describe("computeAffiliateUpsells — AOV contribution", () => {
-  it("DATA-02: aovContribution uses netAmount not grossAmount", () => {
+  it("DATA-02: aovContribution uses grossAmount (VAT-inclusive) to match Digistore24", () => {
     const rows: TransactionRow[] = [
       // Front sale
       makeRow({ affiliate: "aff1", upsellNo: 0, grossAmount: 100, netAmount: 80 }),
@@ -161,7 +161,7 @@ describe("computeAffiliateUpsells — AOV contribution", () => {
       makeRow({ affiliate: "aff1", upsellNo: 1, grossAmount: 50, netAmount: 40, productName: "Up1 Slimjara" }),
     ];
     const result = computeAffiliateUpsells(rows, "aff1");
-    // aovContribution should be net(40) / frontSalesCount(1) = 40, NOT gross(50) / 1 = 50
-    expect(result.upsells[0].aovContribution).toBe(40);
+    // aovContribution should be gross(50) / frontSalesCount(1) = 50 (VAT-inclusive, aligned with Digistore24)
+    expect(result.upsells[0].aovContribution).toBe(50);
   });
 });

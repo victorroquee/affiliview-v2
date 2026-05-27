@@ -392,8 +392,8 @@ export function computeAffiliateUpsells(
   const upsellRows = affPayments.filter((t) => t.upsellNo > 0);
 
   const frontSalesCount = frontRows.length;
-  const totalNet        = affPayments.reduce((s, t) => s + t.netAmount, 0);
-  const totalAOV        = frontSalesCount > 0 ? totalNet / frontSalesCount : 0;
+  const totalGross      = affPayments.reduce((s, t) => s + t.grossAmount, 0);
+  const totalAOV        = frontSalesCount > 0 ? totalGross / frontSalesCount : 0;
 
   // Group upsell rows by productName
   const upsellMap = new Map<string, { quantity: number; gross: number; net: number }>();
@@ -407,7 +407,7 @@ export function computeAffiliateUpsells(
 
   const upsells = Array.from(upsellMap.entries())
     .map(([productName, e]) => {
-      const aovContribution    = frontSalesCount > 0 ? e.net / frontSalesCount : 0;
+      const aovContribution    = frontSalesCount > 0 ? e.gross / frontSalesCount : 0;
       const aovContributionPct = totalAOV > 0 ? (aovContribution / totalAOV) * 100 : 0;
       return { productName, quantity: e.quantity, gross: e.gross, aovContribution, aovContributionPct };
     })
@@ -596,12 +596,11 @@ export function computePeriod(
     frontRefCbForEarnings.reduce((s, t) => s + t.earnings, 0);
 
   // ── AOV ────────────────────────────────────────────────────────────────────
-  // Average order value per unique order (front + upsells + bumps), VAT-excluded.
-  // Numerator: total net of all payments (amount − VAT); Denominator: front sales (unique orders)
-  // Uses netAmount (amount − vat_amount) because grossAmount includes VAT which
-  // inflates AOV vs. the real business metric (Digistore amount field = VAT-inclusive).
-  const netTotal = payTxs.reduce((s, t) => s + t.netAmount, 0);
-  const aov = frontSales > 0 ? netTotal / frontSales : 0;
+  // Average order value per unique order (front + upsells + bumps), VAT-inclusive.
+  // Numerator: total gross of all payments (amount, includes VAT); Denominator: front sales (unique orders)
+  // Uses grossAmount (amount) to match Digistore24's internal panel which shows VAT-inclusive values.
+  const grossTotal = payTxs.reduce((s, t) => s + t.grossAmount, 0);
+  const aov = frontSales > 0 ? grossTotal / frontSales : 0;
 
   // ── Valor Líquido ──────────────────────────────────────────────────────────
   // valorLiq = front earnings − front COGS (consistent with front-only metrics)
@@ -766,7 +765,7 @@ export function computePeriod(
       grossRevenue: d.gross,
       netRevenue:   d.gross - d.refAmt - d.cbAmt,  // gross − valor de reembolsos e CB (o que foi efetivamente retido)
       earnings:     d.earnings,
-      aov:          d.frontSales > 0 ? d.net / d.frontSales : 0,
+      aov:          d.frontSales > 0 ? d.gross / d.frontSales : 0,
       frontSales:   d.frontSales,
       totalSales:   d.totalSales,
       returnPct:    d.grossBruto > 0 ? (d.refAmt / d.grossBruto) * 100 : 0,
@@ -891,7 +890,7 @@ export function computePeriod(
         sales:        d.sales,
         refundCbPct:  rcPct,
         status:       statusFromPct(rcPct),
-        aov:          d.sales > 0 ? d.net / d.sales : 0,
+        aov:          d.sales > 0 ? d.gross / d.sales : 0,
         cpa,
         margem:       d.gross > 0 ? (d.liq / d.gross) * 100 : 0,
       };
