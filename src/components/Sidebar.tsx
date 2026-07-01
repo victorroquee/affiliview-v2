@@ -63,6 +63,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, onNavigate }) => {
         >
           <DollarSign size={15} strokeWidth={1.4} />
           CPA Fixo
+          <span className="sidebar-link-badge">NOVO</span>
         </button>
       </nav>
 
