@@ -31,7 +31,7 @@ Custo de Produto = Número de Frascos × Custo por Frasco (varia por produto)
 - **Fonte**: API Digistore24 — campo `main_product_name`
 - A quantidade de frascos é detectada pelo nome do produto (não existe campo separado para isso na API)
 - A categoria do produto é detectada pelo nome (slimjara, lipogandha, liposkin, erectus, memoguard)
-- Aplica-se somente a transações de pagamento (`transaction_type === "payment"`)
+- Aplica-se a transações de pagamento (`transaction_type === "payment"`) — front **e** upsells
 
 ---
 
@@ -116,10 +116,15 @@ export function detectProductCategory(productName: string): ProductCategory | nu
 export function getProductCostPerBottle(productName: string): number { ... }
 ```
 
-O custo de produto é calculado dentro de `getFulfillmentBreakdown()`:
+O custo de produto é aplicado a **todos os pagamentos** (front e upsells), por dois caminhos distintos:
 
-```typescript
-const productCost = closestCount * getProductCostPerBottle(productName);
-```
+- **Front (`upsell_no === 0`)** — dentro de `getFulfillmentBreakdown()` (produto + frete), usando `closestCount` (frascos arredondados para 1/2/3/6/9/12):
+  ```typescript
+  const productCost = closestCount * getProductCostPerBottle(productName);
+  ```
+- **Upsell (`upsell_no > 0`)** — direto em `src/lib/transactions.ts`, **sem** passar por `getFulfillmentBreakdown()` e **sem frete** (upsell vai no mesmo pacote do front), usando a contagem crua de `detectBottles`:
+  ```typescript
+  const pCost = detectBottles(productName) * getProductCostPerBottle(productName);
+  ```
 
-**Utilizado em**: `src/lib/transactions.ts` via `getFulfillmentBreakdown()` no cálculo do Valor Líquido
+**Utilizado em**: `src/lib/transactions.ts` no cálculo do Valor Líquido — front via `getFulfillmentBreakdown()`, upsell via `detectBottles()` × `getProductCostPerBottle()` direto.

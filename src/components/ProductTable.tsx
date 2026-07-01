@@ -61,9 +61,10 @@ export const ProductSummaryTable: React.FC<ProductSummaryTableProps> = ({ data }
 // ─── Bundle Performance Table ─────────────────────
 interface BundlePerformanceTableProps {
   data: BundleRow[];
+  upsellUnattributed?: number;
 }
 
-export const BundlePerformanceTable: React.FC<BundlePerformanceTableProps> = ({ data }) => {
+export const BundlePerformanceTable: React.FC<BundlePerformanceTableProps> = ({ data, upsellUnattributed }) => {
   return (
     <div className="table-container">
       <div className="table-header">
@@ -78,7 +79,9 @@ export const BundlePerformanceTable: React.FC<BundlePerformanceTableProps> = ({ 
             <th style={{ textAlign: "right" }}>Vendas <InfoTooltip text="Número de pedidos frontais (upsell_no=0) deste kit específico no período selecionado." /></th>
             <th style={{ textAlign: "right" }}>Gross <InfoTooltip text="Receita bruta (amount) gerada por este kit. Não desconta reembolsos nem chargebacks." /></th>
             <th style={{ textAlign: "right" }}>Net Revenue <InfoTooltip text="Gross menos o valor monetário de reembolsos e chargebacks deste kit no período." /></th>
-            <th style={{ textAlign: "right" }}>Valor Líquido <InfoTooltip text="Net Revenue menos o COGS (custo do produto + frete) deste kit. Verde = lucrativo, vermelho = prejuízo." /></th>
+            <th style={{ textAlign: "right" }}>Valor Líq. (Front) <InfoTooltip text="Lucro só das vendas frontais deste kit: earnings − COGS (produto + frete). NÃO inclui upsells." /></th>
+            <th style={{ textAlign: "right" }}>Valor Líq. (Upsells) <InfoTooltip text="Lucro líquido dos upsells do mesmo pedido (orderId): earnings do upsell − custo de produto (sem frete — mesmo pacote). Refunds de upsell reduzem." /></th>
+            <th style={{ textAlign: "right" }}>Valor Líq. (Total) <InfoTooltip text="Front + Upsells mergeados — o lucro real do kit. Reconcilia com o card global de Valor Líquido." /></th>
             <th style={{ textAlign: "right" }}>Reembolsos <InfoTooltip text="Quantidade absoluta de pedidos reembolsados neste kit. Laranja indica ao menos um reembolso no período." /></th>
             <th style={{ textAlign: "right" }}>Chargebacks <InfoTooltip text="Quantidade absoluta de chargebacks neste kit. Vermelho indica ao menos um chargeback no período." /></th>
             <th style={{ textAlign: "right" }}>Reembolso % <InfoTooltip text="Percentual de reembolsos sobre vendas deste kit. Laranja ≤8%, vermelho >8%." /></th>
@@ -95,6 +98,12 @@ export const BundlePerformanceTable: React.FC<BundlePerformanceTableProps> = ({ 
               <td className={`num ${row.valorLiq < 0 ? "red" : "green"}`}>
                 {formatEur(row.valorLiq)}
               </td>
+              <td className={`num ${row.valorLiqUpsell < 0 ? "red" : "green"}`}>
+                {formatEur(row.valorLiqUpsell)}
+              </td>
+              <td className={`num ${row.valorLiqTotal < 0 ? "red" : "green"}`} style={{ fontWeight: 600 }}>
+                {formatEur(row.valorLiqTotal)}
+              </td>
               <td className={`num ${row.reembolsos > 0 ? "orange" : ""}`}>
                 {formatInt(row.reembolsos)}
               </td>
@@ -108,6 +117,12 @@ export const BundlePerformanceTable: React.FC<BundlePerformanceTableProps> = ({ 
           ))}
         </tbody>
       </table>
+      {upsellUnattributed != null && Math.abs(upsellUnattributed) >= 0.01 && (
+        <p style={{ padding: "8px 12px", margin: 0, color: "var(--text-3)", fontSize: 11 }}>
+          + {formatEur(upsellUnattributed)} de lucro de upsells não atribuído a nenhum kit
+          (pedido frontal fora do período ou não reconhecido) — já incluído no card global de Valor Líquido.
+        </p>
+      )}
     </div>
   );
 };

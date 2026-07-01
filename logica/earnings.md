@@ -46,7 +46,7 @@ Para refunds e chargebacks, `earned_amount` e o valor estornado (negativo).
 - Refunds e chargebacks (negativos) sao incluidos na soma, reduzindo o total
 - Inclui todos os produtos: **Slimjara**, **LipoGandha**, **LipoSkin**, **Erectus X**, **MemoGuard**
 - O periodo filtrado segue horario **UTC**
-- **Valor Liquido** usa uma base de earnings separada (somente front) — ver valor_liquido.md
+- **Valor Liquido** parte do MESMO earningsKPI (todos os pagamentos: front + upsells + refunds/CB) e subtrai o COGS — front: produto + frete; upsell: so produto (mesmo pacote). Ver valor_liquido.md
 
 ---
 
@@ -71,7 +71,7 @@ Earnings = €65 + €34 + €39 + (-€65) = €73,00
 | Relacao | Formula |
 |---------|---------|
 | Diferenca Gross vs Earnings | Gross - Earnings = custo afiliado + plataforma + IVA |
-| Valor Liquido | Earnings - COGS (custo produto + frete) |
+| Valor Liquido | Earnings − COGS (produto de front+upsells + frete só de front) |
 
 ---
 
@@ -101,13 +101,10 @@ const earningsKPI =
   payTxs.reduce((s, t) => s + t.earnings, 0) +
   refCbTxs.reduce((s, t) => s + t.earnings, 0);
 
-// earningsFront = front-only (base para Valor Liquido — COGS aplica somente a front)
-// Only front refunds/CB (upsellNo === 0) deducted — upsell refunds must not reduce
-// a base that never included upsell earnings.
-const frontRefCbForEarnings = refCbTxs.filter((t) => t.upsellNo === 0);
-const earningsFront =
-  frontPayments.reduce((s, t) => s + t.earnings, 0) +
-  frontRefCbForEarnings.reduce((s, t) => s + t.earnings, 0);
+// earningsKPI é a base ÚNICA: alimenta o cartão Earnings E o Valor Líquido.
+// Valor Líquido = earningsKPI − COGS (front: produto + frete; upsell: só produto).
+// Refunds/CB de front E de upsell já estão em refCbTxs, portanto reduzem
+// earningsKPI e, consequentemente, o Valor Líquido (fulfillment é sunk cost).
 ```
 
 **Exibido em**: `src/pages/Dashboard.tsx` — cartao "Earnings"

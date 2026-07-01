@@ -12,7 +12,7 @@ Margem % = (Valor Líquido / Gross) × 100
 ```
 
 Onde:
-- **Valor Líquido** = `SUM(earned_amount)` − COGS (custo produto + custo frete)
+- **Valor Líquido** = `SUM(earned_amount)` de todos os pagamentos (front + upsells + bumps) + refunds/CB (negativos) − COGS, onde COGS front = produto + frete e COGS upsell = apenas produto (mesmo pacote, sem frete)
 - **Gross** = `SUM(grossAmount)` do afiliado (somente pagamentos — gross é net de devoluções via earned_amount)
 
 ---
@@ -25,8 +25,8 @@ A margem captura o impacto de **todas as deduções** da operação:
 amount (gross)
   ↓ deduz: affiliate_amount + Taxas Digistore + Reserva + IVA
 = earned_amount
-  ↓ deduz: Custo de Produto (€3,26 × frascos)
-  ↓ deduz: Custo de Frete (tabela por zona vat_country)
+  ↓ deduz: Custo de Produto (custo/frasco por produto × frascos) — front + upsells
+  ↓ deduz: Custo de Frete (tabela por zona vat_country) — apenas front (upsells no mesmo pacote)
 = Valor Líquido
 
 Margem % = Valor Líquido / Gross × 100
@@ -39,7 +39,7 @@ Margem % = Valor Líquido / Gross × 100
 - Calculada por afiliado e por período
 - O denominador `d.gross` é o gross acumulado somente de pagamentos — refunds/CB não alteram o gross diretamente
 - O Valor Líquido considera a regra de €20 de desconto no frete Z6 para `upsell_no === 0`
-- Inclui os três produtos: **Erectus X**, **Slimjara** e **Memoguard**
+- Inclui todos os produtos: **Erectus X**, **Slimjara**, **Memoguard**, **LipoGandha**, **LipoSkin**
 - O período filtrado segue horário **UTC** (00:00 até 23:59 UTC)
 
 ---
@@ -60,7 +60,7 @@ Margem % = Valor Líquido / Gross × 100
 |------|-------|
 | Gross total (período 7d) | €1.200,00 |
 | earned_amount (após comissão 50% + fees) | €500,00 |
-| Custo Produto (média 4 frascos por pedido, 8 pedidos) | -€104,32 |
+| Custo Produto (32 frascos; custo/frasco varia por produto, aqui ~€3,26 ilustrativo) | -€104,32 |
 | Custo Frete (média Z2, 8 pedidos) | -€84,48 |
 | **Valor Líquido** | **€311,20** |
 | **Margem %** | **€311,20 / €1.200 × 100 = 25,9%** |
@@ -74,7 +74,7 @@ Margem % = Valor Líquido / Gross × 100
 | Afiliado em países Z5/Z7 (frete alto) | Reduz margem |
 | Clientes compram pacotes de 1-2 frascos | Frete por frasco fica proporcionalmente mais caro |
 | Alta taxa de Refund/Chargeback | Reduz earned_amount, piorando a margem |
-| Afiliado com alta aceitação de upsells (AOV alto) | Melhora o Gross sem aumentar necessariamente os custos proporcionalmente |
+| Afiliado com alta aceitação de upsells (AOV alto) | Melhora o Gross; cada upsell é um frasco físico adicional que gera Custo de Produto (sem frete extra — mesmo pacote), então a margem melhora, mas menos do que se os upsells fossem sem COGS |
 | Países Z6 com desconto de €20 no frete (upsell_no=0) | Melhora levemente a margem |
 
 ---

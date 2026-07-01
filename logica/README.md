@@ -24,8 +24,8 @@ Abaixo o progresso de implementação de cada componente lógico documentado nes
 
 ### ✅ Etapa 3 — Custo de Produto
 - **Lógica documentada em**: `custo_produto.md`
-- **Implementado em**: `src/lib/costTable.ts` → `detectBottles()`, `PRODUCT_COST_PER_BOTTLE`
-- Custo fixo: €3,26 por frasco
+- **Implementado em**: `src/lib/costTable.ts` → `detectBottles()`, `PRODUCT_COSTS`, `getProductCostPerBottle()`
+- Custo por frasco **por produto** (`PRODUCT_COSTS`): slimjara €3,26, lipoGandha €3,26, liposkin €3,64, erectus €3,24, memoguard €3,26 (default €3,26)
 - Detecção de frascos pelo nome do produto (3 tentativas: keyword → fallback números → default 1)
 - Aproximação para tamanho válido mais próximo (1, 2, 3, 6, 9, 12)
 
@@ -45,16 +45,16 @@ Abaixo o progresso de implementação de cada componente lógico documentado nes
 
 ### ✅ Etapa 6 — Earnings
 - **Lógica documentada em**: `earnings.md`
-- **Implementado em**: `src/lib/transactions.ts` → `computePeriod()` (`earningsTotal`)
-- Earnings = earned_amount de pagamentos frontais (upsell_no=0) + estornos de refunds/CB
+- **Implementado em**: `src/lib/transactions.ts` → `computePeriod()` (`earningsKPI`)
+- Earnings = earned_amount de TODOS os pagamentos (front + upsells + bumps) + estornos de refunds/CB
 - Alinhado com "Your Earnings" do Digistore24
 
 ### ✅ Etapa 7 — Valor Líquido (LIA)
 - **Lógica documentada em**: `valor_liquido.md`
 - **Implementado em**: `src/lib/transactions.ts` → `computePeriod()` (`valorLiq`) + `getFulfillmentBreakdown()`
-- Calculado transação por transação: Earnings[i] − Custo Produto[i] − Custo Frete[i]
-- Acumula custos totais de produto e frete para breakdown
-- Regra de refund por afiliado: apenas earnings é estornado (fulfillment é sunk cost)
+- Front: earnings − (produto + frete, com desconto Z6). Upsell: earnings − custo de produto (`detectBottles` × custo/frasco, **sem** frete)
+- Acumula custos totais de produto (front + upsells) e frete (só front) para breakdown
+- Refunds/CB de front **e** upsell reduzem o Valor Líquido (apenas earnings é estornado; fulfillment é sunk cost)
 
 ### ✅ Etapa 8 — AOV (Ticket Médio)
 - **Lógica documentada em**: `aov.md`
@@ -145,12 +145,12 @@ O sistema contempla três produtos:
 | Arquivo | KPI | Tipo | Fonte |
 |---------|-----|------|-------|
 | [gross_revenue.md](./gross_revenue.md) | Gross Revenue (Receita Bruta) | API | Soma grossAmount de pagamentos frontais (upsell_no=0) |
-| [earnings.md](./earnings.md) | Earnings (Ganhos) | API | earned_amount frontais + estornos refunds/CB |
-| [valor_liquido.md](./valor_liquido.md) | Valor Líquido (LIA) | Calculado | Front Earnings − Front COGS |
+| [earnings.md](./earnings.md) | Earnings (Ganhos) | API | earned_amount de TODOS os pagamentos + estornos refunds/CB |
+| [valor_liquido.md](./valor_liquido.md) | Valor Líquido (LIA) | Calculado | Earnings (todos pagamentos + refunds/CB) − COGS (front: produto+frete c/ Z6; upsell: só produto) |
 | [aov.md](./aov.md) | AOV (Ticket Médio) | Calculado | Net total (sem IVA) / Pedidos frontais |
 | [vendas.md](./vendas.md) | Vendas (Sales Count) | API | Contagem de payments com upsell_no=0 |
 | [refund_chargeback.md](./refund_chargeback.md) | Refund % e Chargeback % | Calculado | Soma devoluções / Gross Bruto × 100 |
-| [custo_produto.md](./custo_produto.md) | Custo de Produto | Calculado | Frascos detectados × €3,26 |
+| [custo_produto.md](./custo_produto.md) | Custo de Produto | Calculado | Frascos detectados × custo/frasco do produto (`PRODUCT_COSTS`) |
 | [custo_frete.md](./custo_frete.md) | Custo de Frete | Tabela | Tabela por zona geográfica × frascos |
 | [cpa.md](./cpa.md) | CPA (Custo por Aquisição) | Calculado | (Gross − Earnings) / Vendas Frontais |
 | [margem.md](./margem.md) | Margem % | Calculado | Valor Líquido / Gross × 100 |
@@ -183,9 +183,11 @@ transactions.ts → computePeriod()
          │    └── Soma earnings (negativos) → reduz Earnings
          │    └── Soma grossAmount → numerador de Refund%
          │
-         └── frontPayments por transacao:
-              └── Earnings − (frascos × €3,26) − frete[frascos][zona]
-                  └── Soma → Valor Liquido
+         └── payTxs (front + upsells) por transacao:
+              └── front  → earnings − (frascos × custo/frasco + frete[frascos][zona])
+              └── upsell → earnings − (frascos × custo/frasco)          [sem frete]
+              └── refCbTxs (front e upsell) → reduzem o total
+                  └── Soma → Valor Liquido (earningsKPI − COGS)
 ```
 
 ---

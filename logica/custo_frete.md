@@ -66,7 +66,7 @@ Para **Luxemburgo (LU)** e **Suíça (CH)**, o cliente é cobrado adicionalmente
 Custo de Frete Z6 (empresa) = valor_tabela_Z6 - €20
 ```
 
-**Importante**: Esta regra de desconto de €20 se aplica **somente a produtos M** (transações com `upsell_no === 0`). Upsells enviados para Z6 têm o frete integral conforme tabela.
+**Importante**: Esta regra de desconto de €20 se aplica **somente a produtos M** (transações com `upsell_no === 0`). Upsells **não geram custo de frete** no Valor Líquido — vão no mesmo pacote do front —, então o desconto Z6 é irrelevante para eles (frete de upsell é sempre €0,00, independentemente da zona).
 
 ---
 
@@ -76,7 +76,8 @@ Custo de Frete Z6 (empresa) = valor_tabela_Z6 - €20
 - Países não mapeados nas zonas → **custo zero retornado** — sem produto e sem frete computados
 - A quantidade de frascos é detectada pelo nome do produto (mesma lógica do custo de produto — ver `custo_produto.md`)
 - Desconto Z6 de €20 → apenas para produtos M (`upsell_no === 0`)
-- Aplica-se a todos os produtos: **Erectus X**, **Slimjara** e **Memoguard**
+- O custo de frete é deduzido **apenas em pagamentos frontais** (`upsell_no === 0`); para upsells o frete é sempre €0 (mesmo pacote)
+- Aplica-se a todos os produtos: **Erectus X**, **Slimjara**, **Memoguard**, **LipoGandha** e **LipoSkin**
 
 ---
 
@@ -89,7 +90,7 @@ Custo de Frete Z6 (empresa) = valor_tabela_Z6 - €20
 | Memoguard 6 frascos (upsell_no=0) | IT | Z3 | 6 | €11,94 | — | €11,94 |
 | Erectus X 6 frascos (upsell_no=0) | SE | Z5 | 6 | €17,93 | — | €17,93 |
 | Slimjara 6 frascos (upsell_no=0) | CH | Z6 | 6 | €25,31 | -€20,00 | €5,31 |
-| UP1 Slimjara 3 frascos (upsell_no=1) | CH | Z6 | 3 | €25,19 | ❌ não aplica | €25,19 |
+| UP1 Slimjara 3 frascos (upsell_no=1) | CH | Z6 | 3 | — (mesmo pacote) | n/a | €0,00 (upsell não gera frete) |
 | Memoguard 3 frascos (upsell_no=0) | CA | Z7 | 3 | €51,03 | — | €51,03 |
 
 ---

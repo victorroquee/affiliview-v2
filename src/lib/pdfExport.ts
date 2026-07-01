@@ -237,13 +237,13 @@ export function generateKPIReport(opts: ExportOptions): void {
       b.product,
       formatInt(b.vendas),
       formatEur(b.gross),
-      formatEur(b.valorLiq),
+      formatEur(b.valorLiqTotal),
       formatPct(b.refundPct),
     ]);
 
     autoTable(doc, {
       startY: y,
-      head: [["Bundle", "Produto", "Vendas", "Gross", "Valor Líq", "Refund%"]],
+      head: [["Bundle", "Produto", "Vendas", "Gross", "Valor Líq (Total)", "Refund%"]],
       body: bundleRows,
       theme: "grid",
       headStyles: {

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { computeAffiliateRankings, computeAffiliateUpsells, classifyUpsellProduct } from "./transactions";
+import { computeAffiliateRankings, computeAffiliateUpsells, classifyUpsellProduct, computeFromFiltered } from "./transactions";
 import type { TransactionRow } from "./transactions";
 
 function makeRow(overrides: Partial<TransactionRow>): TransactionRow {
@@ -163,5 +163,48 @@ describe("computeAffiliateUpsells — AOV contribution", () => {
     const result = computeAffiliateUpsells(rows, "aff1");
     // aovContribution should be gross(50) / frontSalesCount(1) = 50 (VAT-inclusive, aligned with Digistore24)
     expect(result.upsells[0].aovContribution).toBe(50);
+  });
+});
+
+describe("computePeriod — Valor Líquido por kit (bundle: front + upsells mergeado)", () => {
+  it("BND-01: lucro de upsell é atribuído ao kit front via orderId (3 colunas)", () => {
+    const rows: TransactionRow[] = [
+      makeRow({ orderId: "O1", upsellNo: 0, productName: "M3 - Slimjara - 6 Bottles", country: "DE", earnings: 40, grossAmount: 294 }),
+      makeRow({ orderId: "O1", upsellNo: 1, productName: "UP3 - Slimjara - 12 Bottles", earnings: 100, grossAmount: 288 }),
+    ];
+    const m = computeFromFiltered(rows);
+    const kit = m.bundlePerformance.find((b) => b.bundle === "M3 - Slimjara - 6 Bottles")!;
+    // front: 40 − (6×3,26 + frete z1@6 9,42) = 40 − 28,98 = 11,02
+    expect(kit.valorLiq).toBeCloseTo(11.02, 2);
+    // upsell: 100 − (12×3,26) = 60,88 (sem frete — mesmo pacote)
+    expect(kit.valorLiqUpsell).toBeCloseTo(60.88, 2);
+    // total mergeado = front + upsell
+    expect(kit.valorLiqTotal).toBeCloseTo(71.90, 2);
+    expect(m.bundleUpsellUnattributed).toBeCloseTo(0, 2);
+  });
+
+  it("BND-02: upsell sem front reconhecido no período vai para o bucket não-atribuído", () => {
+    const rows: TransactionRow[] = [
+      makeRow({ orderId: "O9", upsellNo: 1, productName: "UP1 Slimjara 3 Bottles", earnings: 50, grossAmount: 90 }),
+    ];
+    const m = computeFromFiltered(rows);
+    // sem front → nenhuma linha de kit
+    expect(m.bundlePerformance.length).toBe(0);
+    // 50 − (3×3,26) = 40,22
+    expect(m.bundleUpsellUnattributed).toBeCloseTo(40.22, 2);
+  });
+
+  it("BND-03: refund de upsell reduz o valorLiqUpsell do kit atribuído", () => {
+    const rows: TransactionRow[] = [
+      makeRow({ orderId: "O1", upsellNo: 0, productName: "M3 - Slimjara - 6 Bottles", country: "DE", earnings: 40, grossAmount: 294 }),
+      makeRow({ orderId: "O1", upsellNo: 1, productName: "UP3 - Slimjara - 12 Bottles", earnings: 100, grossAmount: 288 }),
+      makeRow({ orderId: "O1", upsellNo: 1, productName: "UP3 - Slimjara - 12 Bottles", transactionType: "refund", earnings: -30, grossAmount: 30 }),
+    ];
+    const m = computeFromFiltered(rows);
+    const kit = m.bundlePerformance.find((b) => b.bundle === "M3 - Slimjara - 6 Bottles")!;
+    // upsell: (100 − 39,12) + (−30) = 30,88
+    expect(kit.valorLiqUpsell).toBeCloseTo(30.88, 2);
+    // total: 11,02 + 30,88 = 41,90
+    expect(kit.valorLiqTotal).toBeCloseTo(41.90, 2);
   });
 });

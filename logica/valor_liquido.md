@@ -8,16 +8,15 @@ O lucro real por período após descontar todos os custos operacionais de cada v
 ## Fórmula
 
 ```
-Valor Líquido = SUM(earned_amount para front payments + refunds/CB) − SUM(COGS para front payments)
+Valor Líquido = earningsKPI − COGS(front) − COGS(upsells)
 ```
 
-Onde COGS (custo de fulfillment) = custo de produto + custo de frete, calculado por transação frontal:
+Onde:
+- **earningsKPI** = SUM(earned_amount) de TODOS os pagamentos (front + upsells) + refunds/CB (negativos)
+- **COGS front** = custo de produto + custo de envio (por transação frontal)
+- **COGS upsell** = custo de produto apenas (upsells são enviados no mesmo pacote, sem envio extra)
 
-```
-Valor Líquido = frontEarnings + refundEarnings − SUM(product_cost + shipping_cost) para frontPayments
-```
-
-> COGS é aplicado **somente** a transações de pagamento frontais (upsell_no=0). Upsells não geram COGS (são digitais). Refunds não geram novo COGS (sunk cost).
+> Upsells são garrafas adicionais enviadas junto com o pedido frontal. Geram custo de produto mas **não** custo de envio adicional. Refunds não geram novo COGS (sunk cost).
 
 ---
 
@@ -29,12 +28,16 @@ Valor Líquido = frontEarnings + refundEarnings − SUM(product_cost + shipping_
 ### 2. Custo de Produto
 Custo de fabricação dos frascos:
 ```
-Custo Produto = Número de Frascos × €3,26 por frasco
+Custo Produto = Número de Frascos × custo/frasco do produto
 ```
 O número de frascos é detectado pelo nome do produto (`main_product_name`). Ver `custo_produto.md` para detalhes.
 
+Aplica-se a **todos os pagamentos** (front e upsells).
+
 ### 3. Custo de Frete
 Custo de envio ao cliente, baseado em tabela por zona geográfica (`vat_country`) e quantidade de frascos. Ver `custo_frete.md` para a tabela completa de zonas.
+
+Aplica-se **somente a pagamentos frontais** (`upsell_no === 0`). Upsells vão no mesmo pacote.
 
 ---
 
@@ -47,7 +50,7 @@ Custo Frete Z6 = valor_da_tabela − €20
 (nunca abaixo de €0)
 ```
 
-**Importante**: Esta dedução de €20 se aplica **somente a produtos M** (`upsell_no === 0`). Upsells enviados para Z6 não recebem esse desconto.
+**Importante**: Esta dedução de €20 se aplica **somente a produtos M** (`upsell_no === 0`).
 
 ---
 
@@ -56,42 +59,46 @@ Custo Frete Z6 = valor_da_tabela − €20
 Quando um refund/chargeback ocorre:
 - O `earned_amount` negativo já reduz o Earnings (e portanto o Valor Líquido)
 - **Não há recuperação dos custos de fulfillment** — o produto já foi fabricado e enviado (custo afundado/sunk cost)
+- Refunds de front **e** upsells reduzem o Valor Líquido
 
 ```typescript
-// Pagamentos frontais: liq = earned_amount − fulfillment_cost (apenas upsell_no === 0)
+// Pagamentos frontais: liq = earned_amount − fulfillment completo (produto + envio)
 if (t.upsellNo === 0) {
   e.liq += t.earnings - getFulfillmentCost(t.productName, t.country, true);
+} else {
+  // Upsell: earnings − custo de produto apenas (enviado no mesmo pacote)
+  const bottles = detectBottles(t.productName);
+  e.liq += t.earnings - (bottles * getProductCostPerBottle(t.productName));
 }
 
-// Refunds/CBs frontais: apenas earned_amount (negativo) — sem recuperar COGS
-if (t.upsellNo === 0) {
-  e.liq += t.earnings;  // valor negativo (estorno da comissão recebida)
-}
+// Refunds/CBs: earned_amount negativo — sem recuperar COGS
+e.liq += t.earnings;  // valor negativo (estorno)
 ```
-
-> **Importante**: O cálculo de `liq` por afiliado aplica COGS **somente a transações frontais** (`upsell_no === 0`), mantendo paralelismo com o `valorLiq` global do dashboard. Upsells são digitais e não geram COGS.
 
 ---
 
 ## Regras
 
-- COGS calculado apenas para transações de pagamento (`transaction_type === "payment"`)
+- COGS calculado para **todos** os pagamentos (front: produto + envio; upsell: só produto)
 - O desconto Z6 de €20 se aplica apenas a `upsell_no === 0`
-- Inclui os três produtos: **Erectus X**, **Slimjara** e **Memoguard**
+- Inclui todos os produtos: **Erectus X**, **Slimjara**, **Memoguard**, **LipoGandha**, **LipoSkin**
 - O período filtrado segue horário **UTC** (00:00 até 23:59 UTC)
 
 ---
 
 ## Exemplo Prático
 
-### Pedido 1 — Erectus X, 6 frascos, Alemanha (Zona Z1, upsell_no=0)
+### Pedido 1 — Erectus X, 6 frascos, Alemanha (Zona Z1, upsell_no=0) + Upsell 3 frascos
 
 | Item | Valor |
 |------|-------|
-| earned_amount | €65,00 |
-| Custo Produto (6 × €3,26) | -€19,56 |
-| Custo Frete (Z1, 6 frascos) | -€9,42 |
-| **Valor Líquido deste pedido** | **€36,02** |
+| earned_amount front | €65,00 |
+| Custo Produto front (6 × €3,24) | -€19,44 |
+| Custo Frete front (Z1, 6 frascos) | -€9,42 |
+| earned_amount upsell | €25,00 |
+| Custo Produto upsell (3 × €3,24) | -€9,72 |
+| Custo Frete upsell | €0,00 (mesmo pacote) |
+| **Valor Líquido deste pedido** | **€51,42** |
 
 ### Pedido 2 — Slimjara, 6 frascos, Luxemburgo (Zona Z6, upsell_no=0)
 
@@ -110,25 +117,42 @@ if (t.upsellNo === 0) {
 |------|-------|
 | earned_amount | €39,00 |
 | Custo Produto (3 × €3,26) | -€9,78 |
-| Custo Frete (Z7, 3 frascos) | -€51,03 |
-| **Valor Líquido deste pedido** | **-€21,81** ⚠️ |
+| Custo Frete (Z7, 3 frascos) | -€40,96 |
+| **Valor Líquido deste pedido** | **-€11,74** ⚠️ |
 
 ---
 
-## Breakdown Exibido no Dashboard
+## Detalhamento do Valor Líquido
 
-O cartão de Valor Líquido no dashboard mostra o detalhamento:
-- Earnings (ponto de partida)
-- Menos: Custo de Produto total
-- Menos: Custo de Frete total
+O `computePeriod()` acumula e retorna as parcelas do cálculo (campos `productCost` e `shippingCost` em `PeriodMetrics`):
+- Earnings (ponto de partida — `earningsKPI`)
+- Menos: Custo de Produto total (front + upsells)
+- Menos: Custo de Frete total (apenas front)
 - **= Valor Líquido final**
+
+> Reconciliação: `valorLiq = earningsKPI − productCost − shippingCost`.
+> ⚠️ Hoje o cartão "Valor Líquido" no Dashboard exibe apenas o **valor final + tooltip** (`KPICard`). O breakdown parcela-a-parcela ainda **não** é renderizado na UI — os campos `productCost`/`shippingCost` estão disponíveis para quando ele for construído.
 
 ---
 
 ## Onde é Exibido
-- Cartão dedicado com breakdown expansível em `Dashboard.tsx`
-- Por afiliado na página de Afiliados (campo `valorLiq`)
+- Cartão KPI "Valor Líquido" (valor + tooltip) em `Dashboard.tsx`
+- Por afiliado na página de Afiliados (campo `valorLiq`) e no `AffiliateDrawer`
+- Por kit na tabela "Performance por Kit" (`ProductTable`) — **atenção:** este `valorLiq` por kit é **front-only** (não inclui o lucro dos upsells), portanto difere (para menos) do card global e do por-afiliado. Ver seção "Valor Líquido por kit" abaixo
 - Usado no cálculo da **Margem %**
+
+---
+
+## Valor Líquido por kit (tabela "Performance por Kit")
+
+A tabela de kits (`ProductTable`, alimentada por `bundlePerformance` em `computePeriod()`) calcula o Valor Líquido **apenas das vendas frontais** (`upsell_no === 0`), agrupadas por SKU do kit (M1/M2/M3). Upsells (UP/DW) **não** entram nesse número — `getProductBase()` os ignora.
+
+Consequência: `SUM(valorLiq por kit) < valorLiq global`, pela contribuição líquida dos upsells. Isso é **intencional** (a tabela mede a rentabilidade do kit frontal), mas exige rótulo explícito para não confundir com o card global (que inclui upsells).
+
+**Decisão de exibição (planejada — três colunas):**
+- **Valor Líquido (Front)** — o cálculo atual, só front.
+- **Valor Líquido (Upsells)** — lucro líquido dos upsells atribuído ao kit via `orderId` (= `purchase_id`; upsells 1-click compartilham o `purchase_id` do front). Requer validar o join nos dados reais.
+- **Valor Líquido (Total)** — soma das duas, reconciliando com o card global.
 
 ---
 
@@ -137,48 +161,24 @@ O cartão de Valor Líquido no dashboard mostra o detalhamento:
 **Arquivo**: `src/lib/transactions.ts` — função `computePeriod()`
 
 ```typescript
-// COGS acumulado apenas para frontPayments (upsells são digitais, sem COGS)
-let productCostTotal = 0;
-let shippingCostTotal = 0;
-let cogsTotal = 0;
+// Front: fulfillment completo (produto + envio)
 for (const t of frontPayments) {
   const b = getFulfillmentBreakdown(t.productName, t.country, true);
   productCostTotal  += b.product;
   shippingCostTotal += b.shipping;
   cogsTotal         += b.total;
 }
-
-// Valor Líquido = front earnings + refund/CB deductions - front COGS
-const valorLiq = earningsTotal - cogsTotal;
-```
-
-**Arquivo**: `src/lib/costTable.ts` — função `getFulfillmentBreakdown()`
-
-```typescript
-export function getFulfillmentBreakdown(
-  productName: string,
-  countryCode: string,
-  isFrontSale = true  // upsell_no === 0 → true; upsell_no >= 1 → false
-): FulfillmentBreakdown {
-  const cc = resolveCountryCode(countryCode);
-  const zone = COUNTRY_ZONE[cc];
-  if (!zone) return { product: 0, shipping: 0, total: 0 }; // país não mapeado
-
-  const bottles = detectBottles(productName);
-  const closestCount = validCounts.reduce((prev, curr) =>
-    Math.abs(curr - bottles) < Math.abs(prev - bottles) ? curr : prev
-  );
-
-  const productCost = closestCount * PRODUCT_COST_PER_BOTTLE;
-  let shippingCost = SHIPPING_TABLE[closestCount][zone];
-
-  // Desconto Z6: somente em vendas frontais (upsell_no === 0)
-  if (isFrontSale && CUSTOMER_SHIPPING_COUNTRIES.has(cc)) {
-    shippingCost = Math.max(0, shippingCost - CUSTOMER_SHIPPING_AMOUNT);
-  }
-
-  return { product: productCost, shipping: shippingCost, total: productCost + shippingCost };
+// Upsells: custo de produto apenas (garrafas enviadas no mesmo pacote)
+const upsellPayments = payTxs.filter((t) => t.upsellNo > 0);
+for (const t of upsellPayments) {
+  const bottles = detectBottles(t.productName);
+  const pCost = bottles * getProductCostPerBottle(t.productName);
+  productCostTotal += pCost;
+  cogsTotal        += pCost;
 }
+const valorLiq = earningsKPI - cogsTotal;
 ```
+
+**Arquivo**: `src/lib/costTable.ts` — funções `getFulfillmentBreakdown()`, `detectBottles()`, `getProductCostPerBottle()`
 
 **Exibido em**: `src/pages/Dashboard.tsx` — cartão "Valor Líquido" com breakdown expansível, e por afiliado em `src/pages/Affiliates.tsx`

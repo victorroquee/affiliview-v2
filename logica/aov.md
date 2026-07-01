@@ -41,7 +41,7 @@ O campo `upsell_no` da API Digistore24 indica a posicao do produto no funil:
 - **Numerador**: usa `grossAmount` (amount, incluso IVA) de todas as transacoes `payment` (front + upsells + bumps)
 - **Denominador**: usa apenas transacoes com `upsell_no === 0` (pedidos unicos)
 - Refunds e chargebacks **nao** entram no calculo (apenas `transaction_type === "payment"`)
-- Inclui os tres produtos: **Erectus X**, **Slimjara** e **Memoguard**
+- Inclui todos os produtos: **Erectus X**, **Slimjara**, **Memoguard**, **LipoGandha** e **LipoSkin**
 - O periodo filtrado segue horario **UTC** (00:00 ate 23:59 UTC)
 
 ---

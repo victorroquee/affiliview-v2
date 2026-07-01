@@ -303,7 +303,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
       <ProductSummaryTable data={filteredProductSummary} />
-      <BundlePerformanceTable data={filteredBundles} />
+      <BundlePerformanceTable data={filteredBundles} upsellUnattributed={productFilter === "all" ? metrics?.bundleUpsellUnattributed : undefined} />
 
       {backendProducts.length > 0 && (
         <div className="table-container">

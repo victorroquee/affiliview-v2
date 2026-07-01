@@ -1,4 +1,4 @@
-import { getFulfillmentBreakdown, getFulfillmentCost } from "./costTable";
+import { getFulfillmentBreakdown, getFulfillmentCost, detectBottles, getProductCostPerBottle } from "./costTable";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface TransactionRow {
@@ -43,6 +43,7 @@ export interface PeriodMetrics {
   refundByProduct: { name: string; refundPct: number; refundAmt: number }[];
   productSummary: ProductSummaryRow[];
   bundlePerformance: BundleRow[];
+  bundleUpsellUnattributed: number; // lucro líquido de upsells sem front reconhecido no período
   topAffiliates: AffiliateRow[];
 }
 
@@ -64,7 +65,9 @@ export interface BundleRow {
   vendas: number;
   gross: number;
   netRevenue: number;
-  valorLiq: number;
+  valorLiq: number;         // front-only (COGS produto + frete das vendas frontais deste kit)
+  valorLiqUpsell: number;   // lucro líquido dos upsells atribuído a este kit via orderId
+  valorLiqTotal: number;    // valorLiq + valorLiqUpsell (mergeado — reconcilia com o global)
   reembolsos: number;
   chargebacks: number;
   refundPct: number;
@@ -586,14 +589,7 @@ export function computePeriod(
     payTxs.reduce((s, t) => s + t.earnings, 0) +
     refCbTxs.reduce((s, t) => s + t.earnings, 0);
 
-  // earningsFront = front-only earnings + front-only refund/CB — base para Valor Liquido
-  // COGS aplica apenas a produtos fisicos front (upsells sao digitais, sem fulfillment)
-  // Only front refunds/CB (upsellNo === 0) deducted here — upsell refunds must not reduce
-  // a base that never included upsell earnings (would understate valorLiq when upsell refunds exist).
-  const frontRefCbForEarnings = refCbTxs.filter((t) => t.upsellNo === 0);
-  const earningsFront =
-    frontPayments.reduce((s, t) => s + t.earnings, 0) +
-    frontRefCbForEarnings.reduce((s, t) => s + t.earnings, 0);
+  // earningsKPI já inclui front + upsells + refunds/CB — usado como base para Valor Líquido
 
   // ── AOV ────────────────────────────────────────────────────────────────────
   // Average order value per unique order (front + upsells + bumps), VAT-inclusive.
@@ -603,8 +599,8 @@ export function computePeriod(
   const aov = frontSales > 0 ? grossTotal / frontSales : 0;
 
   // ── Valor Líquido ──────────────────────────────────────────────────────────
-  // valorLiq = front earnings − front COGS (consistent with front-only metrics)
-  // COGS applied only to front payments (product shipped; upsells are digital/no fulfillment)
+  // valorLiq = earningsKPI − COGS(front + upsells)
+  // Front: produto + envio | Upsells: só produto (enviados no mesmo pacote, sem envio extra)
   let productCostTotal = 0;
   let shippingCostTotal = 0;
   let cogsTotal = 0;
@@ -614,8 +610,15 @@ export function computePeriod(
     shippingCostTotal += b.shipping;
     cogsTotal         += b.total;
   }
-  // Valor Liquido = front-only earnings - COGS (upsells sao digitais, sem custo de fulfillment)
-  const valorLiq = earningsFront - cogsTotal;
+  // Upsells: custo de produto apenas (garrafas enviadas no mesmo pacote)
+  const upsellPayments = payTxs.filter((t) => t.upsellNo > 0);
+  for (const t of upsellPayments) {
+    const bottles = detectBottles(t.productName);
+    const pCost = bottles * getProductCostPerBottle(t.productName);
+    productCostTotal += pCost;
+    cogsTotal        += pCost;
+  }
+  const valorLiq = earningsKPI - cogsTotal;
 
   // ── Activated 2K ──────────────────────────────────────────────────────────
   // Affiliates whose total affiliate_amount (CPA received) >= €2000 in the period.
@@ -783,6 +786,7 @@ export function computePeriod(
       refundAmt: number;   // SUM(grossAmount for refund transactions) — positive unsigned value
       cbAmt: number;       // SUM(grossAmount for chargeback transactions) — positive unsigned value
       valorLiq: number;
+      valorLiqUpsell: number;
       reembolsos: number;
       chargebacks: number;
     }
@@ -792,7 +796,7 @@ export function computePeriod(
     const base = getProductBase(name);
     if (!base) continue; // ignora UPS, DW e produtos não reconhecidos
     const e = bundleMap.get(name) ?? {
-      product: base, vendas: 0, gross: 0, refundAmt: 0, cbAmt: 0, valorLiq: 0, reembolsos: 0, chargebacks: 0,
+      product: base, vendas: 0, gross: 0, refundAmt: 0, cbAmt: 0, valorLiq: 0, valorLiqUpsell: 0, reembolsos: 0, chargebacks: 0,
     };
     e.vendas   += 1;
     e.gross    += t.grossAmount;
@@ -804,7 +808,7 @@ export function computePeriod(
     const base = getProductBase(name);
     if (!base) continue;
     const e = bundleMap.get(name) ?? {
-      product: base, vendas: 0, gross: 0, refundAmt: 0, cbAmt: 0, valorLiq: 0, reembolsos: 0, chargebacks: 0,
+      product: base, vendas: 0, gross: 0, refundAmt: 0, cbAmt: 0, valorLiq: 0, valorLiqUpsell: 0, reembolsos: 0, chargebacks: 0,
     };
     e.valorLiq += t.earnings;  // earnings negativo — reduz o lucro do bundle (fulfillment é sunk cost)
     if (isRefund(t)) {
@@ -817,17 +821,45 @@ export function computePeriod(
     }
     bundleMap.set(name, e);
   }
+  // ── Atribuição do lucro de upsell ao kit front (via orderId = purchase_id) ──
+  // Upsells 1-click compartilham o purchase_id do pedido frontal. Mapeia-se cada
+  // orderId ao SKU front reconhecido e soma-se o lucro líquido dos upsells (earnings −
+  // custo de produto; refunds/CB de upsell reduzem) a esse kit. Upsells cujo front não
+  // está no período (ou não é reconhecido) caem em bundleUpsellUnattributed.
+  const orderFrontSku = new Map<string, string>();
+  for (const t of frontPayTxs) {
+    if (!getProductBase(t.productName)) continue;
+    if (!orderFrontSku.has(t.orderId)) orderFrontSku.set(t.orderId, t.productName);
+  }
+  let bundleUpsellUnattributed = 0;
+  const attributeUpsellProfit = (t: TransactionRow, profit: number) => {
+    const sku = orderFrontSku.get(t.orderId);
+    const e = sku ? bundleMap.get(sku) : undefined;
+    if (e) e.valorLiqUpsell += profit;
+    else bundleUpsellUnattributed += profit;
+  };
+  for (const t of payTxs) {
+    if (t.upsellNo === 0) continue;
+    attributeUpsellProfit(t, t.earnings - detectBottles(t.productName) * getProductCostPerBottle(t.productName));
+  }
+  for (const t of refCbTxs) {
+    if (t.upsellNo === 0) continue;
+    attributeUpsellProfit(t, t.earnings); // earnings negativo — reduz o lucro do kit
+  }
+
   const bundlePerformance: BundleRow[] = Array.from(bundleMap.entries())
     .map(([bundle, d]) => ({
       bundle,
-      product:     d.product,
-      vendas:      d.vendas,
-      gross:       d.gross,
-      netRevenue:  d.gross - d.refundAmt - d.cbAmt,  // gross − valor de reembolsos e CB retidos
-      valorLiq:    d.valorLiq,
-      reembolsos:  d.reembolsos,
-      chargebacks: d.chargebacks,
-      refundPct:   d.vendas > 0 ? (d.reembolsos / d.vendas) * 100 : 0,
+      product:       d.product,
+      vendas:        d.vendas,
+      gross:         d.gross,
+      netRevenue:    d.gross - d.refundAmt - d.cbAmt,  // gross − valor de reembolsos e CB retidos
+      valorLiq:      d.valorLiq,                        // front-only
+      valorLiqUpsell: d.valorLiqUpsell,                 // upsells atribuídos via orderId
+      valorLiqTotal: d.valorLiq + d.valorLiqUpsell,     // mergeado
+      reembolsos:    d.reembolsos,
+      chargebacks:   d.chargebacks,
+      refundPct:     d.vendas > 0 ? (d.reembolsos / d.vendas) * 100 : 0,
     }))
     .sort((a, b) => b.gross - a.gross);
 
@@ -849,10 +881,12 @@ export function computePeriod(
     if (t.upsellNo === 0) {
       e.sales      += 1;               // count only front orders as "sales"
       e.frontGross += t.grossAmount;   // AOV numerator: only upsell_no === 0 gross
-    }
-    // liq: only front payments contribute (parallel with global valorLiq — upsells are digital, no COGS)
-    if (t.upsellNo === 0) {
+      // Front: earnings − fulfillment completo (produto + envio)
       e.liq += t.earnings - getFulfillmentCost(t.productName, t.country, true);
+    } else {
+      // Upsell: earnings − custo de produto apenas (enviado no mesmo pacote)
+      const bottles = detectBottles(t.productName);
+      e.liq += t.earnings - (bottles * getProductCostPerBottle(t.productName));
     }
     affMap.set(n, e);
   }
@@ -864,10 +898,8 @@ export function computePeriod(
       refundAmt: 0, cbAmt: 0, totalTx: 0, affiliateAmt: 0,
     };
     e.earnings += t.earnings;  // negative — reduces earnings
-    // liq: only front refunds/CB contribute (parallel with global valorLiq)
-    if (t.upsellNo === 0) {
-      e.liq += t.earnings;    // refund: only earnings returned (fulfillment is sunk cost)
-    }
+    // Refund/CB: earnings negativo reduz liq (fulfillment é sunk cost — não devolvido)
+    e.liq += t.earnings;
     if (isRefund(t))     e.refundAmt += t.grossAmount;  // gross revertido para taxa de reembolso
     if (isChargeback(t)) e.cbAmt     += t.grossAmount;
     affMap.set(n, e);
@@ -919,6 +951,7 @@ export function computePeriod(
     refundByProduct,
     productSummary,
     bundlePerformance,
+    bundleUpsellUnattributed,
     topAffiliates,
   };
 }

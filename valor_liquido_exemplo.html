@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Arial, sans-serif; font-size: 14px; margin: 40px; color: #222; }
+  h1 { font-size: 20px; margin-bottom: 4px; }
+  h2 { font-size: 16px; margin-top: 24px; margin-bottom: 8px; color: #333; }
+  h3 { font-size: 14px; margin-top: 16px; margin-bottom: 6px; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; font-size: 13px; }
+  th { background: #f5f5f5; }
+  .formula { background: #f8f8f8; padding: 10px 14px; border-left: 3px solid #666; margin: 10px 0; font-family: monospace; font-size: 13px; }
+  .result td { font-weight: bold; background: #eef6ee; }
+  .note { font-size: 12px; color: #555; margin: 6px 0; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<h1>Valor Liquido (Lucro Liquido) - Logica e Exemplo</h1>
+
+<h2>Formula</h2>
+<div class="formula">Valor Liquido = Earnings - COGS(front) - COGS(upsells)</div>
+
+<p><strong>Earnings</strong> = SUM(earned_amount) de todos os pagamentos (front + upsells) + refunds/CB (negativos)</p>
+<p><strong>COGS front</strong> = custo de produto + custo de frete</p>
+<p><strong>COGS upsell</strong> = custo de produto apenas (upsells vao no mesmo pacote, sem frete extra)</p>
+
+<hr>
+
+<h2>Exemplo: Erectus X, Alemanha (DE) - Front 6 frascos + Upsell 3 frascos</h2>
+
+<h3>Dados do pedido</h3>
+<table>
+  <tr><td>Produto front</td><td>Erectus X - 6 Bottles (upsell_no = 0)</td></tr>
+  <tr><td>Upsell</td><td>Erectus X - 3 Bottles (upsell_no = 1)</td></tr>
+  <tr><td>Pais</td><td>DE (Alemanha) - Zona Z1</td></tr>
+  <tr><td>Custo/frasco Erectus</td><td>EUR 3,24</td></tr>
+</table>
+
+<h3>Passo 1 - Earnings</h3>
+<table>
+  <tr><th>Transacao</th><th>earned_amount</th></tr>
+  <tr><td>Front (6 frascos)</td><td>EUR 65,00</td></tr>
+  <tr><td>Upsell (3 frascos)</td><td>EUR 25,00</td></tr>
+  <tr class="result"><td>Total Earnings</td><td>EUR 90,00</td></tr>
+</table>
+
+<h3>Passo 2 - COGS do Front (produto + frete)</h3>
+<table>
+  <tr><th>Componente</th><th>Calculo</th><th>Valor</th></tr>
+  <tr><td>Custo Produto</td><td>6 x EUR 3,24</td><td>EUR 19,44</td></tr>
+  <tr><td>Custo Frete (Z1, 6 frascos)</td><td>tabela</td><td>EUR 9,42</td></tr>
+  <tr class="result"><td>COGS Front</td><td></td><td>EUR 28,86</td></tr>
+</table>
+
+<h3>Passo 3 - COGS do Upsell (so produto)</h3>
+<table>
+  <tr><th>Componente</th><th>Calculo</th><th>Valor</th></tr>
+  <tr><td>Custo Produto</td><td>3 x EUR 3,24</td><td>EUR 9,72</td></tr>
+  <tr><td>Custo Frete</td><td>mesmo pacote</td><td>EUR 0,00</td></tr>
+  <tr class="result"><td>COGS Upsell</td><td></td><td>EUR 9,72</td></tr>
+</table>
+
+<h3>Passo 4 - Valor Liquido</h3>
+<div class="formula">Valor Liquido = EUR 90,00 - EUR 28,86 - EUR 9,72 = EUR 51,42</div>
+
+<h3>Resumo</h3>
+<table>
+  <tr><th>Item</th><th>Valor</th></tr>
+  <tr><td>Earnings (front + upsell)</td><td>+EUR 90,00</td></tr>
+  <tr><td>Custo Produto front (6 x EUR 3,24)</td><td>-EUR 19,44</td></tr>
+  <tr><td>Custo Frete front (Z1, 6 frascos)</td><td>-EUR 9,42</td></tr>
+  <tr><td>Custo Produto upsell (3 x EUR 3,24)</td><td>-EUR 9,72</td></tr>
+  <tr><td>Custo Frete upsell</td><td>EUR 0,00</td></tr>
+  <tr class="result"><td>Valor Liquido</td><td>EUR 51,42</td></tr>
+</table>
+
+<hr>
+
+<h2>Regras-chave</h2>
+<table>
+  <tr><th>#</th><th>Regra</th></tr>
+  <tr><td>1</td><td>Front (upsell_no=0): paga produto + frete</td></tr>
+  <tr><td>2</td><td>Upsell (upsell_no>0): paga so produto (mesmo pacote)</td></tr>
+  <tr><td>3</td><td>Refund: reduz earnings, mas COGS nao volta (custo afundado)</td></tr>
+  <tr><td>4</td><td>Alemanha = Zona Z1 (frete mais barato ~EUR 9,30-9,60)</td></tr>
+  <tr><td>5</td><td>Desconto Z6 de EUR 20 so aplica para Luxemburgo/Suica</td></tr>
+</table>
+
+</body>
+</html>
