@@ -1,8 +1,9 @@
 import type { TransactionRow } from "../transactions";
 import type { AffiliateAccumulator, AffiliateResult, VariantResult } from "./types";
 import { CPA_DEFAULTS, OP_AVG, VARIANT_BOTTLES } from "./constants";
-import { getBottles, getFrontVariant, getCogs } from "./parseHelpers";
+import { getFrontVariant } from "./parseHelpers";
 import { isPayment, isRefund, isChargeback } from "../transactions";
+import { getFulfillmentCost, detectBottles, getProductCostPerBottle } from "../costTable";
 
 function makeAcc(name: string): AffiliateAccumulator {
   return {
@@ -71,7 +72,8 @@ export function analyzeCPA(
       if (!acc.fronts[v]) acc.fronts[v] = { count: 0, earn: 0, cogs: 0, gross: 0 };
       acc.fronts[v].count++;
       acc.fronts[v].earn += r.earnings;
-      acc.fronts[v].cogs += getCogs(getBottles(r.productName), r.country, true);
+      // Front: fulfillment completo (produto + frete) via costTable — fonte única
+      acc.fronts[v].cogs += getFulfillmentCost(r.productName, r.country, true);
       acc.fronts[v].gross += r.grossAmount;
       acc.grossBruto += r.grossAmount;  // grossAmount is correctly set for payments
 
@@ -82,7 +84,8 @@ export function analyzeCPA(
       if (!acc.upsells[v]) acc.upsells[v] = { count: 0, earn: 0, cogs: 0, gross: 0 };
       acc.upsells[v].count++;
       acc.upsells[v].earn += r.earnings;
-      acc.upsells[v].cogs += getCogs(getBottles(r.productName), r.country, false);
+      // Upsell: só custo de produto — sem frete (mesmo pacote do front, como no dashboard)
+      acc.upsells[v].cogs += detectBottles(r.productName) * getProductCostPerBottle(r.productName);
       acc.upsells[v].gross += r.grossAmount;
       acc.grossBruto += r.grossAmount;
       if (r.buyerId) acc.buyersWithUpsell.add(r.buyerId);
