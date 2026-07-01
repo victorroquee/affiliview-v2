@@ -828,6 +828,7 @@ export function computePeriod(
   // está no período (ou não é reconhecido) caem em bundleUpsellUnattributed.
   const orderFrontSku = new Map<string, string>();
   for (const t of frontPayTxs) {
+    if (!t.orderId) continue; // sem orderId não há como ligar upsell↔front — evita colisão sob chave vazia
     if (!getProductBase(t.productName)) continue;
     if (!orderFrontSku.has(t.orderId)) orderFrontSku.set(t.orderId, t.productName);
   }

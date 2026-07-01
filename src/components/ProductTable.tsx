@@ -119,8 +119,8 @@ export const BundlePerformanceTable: React.FC<BundlePerformanceTableProps> = ({ 
       </table>
       {upsellUnattributed != null && Math.abs(upsellUnattributed) >= 0.01 && (
         <p style={{ padding: "8px 12px", margin: 0, color: "var(--text-3)", fontSize: 11 }}>
-          + {formatEur(upsellUnattributed)} de lucro de upsells não atribuído a nenhum kit
-          (pedido frontal fora do período ou não reconhecido) — já incluído no card global de Valor Líquido.
+          Lucro de upsells não atribuído a nenhum kit (pedido frontal fora do período ou não reconhecido):{" "}
+          {formatEur(upsellUnattributed)} — já incluído no card global de Valor Líquido.
         </p>
       )}
     </div>

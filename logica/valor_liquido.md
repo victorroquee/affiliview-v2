@@ -138,21 +138,22 @@ O `computePeriod()` acumula e retorna as parcelas do cálculo (campos `productCo
 ## Onde é Exibido
 - Cartão KPI "Valor Líquido" (valor + tooltip) em `Dashboard.tsx`
 - Por afiliado na página de Afiliados (campo `valorLiq`) e no `AffiliateDrawer`
-- Por kit na tabela "Performance por Kit" (`ProductTable`) — **atenção:** este `valorLiq` por kit é **front-only** (não inclui o lucro dos upsells), portanto difere (para menos) do card global e do por-afiliado. Ver seção "Valor Líquido por kit" abaixo
+- Por kit na tabela "Performance por Kit" (`ProductTable`) — três colunas: **Front** (só vendas frontais), **Upsells** (atribuídos ao kit via `orderId`) e **Total** (mergeado). Ver seção "Valor Líquido por kit" abaixo
 - Usado no cálculo da **Margem %**
 
 ---
 
 ## Valor Líquido por kit (tabela "Performance por Kit")
 
-A tabela de kits (`ProductTable`, alimentada por `bundlePerformance` em `computePeriod()`) calcula o Valor Líquido **apenas das vendas frontais** (`upsell_no === 0`), agrupadas por SKU do kit (M1/M2/M3). Upsells (UP/DW) **não** entram nesse número — `getProductBase()` os ignora.
+A tabela de kits (`ProductTable`, alimentada por `bundlePerformance` em `computePeriod()`) exibe **três** métricas de Valor Líquido por SKU de kit front (M1/M2/M3):
 
-Consequência: `SUM(valorLiq por kit) < valorLiq global`, pela contribuição líquida dos upsells. Isso é **intencional** (a tabela mede a rentabilidade do kit frontal), mas exige rótulo explícito para não confundir com o card global (que inclui upsells).
+- **Valor Líq. (Front)** — só das vendas frontais (`upsell_no === 0`) do kit: `earnings − COGS(produto + frete)`. Não inclui upsells.
+- **Valor Líq. (Upsells)** — lucro líquido dos upsells do **mesmo pedido**, atribuído via `orderId` (= `purchase_id`; upsells 1-click compartilham o `purchase_id` do front): `earnings do upsell − custo de produto` (sem frete). Refunds/CB de upsell reduzem.
+- **Valor Líq. (Total)** — Front + Upsells mergeado — o lucro real do kit.
 
-**Decisão de exibição (planejada — três colunas):**
-- **Valor Líquido (Front)** — o cálculo atual, só front.
-- **Valor Líquido (Upsells)** — lucro líquido dos upsells atribuído ao kit via `orderId` (= `purchase_id`; upsells 1-click compartilham o `purchase_id` do front). Requer validar o join nos dados reais.
-- **Valor Líquido (Total)** — soma das duas, reconciliando com o card global.
+Upsells cujo pedido frontal não está no período (ou cujo SKU front não é reconhecido, ou sem `orderId`) caem em `bundleUpsellUnattributed`, exibido como nota abaixo da tabela e **já incluído no card global**.
+
+**Reconciliação:** `SUM(Total por kit) + bundleUpsellUnattributed` reconcilia com o `valorLiq` global, exceto pelos pagamentos/reembolsos **frontais de produtos não reconhecidos** por `getProductBase()` (fora dos 5 produtos) — que entram no global mas não na tabela por kit. Como `getProductBase()` cobre os 5 produtos, na prática o gap é ~€0.
 
 ---
 
@@ -181,4 +182,4 @@ const valorLiq = earningsKPI - cogsTotal;
 
 **Arquivo**: `src/lib/costTable.ts` — funções `getFulfillmentBreakdown()`, `detectBottles()`, `getProductCostPerBottle()`
 
-**Exibido em**: `src/pages/Dashboard.tsx` — cartão "Valor Líquido" com breakdown expansível, e por afiliado em `src/pages/Affiliates.tsx`
+**Exibido em**: `src/pages/Dashboard.tsx` — cartão "Valor Líquido" (valor + tooltip; sem breakdown expansível), e por afiliado em `src/pages/Affiliates.tsx`
