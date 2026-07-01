@@ -19,7 +19,7 @@ Abaixo o progresso de implementação de cada componente lógico documentado nes
 - **Lógica documentada em**: `vendas.md`
 - **Implementado em**: `src/lib/transactions.ts` → `isUpsellByName()`, `isFrontSale()`
 - Regex para identificar upsells pelo nome: `^(up\d|up\(|up |order bump|bump|down\s?\d|down )`
-- Produtos M (vendas frontais): Erectus X, Slimjara, Memoguard — em qualquer variação de frascos
+- Produtos M (vendas frontais): Erectus X, Slimjara, Memoguard, LipoGandha, LipoSkin — em qualquer variação de frascos
 - Refunds não reduzem a contagem de vendas
 
 ### ✅ Etapa 3 — Custo de Produto
@@ -40,8 +40,7 @@ Abaixo o progresso de implementação de cada componente lógico documentado nes
 ### ✅ Etapa 5 — Gross Revenue
 - **Lógica documentada em**: `gross_revenue.md`
 - **Implementado em**: `src/lib/transactions.ts` → `computePeriod()` (`gross`, `grossBruto`)
-- `gross` = soma de pagamentos frontais (upsell_no=0) — alinhado com Digistore
-- `grossBruto` = soma de TODOS os pagamentos (front + upsells) — usado para AOV e taxas
+- `gross` = `grossBruto` = soma de TODOS os pagamentos (front + upsells + bumps) — alinhado com Digistore24 "Gross Amount" (Phase 8)
 
 ### ✅ Etapa 6 — Earnings
 - **Lógica documentada em**: `earnings.md`
@@ -59,8 +58,8 @@ Abaixo o progresso de implementação de cada componente lógico documentado nes
 ### ✅ Etapa 8 — AOV (Ticket Médio)
 - **Lógica documentada em**: `aov.md`
 - **Implementado em**: `src/lib/transactions.ts` → `computePeriod()` (`aov`)
-- AOV = net total sem IVA (front + upsells + bumps) / pedidos frontais
-- Usa `netAmount` (amount - vat_amount) para excluir IVA
+- AOV = gross total com IVA (front + upsells + bumps) / pedidos frontais
+- Usa `grossAmount` (amount, com IVA) — alinhado com o painel interno da Digistore24
 
 ### ✅ Etapa 9 — Refund % e Chargeback %
 - **Lógica documentada em**: `refund_chargeback.md`
@@ -110,7 +109,7 @@ Abaixo o progresso de implementação de cada componente lógico documentado nes
 - Tabela de resumo por produto
 - Tabela de performance por bundle/upsell
 - Filtro de período (7d, 14d, 30d, Tudo)
-- Filtro de produto (Todos, Slimjara, Erectus X, Memoguard)
+- Filtro de produto (Todos + produtos detectados nos dados)
 
 ### ✅ Etapa 16 — Página de Afiliados
 - **Implementado em**: `src/pages/Affiliates.tsx`
@@ -129,10 +128,12 @@ Todos os períodos de filtragem (7d, 14d, 30d, customizado) usam o horário **UT
 - Fim do dia: **23:59 UTC**
 
 ### Produtos suportados
-O sistema contempla três produtos:
+O sistema contempla cinco produtos (ver `PRODUCT_COSTS` em `costTable.ts`):
 - **Erectus X**
 - **Slimjara**
-- **Memoguard** _(adicionado — pode ainda não aparecer na interface atual)_
+- **Memoguard**
+- **LipoGandha**
+- **LipoSkin**
 
 ### Produtos M vs. Upsells
 - **Produto M** = venda frontal (produto principal do funil)
@@ -144,10 +145,10 @@ O sistema contempla três produtos:
 
 | Arquivo | KPI | Tipo | Fonte |
 |---------|-----|------|-------|
-| [gross_revenue.md](./gross_revenue.md) | Gross Revenue (Receita Bruta) | API | Soma grossAmount de pagamentos frontais (upsell_no=0) |
+| [gross_revenue.md](./gross_revenue.md) | Gross Revenue (Receita Bruta) | API | Soma grossAmount de TODOS os pagamentos (front + upsells) |
 | [earnings.md](./earnings.md) | Earnings (Ganhos) | API | earned_amount de TODOS os pagamentos + estornos refunds/CB |
 | [valor_liquido.md](./valor_liquido.md) | Valor Líquido (LIA) | Calculado | Earnings (todos pagamentos + refunds/CB) − COGS (front: produto+frete c/ Z6; upsell: só produto) |
-| [aov.md](./aov.md) | AOV (Ticket Médio) | Calculado | Net total (sem IVA) / Pedidos frontais |
+| [aov.md](./aov.md) | AOV (Ticket Médio) | Calculado | Gross com IVA (todos pagamentos) / Pedidos frontais |
 | [vendas.md](./vendas.md) | Vendas (Sales Count) | API | Contagem de payments com upsell_no=0 |
 | [refund_chargeback.md](./refund_chargeback.md) | Refund % e Chargeback % | Calculado | Soma devoluções / Gross Bruto × 100 |
 | [custo_produto.md](./custo_produto.md) | Custo de Produto | Calculado | Frascos detectados × custo/frasco do produto (`PRODUCT_COSTS`) |
@@ -172,12 +173,11 @@ digiNormalizer.ts (normaliza campos, lowercase type, sign enforcement)
 transactions.ts → computePeriod()
          │
          ├── frontPayments (upsell_no === 0)
-         │    └── Soma grossAmount → Gross Revenue (KPI)
-         │    └── Soma earnings → Earnings base
+         │    └── Contagem → Vendas (KPI) e denominador do AOV
          │
-         ├── payTxs (todos os pagamentos)
-         │    └── Soma grossAmount → grossBruto (para AOV e taxas)
-         │    └── Soma netAmount → AOV numerador (sem IVA)
+         ├── payTxs (todos os pagamentos: front + upsells + bumps)
+         │    └── Soma grossAmount → Gross Revenue (KPI) e numerador do AOV (com IVA)
+         │    └── Soma earnings → Earnings base (earningsKPI)
          │
          ├── refCbTxs (refunds + chargebacks)
          │    └── Soma earnings (negativos) → reduz Earnings

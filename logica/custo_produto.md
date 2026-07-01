@@ -39,6 +39,12 @@ Custo de Produto = Número de Frascos × Custo por Frasco (varia por produto)
 
 O sistema identifica a quantidade de frascos lendo o nome do produto. A detecção segue esta ordem de prioridade:
 
+### 0ª tentativa — Bundles "N+M" (frascos pagos + grátis)
+Nomes com padrão `N+M` somam as duas quantidades — as garrafas grátis são físicas e geram COGS:
+- `"UP4 - LipoGandha 3+3 Kostenlos"` → detecta **6 frascos**
+- `"UP5 - LipoGandha 2F+1K"` → detecta **3 frascos**
+- `"DW3 - LipoSkin 3+3 Kostenlos"` → detecta **6 frascos**
+
 ### 1ª tentativa — Leitura de palavras-chave no nome
 O sistema busca um número seguido de palavras como: "bottle", "garrafa", "b", "pack", "un", "capsule", "flasche" (e variações). Exemplos que funcionam:
 - `"Erectus - 6 Bottles"` → detecta **6 frascos**
@@ -66,15 +72,11 @@ Se nenhum número for identificado → assume **1 frasco**
 
 ---
 
-## Regras de Front/Upsell por Product ID
+## Classificação Front/Upsell
 
-O campo `main_product_id` da API codifica se o produto é front ou upsell pelo sufixo numérico:
-- **Sem sufixo ou 1-8** → front offer (mesmo produto, bundles diferentes)
-- **9+** → upsell
+A classificação front vs upsell vem do campo **`upsell_no`** da API (`0` = front, `≥1` = upsell/downsell) — ver `aov.md`. Para dados de CSV (fallback), usa-se detecção pelo nome do produto (`isUpsellByName()`).
 
-Exemplos:
-- `S9V2LXKN` (front), `S9V2LXKN1` (front), `S9V2LXKN9` (upsell)
-- `3LM55YMS` (front), `3LM55YMS1` (front)
+> Nota histórica: a detecção pelo sufixo numérico do `main_product_id` (`parseProductId`/`isUpsellByProductId`) foi removida como dead code (commit `d2f854e`).
 
 ---
 

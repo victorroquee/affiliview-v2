@@ -47,9 +47,9 @@ Países não listados → retornam **custo zero** (`{ product: 0, shipping: 0, t
 
 | Frascos | Z1 | Z2 | Z3 | Z4 | Z5 | Z6 | Z7 | UK |
 |---------|------|-------|-------|-------|-------|-------|-------|-------|
-| 1 | 9,30 | 10,14 | 11,82 | 13,66 | 17,81 | 25,19 | 51,03 | 10,14 |
-| 2 | 9,30 | 10,14 | 11,82 | 13,66 | 17,81 | 25,19 | 51,03 | 10,14 |
-| 3 | 9,30 | 10,14 | 11,82 | 13,66 | 17,81 | 25,19 | 51,03 | 10,14 |
+| 1 | 7,58 | 8,25 | 9,60 | 11,07 | 14,39 | 20,29 | 40,96 | 8,25 |
+| 2 | 7,58 | 8,25 | 9,60 | 11,07 | 14,39 | 20,29 | 40,96 | 8,25 |
+| 3 | 7,58 | 8,25 | 9,60 | 11,07 | 14,39 | 20,29 | 40,96 | 8,25 |
 | 6 | 9,42 | 10,26 | 11,94 | 13,78 | 17,93 | 25,31 | 51,15 | 10,26 |
 | 9 | 9,60 | 10,59 | 12,77 | 14,13 | 18,30 | 26,66 | 52,56 | 10,59 |
 | 12 | 9,60 | 10,59 | 12,77 | 14,13 | 18,30 | 26,66 | 52,56 | 10,59 |
@@ -86,12 +86,12 @@ Custo de Frete Z6 (empresa) = valor_tabela_Z6 - €20
 | Produto | vat_country | Zona | Frascos | Frete Tabela | Desconto Z6 | Frete Efetivo |
 |---------|------------|------|---------|-------------|------------|--------------|
 | Erectus X 6 frascos (upsell_no=0) | DE | Z1 | 6 | €9,42 | — | €9,42 |
-| Slimjara 3 frascos (upsell_no=0) | PT | Z2 | 3 | €10,14 | — | €10,14 |
+| Slimjara 3 frascos (upsell_no=0) | PT | Z2 | 3 | €8,25 | — | €8,25 |
 | Memoguard 6 frascos (upsell_no=0) | IT | Z3 | 6 | €11,94 | — | €11,94 |
 | Erectus X 6 frascos (upsell_no=0) | SE | Z5 | 6 | €17,93 | — | €17,93 |
 | Slimjara 6 frascos (upsell_no=0) | CH | Z6 | 6 | €25,31 | -€20,00 | €5,31 |
 | UP1 Slimjara 3 frascos (upsell_no=1) | CH | Z6 | 3 | — (mesmo pacote) | n/a | €0,00 (upsell não gera frete) |
-| Memoguard 3 frascos (upsell_no=0) | CA | Z7 | 3 | €51,03 | — | €51,03 |
+| Memoguard 3 frascos (upsell_no=0) | CA | Z7 | 3 | €40,96 | — | €40,96 |
 
 ---
 
@@ -102,7 +102,7 @@ Custo de Frete Z6 (empresa) = valor_tabela_Z6 - €20
 ---
 
 ## Observações
-- Fretes de Zona Z7 (~€51-52 por envio) são muito elevados e podem tornar o Valor Líquido negativo, especialmente em pacotes menores
+- Fretes de Zona Z7 (~€41-53 por envio) são muito elevados e podem tornar o Valor Líquido negativo, especialmente em pacotes menores
 - A diferença de frete entre Z1 e Z5 é de quase €9 por pedido
 
 ---
@@ -115,9 +115,9 @@ Tabela completa de fretes por quantidade de frascos e zona:
 
 ```typescript
 export const SHIPPING_TABLE: Record<number, Record<ZoneKey, number>> = {
-  1:  { z1: 9.30, z2: 10.14, z3: 11.82, z4: 13.66, z5: 17.81, z6: 25.19, z7: 51.03, uk: 10.14 },
-  2:  { z1: 9.30, z2: 10.14, z3: 11.82, z4: 13.66, z5: 17.81, z6: 25.19, z7: 51.03, uk: 10.14 },
-  3:  { z1: 9.30, z2: 10.14, z3: 11.82, z4: 13.66, z5: 17.81, z6: 25.19, z7: 51.03, uk: 10.14 },
+  1:  { z1: 7.58, z2: 8.25, z3: 9.60, z4: 11.07, z5: 14.39, z6: 20.29, z7: 40.96, uk: 8.25 },
+  2:  { z1: 7.58, z2: 8.25, z3: 9.60, z4: 11.07, z5: 14.39, z6: 20.29, z7: 40.96, uk: 8.25 },
+  3:  { z1: 7.58, z2: 8.25, z3: 9.60, z4: 11.07, z5: 14.39, z6: 20.29, z7: 40.96, uk: 8.25 },
   6:  { z1: 9.42, z2: 10.26, z3: 11.94, z4: 13.78, z5: 17.93, z6: 25.31, z7: 51.15, uk: 10.26 },
   9:  { z1: 9.60, z2: 10.59, z3: 12.77, z4: 14.13, z5: 18.30, z6: 26.66, z7: 52.56, uk: 10.59 },
   12: { z1: 9.60, z2: 10.59, z3: 12.77, z4: 14.13, z5: 18.30, z6: 26.66, z7: 52.56, uk: 10.59 },
