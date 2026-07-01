@@ -93,6 +93,11 @@ export function resolveCountryCode(raw: string): string {
 export function detectBottles(productName: string): number {
   const n = productName.toLowerCase();
 
+  // 0th: bundles "N+M" (ex.: "3+3 Kostenlos", "2F+1K") → soma frascos pagos + grátis
+  // (as garrafas grátis são físicas e geram COGS de produto; ver custo_produto.md)
+  const plus = n.match(/(\d+)\s*[a-z]*\s*\+\s*(\d+)/i);
+  if (plus) return parseInt(plus[1], 10) + parseInt(plus[2], 10);
+
   // 1st: keyword match (e.g. "6 Bottles", "3 Garrafas")
   const m = n.match(/(\d+)\s*(bottle|garrafa|frasco|b\b|pack|un|capsule|flasche)/i);
   if (m) return parseInt(m[1], 10);

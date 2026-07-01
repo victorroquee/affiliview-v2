@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { computeAffiliateRankings, computeAffiliateUpsells, classifyUpsellProduct, computeFromFiltered } from "./transactions";
 import type { TransactionRow } from "./transactions";
+import { detectBottles } from "./costTable";
 
 function makeRow(overrides: Partial<TransactionRow>): TransactionRow {
   return {
@@ -206,5 +207,39 @@ describe("computePeriod — Valor Líquido por kit (bundle: front + upsells merg
     expect(kit.valorLiqUpsell).toBeCloseTo(30.88, 2);
     // total: 11,02 + 30,88 = 41,90
     expect(kit.valorLiqTotal).toBeCloseTo(41.90, 2);
+  });
+
+  it("BND-04: orderId vazio NÃO atribui upsell a um front de orderId vazio (evita misatribuição)", () => {
+    const rows: TransactionRow[] = [
+      makeRow({ orderId: "", upsellNo: 0, productName: "M3 - Slimjara - 6 Bottles", country: "DE", earnings: 40, grossAmount: 294 }),
+      makeRow({ orderId: "", upsellNo: 1, productName: "UP3 - Slimjara - 12 Bottles", earnings: 100, grossAmount: 288 }),
+    ];
+    const m = computeFromFiltered(rows);
+    const kit = m.bundlePerformance.find((b) => b.bundle === "M3 - Slimjara - 6 Bottles")!;
+    // kit front existe normalmente
+    expect(kit.valorLiq).toBeCloseTo(11.02, 2);
+    // upsell de orderId vazio NÃO é atribuído ao kit — vai para o bucket
+    expect(kit.valorLiqUpsell).toBeCloseTo(0, 2);
+    expect(m.bundleUpsellUnattributed).toBeCloseTo(60.88, 2);
+  });
+});
+
+describe("detectBottles — bundles 'N+M' (LipoGandha/LipoSkin Kostenlos)", () => {
+  it("BOT-01: '3+3 Kostenlos' soma para 6 frascos", () => {
+    expect(detectBottles("UP4 - LipoGandha 3+3 Kostenlos")).toBe(6);
+    expect(detectBottles("DW3 - LipoSkin 3+3 Kostenlos")).toBe(6);
+  });
+
+  it("BOT-02: '2F+1K' soma para 3 frascos", () => {
+    expect(detectBottles("UP5 - LipoGandha 2F+1K")).toBe(3);
+  });
+
+  it("BOT-03: nomes sem '+' continuam corretos (regressão)", () => {
+    expect(detectBottles("UP3 - Slimjara 12 Bottles")).toBe(12);
+    expect(detectBottles("UP1(2) - Slimjara 6 Bottles")).toBe(6);
+    expect(detectBottles("M3 - Slimjara 6B")).toBe(6);
+    expect(detectBottles("UP8 - LipoGandha 2 Bottles")).toBe(2);
+    expect(detectBottles("UP_3 - LipoSkin 2 Flaschen")).toBe(2);
+    expect(detectBottles("Slimjara")).toBe(1);
   });
 });
