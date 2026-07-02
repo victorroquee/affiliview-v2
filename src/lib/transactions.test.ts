@@ -168,6 +168,8 @@ describe("computeAffiliateUpsells — AOV contribution", () => {
 });
 
 describe("computePeriod — Valor Líquido por kit (bundle: front + upsells mergeado)", () => {
+  // Custo de capital (§8.1): grossAmount × 0,10 × (60/365) × 0,20 ≈ 0,3288% por pagamento
+  // front 294 → −0,9666 · upsell 288 → −0,9468 · upsell 90 → −0,2959
   it("BND-01: lucro de upsell é atribuído ao kit front via orderId (3 colunas)", () => {
     const rows: TransactionRow[] = [
       makeRow({ orderId: "O1", upsellNo: 0, productName: "M3 - Slimjara - 6 Bottles", country: "DE", earnings: 40, grossAmount: 294 }),
@@ -175,12 +177,12 @@ describe("computePeriod — Valor Líquido por kit (bundle: front + upsells merg
     ];
     const m = computeFromFiltered(rows);
     const kit = m.bundlePerformance.find((b) => b.bundle === "M3 - Slimjara - 6 Bottles")!;
-    // front: 40 − (6×3,26 + frete z1@6 9,42) = 40 − 28,98 = 11,02
-    expect(kit.valorLiq).toBeCloseTo(11.02, 2);
-    // upsell: 100 − (12×3,26) = 60,88 (sem frete — mesmo pacote)
-    expect(kit.valorLiqUpsell).toBeCloseTo(60.88, 2);
+    // front: 40 − (6×3,26 + frete z1@6 9,42) − capital 0,9666 = 10,0534
+    expect(kit.valorLiq).toBeCloseTo(10.05, 2);
+    // upsell: 100 − (12×3,26) − capital 0,9468 = 59,9332 (sem frete — mesmo pacote)
+    expect(kit.valorLiqUpsell).toBeCloseTo(59.93, 2);
     // total mergeado = front + upsell
-    expect(kit.valorLiqTotal).toBeCloseTo(71.90, 2);
+    expect(kit.valorLiqTotal).toBeCloseTo(69.99, 2);
     expect(m.bundleUpsellUnattributed).toBeCloseTo(0, 2);
   });
 
@@ -191,11 +193,11 @@ describe("computePeriod — Valor Líquido por kit (bundle: front + upsells merg
     const m = computeFromFiltered(rows);
     // sem front → nenhuma linha de kit
     expect(m.bundlePerformance.length).toBe(0);
-    // 50 − (3×3,26) = 40,22
-    expect(m.bundleUpsellUnattributed).toBeCloseTo(40.22, 2);
+    // 50 − (3×3,26) − capital 0,2959 = 39,9241
+    expect(m.bundleUpsellUnattributed).toBeCloseTo(39.92, 2);
   });
 
-  it("BND-03: refund de upsell reduz o valorLiqUpsell do kit atribuído", () => {
+  it("BND-03: refund de upsell reduz o valorLiqUpsell do kit atribuído (sem reverter capital)", () => {
     const rows: TransactionRow[] = [
       makeRow({ orderId: "O1", upsellNo: 0, productName: "M3 - Slimjara - 6 Bottles", country: "DE", earnings: 40, grossAmount: 294 }),
       makeRow({ orderId: "O1", upsellNo: 1, productName: "UP3 - Slimjara - 12 Bottles", earnings: 100, grossAmount: 288 }),
@@ -203,10 +205,10 @@ describe("computePeriod — Valor Líquido por kit (bundle: front + upsells merg
     ];
     const m = computeFromFiltered(rows);
     const kit = m.bundlePerformance.find((b) => b.bundle === "M3 - Slimjara - 6 Bottles")!;
-    // upsell: (100 − 39,12) + (−30) = 30,88
-    expect(kit.valorLiqUpsell).toBeCloseTo(30.88, 2);
-    // total: 11,02 + 30,88 = 41,90
-    expect(kit.valorLiqTotal).toBeCloseTo(41.90, 2);
+    // upsell: (100 − 39,12 − 0,9468) + (−30) = 29,9332
+    expect(kit.valorLiqUpsell).toBeCloseTo(29.93, 2);
+    // total: 10,0534 + 29,9332 = 39,9866
+    expect(kit.valorLiqTotal).toBeCloseTo(39.99, 2);
   });
 
   it("BND-04: orderId vazio NÃO atribui upsell a um front de orderId vazio (evita misatribuição)", () => {
@@ -217,10 +219,47 @@ describe("computePeriod — Valor Líquido por kit (bundle: front + upsells merg
     const m = computeFromFiltered(rows);
     const kit = m.bundlePerformance.find((b) => b.bundle === "M3 - Slimjara - 6 Bottles")!;
     // kit front existe normalmente
-    expect(kit.valorLiq).toBeCloseTo(11.02, 2);
+    expect(kit.valorLiq).toBeCloseTo(10.05, 2);
     // upsell de orderId vazio NÃO é atribuído ao kit — vai para o bucket
     expect(kit.valorLiqUpsell).toBeCloseTo(0, 2);
-    expect(m.bundleUpsellUnattributed).toBeCloseTo(60.88, 2);
+    expect(m.bundleUpsellUnattributed).toBeCloseTo(59.93, 2);
+  });
+});
+
+describe("computePeriod — Custo de capital + provisão (§8.1)", () => {
+  it("CAP-01: valorLiq global desconta capital sobre o gross de cada pagamento", () => {
+    const rows: TransactionRow[] = [
+      makeRow({ upsellNo: 0, productName: "M3 - Slimjara - 6 Bottles", country: "DE", earnings: 40, grossAmount: 294 }),
+    ];
+    const m = computeFromFiltered(rows);
+    // capitalCost = 294 × 0,10 × (60/365) × 0,20 = 0,9666
+    expect(m.capitalCost).toBeCloseTo(0.97, 2);
+    // valorLiq = 40 − 19,56 (produto) − 9,42 (frete) − 0,9666 (capital) = 10,0534
+    expect(m.valorLiq).toBeCloseTo(10.05, 2);
+    // reconciliação exata do breakdown
+    expect(m.valorLiq).toBeCloseTo(m.earnings - m.productCost - m.shippingCost - m.capitalCost, 6);
+  });
+
+  it("CAP-02: por afiliado desconta capital e reconcilia com o global", () => {
+    const rows: TransactionRow[] = [
+      makeRow({ affiliate: "affX", upsellNo: 0, productName: "M3 - Slimjara - 6 Bottles", country: "DE", earnings: 40, grossAmount: 294 }),
+      makeRow({ affiliate: "affX", upsellNo: 1, productName: "UP3 - Slimjara - 12 Bottles", earnings: 100, grossAmount: 288 }),
+    ];
+    const m = computeFromFiltered(rows);
+    const aff = m.topAffiliates.find((a) => a.name === "affX")!;
+    // front 10,0534 + upsell 59,9332 = 69,9866
+    expect(aff.valorLiq).toBeCloseTo(69.99, 2);
+    expect(aff.valorLiq).toBeCloseTo(m.valorLiq, 6);
+  });
+
+  it("CAP-03: refund/CB não gera nem reverte custo de capital", () => {
+    const rows: TransactionRow[] = [
+      makeRow({ upsellNo: 0, productName: "M3 - Slimjara - 6 Bottles", country: "DE", earnings: 40, grossAmount: 294 }),
+      makeRow({ transactionType: "refund", upsellNo: 0, productName: "M3 - Slimjara - 6 Bottles", country: "DE", earnings: -40, grossAmount: 294 }),
+    ];
+    const m = computeFromFiltered(rows);
+    // capital só do pagamento (294), não do refund
+    expect(m.capitalCost).toBeCloseTo(0.97, 2);
   });
 });
 

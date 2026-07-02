@@ -2,6 +2,11 @@
 export const CUSTOMER_SHIPPING_AMOUNT = 20;
 export const CUSTOMER_SHIPPING_COUNTRIES = new Set(["LU", "CH"]);
 
+// Custo de capital + provisão (§8.1): a Digistore retém 10% do gross por 60 dias.
+// Custo de oportunidade + provisão contra chargebacks: 20% a.a. sobre a reserva.
+// Fator efetivo por pagamento ≈ 0,3288% do gross. Refunds/CB não revertem.
+export const CAPITAL_COST_FACTOR = 0.10 * (60 / 365) * 0.20;
+
 // ─── Per-Product Cost (€ per bottle) ────────────────────────────────────────
 export type ProductCategory = "slimjara" | "lipoGandha" | "liposkin" | "erectus" | "memoguard";
 

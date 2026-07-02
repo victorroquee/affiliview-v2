@@ -52,8 +52,9 @@ Abaixo o progresso de implementação de cada componente lógico documentado nes
 - **Lógica documentada em**: `valor_liquido.md`
 - **Implementado em**: `src/lib/transactions.ts` → `computePeriod()` (`valorLiq`) + `getFulfillmentBreakdown()`
 - Front: earnings − (produto + frete, com desconto Z6). Upsell: earnings − custo de produto (`detectBottles` × custo/frasco, **sem** frete)
-- Acumula custos totais de produto (front + upsells) e frete (só front) para breakdown
-- Refunds/CB de front **e** upsell reduzem o Valor Líquido (apenas earnings é estornado; fulfillment é sunk cost)
+- Custo de capital + provisão (§8.1): gross × `CAPITAL_COST_FACTOR` (~0,33%) por pagamento — reserva de 10% da Digistore por 60 dias a 20% a.a.
+- Acumula custos totais de produto (front + upsells), frete (só front) e capital para breakdown
+- Refunds/CB de front **e** upsell reduzem o Valor Líquido (apenas earnings é estornado; fulfillment é sunk cost, capital não reverte)
 
 ### ✅ Etapa 8 — AOV (Ticket Médio)
 - **Lógica documentada em**: `aov.md`

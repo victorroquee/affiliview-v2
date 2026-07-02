@@ -190,7 +190,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 icon={Wallet}
                 label="Valor Líquido"
                 value={formatEur(metrics.valorLiq)}
-                info="Earnings menos o COGS: front paga produto + frete; upsells pagam só produto (enviados no mesmo pacote). Representa o lucro operacional direto após custos variáveis."
+                info="Earnings menos COGS e custo de capital: front paga produto + frete; upsells pagam só produto (mesmo pacote); capital ~0,33% do gross (reserva Digistore 10% por 60 dias). Lucro operacional direto após custos variáveis."
                 color="green"
               />
               <KPICard

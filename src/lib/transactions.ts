@@ -1,4 +1,4 @@
-import { getFulfillmentBreakdown, getFulfillmentCost, detectBottles, getProductCostPerBottle } from "./costTable";
+import { getFulfillmentBreakdown, getFulfillmentCost, detectBottles, getProductCostPerBottle, CAPITAL_COST_FACTOR } from "./costTable";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface TransactionRow {
@@ -28,6 +28,7 @@ export interface PeriodMetrics {
   valorLiq: number;
   productCost: number;
   shippingCost: number;
+  capitalCost: number;  // §8.1 — 10% retidos 60 dias × 20% a.a. sobre o gross dos pagamentos
   aov: number;
   sales: number;
   refundPct: number;
@@ -618,7 +619,10 @@ export function computePeriod(
     productCostTotal += pCost;
     cogsTotal        += pCost;
   }
-  const valorLiq = earningsKPI - cogsTotal;
+  // Custo de capital + provisão (§8.1): sobre o gross de TODOS os pagamentos.
+  // Refunds/CB não geram nem revertem capital (o custo do dinheiro parado já ocorreu).
+  const capitalCostTotal = grossBruto * CAPITAL_COST_FACTOR;
+  const valorLiq = earningsKPI - cogsTotal - capitalCostTotal;
 
   // ── Activated 2K ──────────────────────────────────────────────────────────
   // Affiliates whose total affiliate_amount (CPA received) >= €2000 in the period.
@@ -800,7 +804,7 @@ export function computePeriod(
     };
     e.vendas   += 1;
     e.gross    += t.grossAmount;
-    e.valorLiq += t.earnings - getFulfillmentCost(t.productName, t.country, true);
+    e.valorLiq += t.earnings - getFulfillmentCost(t.productName, t.country, true) - t.grossAmount * CAPITAL_COST_FACTOR;
     bundleMap.set(name, e);
   }
   for (const t of frontRefCbTxs) {
@@ -841,7 +845,7 @@ export function computePeriod(
   };
   for (const t of payTxs) {
     if (t.upsellNo === 0) continue;
-    attributeUpsellProfit(t, t.earnings - detectBottles(t.productName) * getProductCostPerBottle(t.productName));
+    attributeUpsellProfit(t, t.earnings - detectBottles(t.productName) * getProductCostPerBottle(t.productName) - t.grossAmount * CAPITAL_COST_FACTOR);
   }
   for (const t of refCbTxs) {
     if (t.upsellNo === 0) continue;
@@ -882,12 +886,12 @@ export function computePeriod(
     if (t.upsellNo === 0) {
       e.sales      += 1;               // count only front orders as "sales"
       e.frontGross += t.grossAmount;   // AOV numerator: only upsell_no === 0 gross
-      // Front: earnings − fulfillment completo (produto + envio)
-      e.liq += t.earnings - getFulfillmentCost(t.productName, t.country, true);
+      // Front: earnings − fulfillment completo (produto + envio) − capital
+      e.liq += t.earnings - getFulfillmentCost(t.productName, t.country, true) - t.grossAmount * CAPITAL_COST_FACTOR;
     } else {
-      // Upsell: earnings − custo de produto apenas (enviado no mesmo pacote)
+      // Upsell: earnings − custo de produto (mesmo pacote, sem envio) − capital
       const bottles = detectBottles(t.productName);
-      e.liq += t.earnings - (bottles * getProductCostPerBottle(t.productName));
+      e.liq += t.earnings - (bottles * getProductCostPerBottle(t.productName)) - t.grossAmount * CAPITAL_COST_FACTOR;
     }
     affMap.set(n, e);
   }
@@ -937,6 +941,7 @@ export function computePeriod(
     valorLiq,
     productCost:  productCostTotal,
     shippingCost: shippingCostTotal,
+    capitalCost:  capitalCostTotal,
     aov,
     sales: frontSales,
     refundPct:    rPct,

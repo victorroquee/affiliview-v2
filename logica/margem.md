@@ -27,6 +27,7 @@ amount (gross)
 = earned_amount
   ↓ deduz: Custo de Produto (custo/frasco por produto × frascos) — front + upsells
   ↓ deduz: Custo de Frete (tabela por zona vat_country) — apenas front (upsells no mesmo pacote)
+  ↓ deduz: Custo de Capital + provisão (~0,33% do gross por pagamento)
 = Valor Líquido
 
 Margem % = Valor Líquido / Gross × 100

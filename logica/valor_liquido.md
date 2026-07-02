@@ -8,13 +8,14 @@ O lucro real por período após descontar todos os custos operacionais de cada v
 ## Fórmula
 
 ```
-Valor Líquido = earningsKPI − COGS(front) − COGS(upsells)
+Valor Líquido = earningsKPI − COGS(front) − COGS(upsells) − Custo de Capital
 ```
 
 Onde:
 - **earningsKPI** = SUM(earned_amount) de TODOS os pagamentos (front + upsells) + refunds/CB (negativos)
 - **COGS front** = custo de produto + custo de envio (por transação frontal)
 - **COGS upsell** = custo de produto apenas (upsells são enviados no mesmo pacote, sem envio extra)
+- **Custo de Capital** = gross × 0,10 × (60/365) × 0,20 por pagamento (§ Custo de Capital abaixo)
 
 > Upsells são garrafas adicionais enviadas junto com o pedido frontal. Geram custo de produto mas **não** custo de envio adicional. Refunds não geram novo COGS (sunk cost).
 
@@ -38,6 +39,16 @@ Aplica-se a **todos os pagamentos** (front e upsells).
 Custo de envio ao cliente, baseado em tabela por zona geográfica (`vat_country`) e quantidade de frascos. Ver `custo_frete.md` para a tabela completa de zonas.
 
 Aplica-se **somente a pagamentos frontais** (`upsell_no === 0`). Upsells vão no mesmo pacote.
+
+### 4. Custo de Capital + Provisão
+A Digistore retém **10% do gross por 60 dias** (reserva). O custo de oportunidade + provisão contra chargebacks é estimado em **20% a.a.** sobre essa reserva:
+```
+Custo de Capital = grossAmount × 0,10 × (60/365) × 0,20  ≈ 0,329% do gross
+```
+- Aplica-se a **todos os pagamentos** (front e upsells)
+- Refunds/CB **não geram nem revertem** capital (o custo do dinheiro parado já ocorreu)
+- Constante: `CAPITAL_COST_FACTOR` em `costTable.ts`
+- Impacto: ~€0,97 numa venda de €294
 
 ---
 
@@ -124,13 +135,14 @@ e.liq += t.earnings;  // valor negativo (estorno)
 
 ## Detalhamento do Valor Líquido
 
-O `computePeriod()` acumula e retorna as parcelas do cálculo (campos `productCost` e `shippingCost` em `PeriodMetrics`):
+O `computePeriod()` acumula e retorna as parcelas do cálculo (campos `productCost`, `shippingCost` e `capitalCost` em `PeriodMetrics`):
 - Earnings (ponto de partida — `earningsKPI`)
 - Menos: Custo de Produto total (front + upsells)
 - Menos: Custo de Frete total (apenas front)
+- Menos: Custo de Capital + provisão (todos os pagamentos)
 - **= Valor Líquido final**
 
-> Reconciliação: `valorLiq = earningsKPI − productCost − shippingCost`.
+> Reconciliação: `valorLiq = earningsKPI − productCost − shippingCost − capitalCost`.
 > ⚠️ Hoje o cartão "Valor Líquido" no Dashboard exibe apenas o **valor final + tooltip** (`KPICard`). O breakdown parcela-a-parcela ainda **não** é renderizado na UI — os campos `productCost`/`shippingCost` estão disponíveis para quando ele for construído.
 
 ---
@@ -177,7 +189,9 @@ for (const t of upsellPayments) {
   productCostTotal += pCost;
   cogsTotal        += pCost;
 }
-const valorLiq = earningsKPI - cogsTotal;
+// Custo de capital + provisão (§8.1) sobre o gross de todos os pagamentos
+const capitalCostTotal = grossBruto * CAPITAL_COST_FACTOR;
+const valorLiq = earningsKPI - cogsTotal - capitalCostTotal;
 ```
 
 **Arquivo**: `src/lib/costTable.ts` — funções `getFulfillmentBreakdown()`, `detectBottles()`, `getProductCostPerBottle()`
