@@ -4,6 +4,9 @@ import type { TransactionRow } from "../lib/transactions";
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type PresetKey = "today" | "last7" | "last30";
 
+// Data-âncora do "Tudo (desde o início)" — bem antes de qualquer transação real.
+export const ALL_TIME_FROM = "2020-01-01";
+
 export interface PeriodFilter {
   mode: "preset" | "custom";
   preset?: PresetKey;

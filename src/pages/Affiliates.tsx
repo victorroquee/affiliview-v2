@@ -12,8 +12,9 @@ import {
   formatPct,
   formatInt,
 } from "../lib/transactions";
-import { Users } from "lucide-react";
+import { Users, UserCheck, CircleDollarSign, Crown } from "lucide-react";
 import LoadingDot from "../components/LoadingDot";
+import HeroStat from "../components/HeroStat";
 import InfoTooltip from "../components/InfoTooltip";
 import AffiliateDrawer from "../components/AffiliateDrawer";
 import { useAffiliateTags } from "../hooks/useAffiliateTags";
@@ -75,6 +76,14 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
     const m = computeFromFiltered(filteredRows, periodDays);
     return m.topAffiliates.filter((a) => !isMaileonardo(a.name));
   }, [filteredRows, periodDays]);
+
+  // Métricas hero do período (sobre os afiliados que venderam no período)
+  const periodStats = useMemo(() => {
+    const gross = affiliates.reduce((s, a) => s + a.gross, 0);
+    const liq = affiliates.reduce((s, a) => s + a.valorLiq, 0);
+    const top = affiliates.reduce<AffiliateRow | null>((best, a) => (!best || a.gross > best.gross ? a : best), null);
+    return { sellersInPeriod: affiliates.length, gross, liq, top };
+  }, [affiliates]);
 
   const rankings: Map<string, AffiliateRankingInfo> = useMemo(
     () => computeAffiliateRankings(allRows.filter((r) => !isMaileonardo(r.affiliate))),
@@ -161,6 +170,14 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
     <>
       <div className="section-header">
         <h2>Resultados por Afiliado</h2>
+      </div>
+
+      {/* ── Herói: métricas de afiliados no período ── */}
+      <div className="hero-grid">
+        <HeroStat icon={UserCheck} label="Afiliados vendendo" value={formatInt(periodStats.sellersInPeriod)} sub="distintos com venda no período" info="Afiliados com ao menos uma venda (gross > 0) no período selecionado." />
+        <HeroStat icon={Users} label="Ativos (7d)" value={formatInt(activeCount)} sub={`${emRampaCount} em rampa · ${inativoCount} inativos`} color="green" info="Afiliados Tier 1/2/3 ou Ativo (≥10 vendas/7d) na janela móvel de 7 dias." />
+        <HeroStat icon={CircleDollarSign} label="Gross do período" value={formatEur(periodStats.gross)} sub={`Valor Líquido ${formatEur(periodStats.liq)}`} color="green" info="Soma do gross de todos os afiliados no período." />
+        <HeroStat icon={Crown} label="Top afiliado" value={periodStats.top ? periodStats.top.name : "—"} sub={periodStats.top ? `${formatEur(periodStats.top.gross)} · ${formatInt(periodStats.top.sales)} vendas` : ""} info="Maior gross no período." />
       </div>
 
       <div className="aff-summary-badges">
