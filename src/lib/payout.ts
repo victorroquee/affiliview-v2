@@ -117,8 +117,9 @@ export function computePayoutSchedule(
     if (t > maxT) maxT = t;
   }
   const rangeStart = new Date(minT);
-  // +10 dias além do maior entre último evento e asOf → garante capturar a próxima sexta
-  const rangeEnd = new Date(Math.max(maxT, asOf.getTime()) + 10 * 86400000);
+  // +21 dias além do maior entre último evento e asOf → garante ≥1 sexta ATIVA após
+  // qualquer evento, mesmo quando a 1ª sexta ≥ evento cai numa 5ª sexta pulada.
+  const rangeEnd = new Date(Math.max(maxT, asOf.getTime()) + 21 * 86400000);
 
   const fridays = listPayoutFridays(rangeStart, rangeEnd);
   const activeFridays = fridays.filter((f) => f.active).map((f) => f.date);

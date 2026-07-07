@@ -624,7 +624,10 @@ export function computePeriod(
   let processingCostTotal = 0;
   let cogsTotal = 0;
   // dailyCosts acumula por dia (front paga produto+frete+taxas; upsell só produto)
+  // orders = pedidos front DISTINTOS por dia (orderId), consistente com uniqueShippedOrders
   const dailyCostMap = new Map<string, DailyCostRow>();
+  const dayOrderSets = new Map<string, Set<string>>();
+  const orderKey = (t: TransactionRow) => t.orderId || `__row_${t.buyerId}_${t.date.getTime()}`;
   const dayRow = (t: TransactionRow): DailyCostRow => {
     const key = t.date.toISOString().split("T")[0]!;
     let d = dailyCostMap.get(key);
@@ -642,13 +645,16 @@ export function computePeriod(
     processingCostTotal += b.processing;
     cogsTotal          += b.total;
     const d = dayRow(t);
-    d.orders += 1;
     d.bottles += detectBottles(t.productName);
     d.productCost += b.product;
     d.shipping += b.shipping;
     d.fulfillmentFees += b.packaging + b.processing;
     d.totalCost += b.product + b.shipping + b.packaging + b.processing;
+    let set = dayOrderSets.get(d.date);
+    if (!set) { set = new Set(); dayOrderSets.set(d.date, set); }
+    set.add(orderKey(t));
   }
+  for (const [dk, row] of dailyCostMap) row.orders = dayOrderSets.get(dk)?.size ?? 0;
   // Upsells: custo de produto apenas (garrafas enviadas no mesmo pacote)
   const upsellPayments = payTxs.filter((t) => t.upsellNo > 0);
   for (const t of upsellPayments) {
