@@ -40,6 +40,8 @@ Custo de envio ao cliente, baseado em tabela por zona geográfica (`vat_country`
 
 Aplica-se **somente a pagamentos frontais** (`upsell_no === 0`). Upsells vão no mesmo pacote.
 
+> **Tier 2 (a partir de 2025-12-01):** além do frete, o Valor Líquido passa a deduzir também as **taxas de embalagem + processing** (€0,23/€0,35 + €0,47), embutidas no `total` retornado por `getFulfillmentBreakdown()` — expostas em `PeriodMetrics` como `fulfillmentFees` (= `packagingCost + processingCost`). Aplicam-se **somente a fronts**. Transações até 2025-11-30 (versão legada) não têm essas taxas. Ver `custos_operacionais.md` e `custo_frete.md`.
+
 ### 4. Custo de Capital + Provisão
 A Digistore retém **10% do gross por 60 dias** (reserva). O custo de oportunidade + provisão contra chargebacks é estimado em **20% a.a.** sobre essa reserva:
 ```
@@ -142,7 +144,7 @@ O `computePeriod()` acumula e retorna as parcelas do cálculo (campos `productCo
 - Menos: Custo de Capital + provisão (todos os pagamentos)
 - **= Valor Líquido final**
 
-> Reconciliação: `valorLiq = earningsKPI − productCost − shippingCost − capitalCost`.
+> Reconciliação: `valorLiq = earnings − productCost − shippingCost − fulfillmentFees − capitalCost` (o `fulfillmentFees` — embalagem + processing — só é não-nulo a partir de 2025-12-01, versão Tier 2).
 > ⚠️ Hoje o cartão "Valor Líquido" no Dashboard exibe apenas o **valor final + tooltip** (`KPICard`). O breakdown parcela-a-parcela ainda **não** é renderizado na UI — os campos `productCost`/`shippingCost` estão disponíveis para quando ele for construído.
 
 ---

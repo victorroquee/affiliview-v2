@@ -54,7 +54,39 @@ Países não listados → retornam **custo zero** (`{ product: 0, shipping: 0, t
 | 9 | 9,60 | 10,59 | 12,77 | 14,13 | 18,30 | 26,66 | 52,56 | 10,59 |
 | 12 | 9,60 | 10,59 | 12,77 | 14,13 | 18,30 | 26,66 | 52,56 | 10,59 |
 
-> Valores definidos em `costTable.ts` → constante `SHIPPING_TABLE`. Observar que 1, 2 e 3 frascos têm o mesmo custo de frete entre si; 9 e 12 frascos também são idênticos.
+> Valores definidos em `costTable.ts` → constante `SHIPPING_TABLE` (alias de `SHIPPING_TABLE_LEGACY`). Observar que 1, 2 e 3 frascos têm o mesmo custo de frete entre si; 9 e 12 frascos também são idênticos.
+
+> ⚠️ **Esta tabela legada vale apenas até 2025-11-30.** A partir de 2025-12-01 vigora a tabela **Tier 2** (ver seção abaixo).
+
+---
+
+## Versionamento por Data de Vigência
+
+O custo de fulfillment é **versionado por data**: cada transação usa a versão vigente na **sua própria data** → o histórico **não muda retroativamente** quando uma nova tabela entra em vigor. É a **fonte única** de custo (Valor Líquido, CPA e o painel de custos leem a mesma tabela).
+
+| Versão | Vigência | Frete | Embalagem | Processing |
+|--------|----------|-------|-----------|-----------|
+| `v1-legacy` | até **2025-11-30** | tabela legada acima (7,58 z1@1 etc.) | — | — |
+| `v2-tier2` | a partir de **2025-12-01** | tabela Tier 2 abaixo | €0,23 / €0,35 | €0,47 |
+
+- Corte: constante `TIER2_EFFECTIVE_FROM = Date.UTC(2025, 11, 1)` (01/12/2025, 00:00 UTC).
+- A seleção é feita por `selectCostVersion(date)`; sem data → assume a versão mais recente (Tier 2).
+- Além do frete, a Tier 2 introduz **embalagem** (€0,23 para 1–3 frascos; €0,35 para 6–12) e **processing** (€0,47 flat). O legado não tem essas taxas (= 0).
+- Por isso `getFulfillmentBreakdown()` agora recebe um parâmetro `date` (`getFulfillmentBreakdown(productName, countryCode, isFrontSale, date)`).
+
+### Tabela de Frete Tier 2 (€) — a partir de 2025-12-01
+
+Do PDF ShipOffers `Shipping_WL_Blend_EU` (SKU 6426-EU:WGHTLBLND), confirmada célula a célula. Frascos {1,2,3,6} compartilham o mesmo frete; {9,12} compartilham entre si.
+
+| Frascos | Z1 | Z2 | Z3 | Z4 | Z5 | Z6 | Z7 | UK |
+|---------|------|------|-------|-------|-------|-------|-------|------|
+| 1,2,3,6 | 8,60 | 9,44 | 11,12 | 12,96 | 17,11 | 24,49 | 50,33 | 9,44 |
+| 9,12 | 8,78 | 9,77 | 11,95 | 13,31 | 17,48 | 25,84 | 51,74 | 9,77 |
+
+- **Embalagem** (Tier 2): 1–3 frascos → **€0,23** ; 6–12 frascos → **€0,35**.
+- **Processing** (Tier 2): **€0,47** flat, independente de frascos/zona.
+
+> Definidos em `costTable.ts` → `SHIPPING_TABLE_TIER2`, `PACKAGING_TIER2`, `PROCESSING_FEE_TIER2`. A pipeline completa de custos diários está documentada em `custos_operacionais.md`.
 
 ---
 

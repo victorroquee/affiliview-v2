@@ -153,7 +153,10 @@ O sistema contempla cinco produtos (ver `PRODUCT_COSTS` em `costTable.ts`):
 | [vendas.md](./vendas.md) | Vendas (Sales Count) | API | Contagem de payments com upsell_no=0 |
 | [refund_chargeback.md](./refund_chargeback.md) | Refund % e Chargeback % | Calculado | Soma devoluções / Gross Bruto × 100 |
 | [custo_produto.md](./custo_produto.md) | Custo de Produto | Calculado | Frascos detectados × custo/frasco do produto (`PRODUCT_COSTS`) |
-| [custo_frete.md](./custo_frete.md) | Custo de Frete | Tabela | Tabela por zona geográfica × frascos |
+| [custo_frete.md](./custo_frete.md) | Custo de Frete | Tabela | Tabela por zona geográfica × frascos (versionada: legada até 2025-11-30, Tier 2 desde 2025-12-01) |
+| [custos_operacionais.md](./custos_operacionais.md) | Custos Operacionais (Fulfillment Diário) | Calculado | COGS + frete + embalagem + processing por dia; potes vendidos e pedidos com frete |
+| [payout_semanal.md](./payout_semanal.md) | Payout Semanal (Saque Digistore24) | Calculado | Ledger D+14/D+60, saque toda sexta, cap de 4/mês |
+| [auditoria_custos.md](./auditoria_custos.md) | Auditoria Custos & Payout (dados reais) | Auditoria | Checklist de avaliação + resultados reais (resíduos €0,00) |
 | [cpa.md](./cpa.md) | CPA (Custo por Aquisição) | Calculado | (Gross − Earnings) / Vendas Frontais |
 | [margem.md](./margem.md) | Margem % | Calculado | Valor Líquido / Gross × 100 |
 | [activated_2k.md](./activated_2k.md) | Activated ≥ €2k | Calculado | Afiliados com Gross ≥ €2.000 no período |
