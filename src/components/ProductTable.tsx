@@ -1,6 +1,7 @@
 import React from "react";
 import { formatEur, formatPct, formatInt, type ProductSummaryRow, type BundleRow, type AffiliateRow, type AffiliateRanking, type AffiliateRankingInfo } from "../lib/transactions";
 import InfoTooltip from "./InfoTooltip";
+import ProductAvatar from "./ProductAvatar";
 import { getRefundColor } from "../utils/colorThresholds";
 
 const RANKING_CLASS: Record<AffiliateRanking, string> = {
@@ -37,7 +38,9 @@ export const ProductSummaryTable: React.FC<ProductSummaryTableProps> = ({ data }
         <tbody>
           {data.map((row) => (
             <tr key={row.product}>
-              <td style={{ fontWeight: 600 }}>{row.product}</td>
+              <td style={{ fontWeight: 600 }}>
+                <span className="product-cell"><ProductAvatar product={row.product} />{row.product}</span>
+              </td>
               <td className="num green">{formatEur(row.grossRevenue)}</td>
               <td className="num">{formatEur(row.netRevenue)}</td>
               <td className="num">{formatEur(row.earnings)}</td>
@@ -91,7 +94,9 @@ export const BundlePerformanceTable: React.FC<BundlePerformanceTableProps> = ({ 
           {data.map((row) => (
             <tr key={row.bundle}>
               <td style={{ fontWeight: 600 }}>{row.bundle.replace(/^M\d+\s*/i, "")}</td>
-              <td style={{ color: "var(--text-3)", fontSize: 11 }}>{row.product}</td>
+              <td style={{ color: "var(--text-3)", fontSize: 11 }}>
+                <span className="product-cell"><ProductAvatar product={row.product} size={18} />{row.product}</span>
+              </td>
               <td className="num">{formatInt(row.vendas)}</td>
               <td className="num green">{formatEur(row.gross)}</td>
               <td className="num">{formatEur(row.netRevenue)}</td>

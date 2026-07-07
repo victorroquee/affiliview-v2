@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import EmptyState from "../components/EmptyState";
-import { ProductMixChart, RefundByProductChart, PRODUCT_COLORS } from "../components/Charts";
+import ProductAvatar from "../components/ProductAvatar";
+import { ProductMixChart, RefundByProductChart } from "../components/Charts";
 import { ProductSummaryTable, BundlePerformanceTable } from "../components/ProductTable";
 import {
   computeFromFiltered, computeBackendProducts,
@@ -51,10 +52,8 @@ const Produtos: React.FC<Props> = ({ filteredRows, periodDays, loading }) => {
         <span>Filtrar por produto:</span>
         <button className={`product-tab ${productFilter === "all" ? "active" : ""}`} onClick={() => setProductFilter("all")}>Todos</button>
         {products.map((p) => (
-          <button key={p} className={`product-tab ${productFilter === p ? "active" : ""}`} onClick={() => setProductFilter(p)}>
-            {PRODUCT_COLORS[p] && (
-              <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: PRODUCT_COLORS[p], marginRight: 6, flexShrink: 0, verticalAlign: "middle" }} />
-            )}
+          <button key={p} className={`product-tab product-tab--img ${productFilter === p ? "active" : ""}`} onClick={() => setProductFilter(p)}>
+            <ProductAvatar product={p} size={18} />
             {p}
           </button>
         ))}
