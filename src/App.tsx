@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import AffiliatesPage from "./pages/Affiliates";
-import CpaCalculator from "./pages/CpaCalculator";
 import CpaFixo from "./pages/CpaFixo";
 import CpaVariavel from "./pages/CpaVariavel";
 import PeriodBar from "./components/PeriodBar";
@@ -12,7 +11,7 @@ import { periodToApiParams } from "./utils/digiNormalizer";
 import type { PeriodFilter } from "./hooks/useFilters";
 import { INITIAL_PERIOD } from "./hooks/useFilters";
 
-type Page = "dashboard" | "affiliates" | "calculator" | "cpa-fixo" | "cpa-variavel";
+type Page = "dashboard" | "affiliates" | "cpa-fixo" | "cpa-variavel";
 
 const App: React.FC = () => {
   const [page, setPage] = useState<Page>("dashboard");
@@ -93,13 +92,8 @@ const App: React.FC = () => {
               filteredRows={filteredRows}
               loading={loading}
             />
-          ) : page === "cpa-variavel" ? (
-            <CpaVariavel
-              filteredRows={filteredRows}
-              loading={loading}
-            />
           ) : (
-            <CpaCalculator
+            <CpaVariavel
               filteredRows={filteredRows}
               loading={loading}
             />
