@@ -21,13 +21,20 @@ const mkRow = (o: Partial<TransactionRow>): TransactionRow => ({
 beforeEach(() => localStorage.clear());
 
 describe("rowsCache", () => {
-  it("CACHE-01: serialize/deserialize preserva Date e campos", () => {
-    const rows = [mkRow({ orderId: "X", grossAmount: 42 })];
+  it("CACHE-01: serialize/deserialize preserva Date, timestamp e campos", () => {
+    const rows = [mkRow({ orderId: "X", grossAmount: 42, timestamp: new Date("2026-05-04T08:30:00Z") })];
     const back = deserializeRows(serializeRows(rows));
     expect(back[0]!.date instanceof Date).toBe(true);
     expect(back[0]!.date.getTime()).toBe(rows[0]!.date.getTime());
+    expect(back[0]!.timestamp instanceof Date).toBe(true);
+    expect(back[0]!.timestamp!.getUTCHours()).toBe(8);
     expect(back[0]!.orderId).toBe("X");
     expect(back[0]!.grossAmount).toBe(42);
+  });
+
+  it("CACHE-01b: timestamp ausente permanece undefined", () => {
+    const back = deserializeRows(serializeRows([mkRow({})]));
+    expect(back[0]!.timestamp).toBeUndefined();
   });
 
   it("CACHE-02: write depois read por janela devolve as rows (datas como Date)", () => {

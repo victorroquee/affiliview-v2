@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { CalendarRange } from "lucide-react";
 import {
   type PeriodFilter, type PresetKey, PRESET_LABELS, ALL_TIME_FROM,
@@ -21,6 +21,16 @@ const PeriodBar: React.FC<PeriodBarProps> = ({
   period, setPeriod, activeDateFrom, activeDateTo, totalRows, isDateRangeValid,
 }) => {
   const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const pillRef = useRef<HTMLButtonElement>(null);
+
+  const toggleOpen = () => {
+    if (!open && pillRef.current) {
+      const r = pillRef.current.getBoundingClientRect();
+      setPos({ top: r.bottom + 6, left: r.left });
+    }
+    setOpen((o) => !o);
+  };
 
   const isCustom = period.mode === "custom";
   const isAll = isCustom && period.dateFrom === ALL_TIME_FROM;
@@ -58,14 +68,14 @@ const PeriodBar: React.FC<PeriodBarProps> = ({
 
         {/* Pill Personalizado + dropdown de calendário */}
         <div className="period-custom">
-          <button className={`period-btn pill ${isCustom ? "active" : ""}`} onClick={() => setOpen((o) => !o)}>
+          <button ref={pillRef} className={`period-btn pill ${isCustom ? "active" : ""}`} onClick={toggleOpen}>
             <CalendarRange size={13} strokeWidth={1.7} />
             {pillLabel}
           </button>
-          {open && (
+          {open && pos && (
             <>
               <div className="drp-backdrop" onClick={() => setOpen(false)} />
-              <div className="drp-dropdown">
+              <div className="drp-dropdown" style={{ top: pos.top, left: pos.left }}>
                 <DateRangePicker
                   from={isCustom && !isAll ? period.dateFrom : ""}
                   to={isCustom && !isAll ? period.dateTo : ""}

@@ -5,7 +5,7 @@ import type { TransactionRow } from "./transactions";
 const LS_KEY = "affiliview-rows-cache-v1";
 const MAX_WINDOWS = 6;
 
-type SerRow = Omit<TransactionRow, "date"> & { date: string };
+type SerRow = Omit<TransactionRow, "date" | "timestamp"> & { date: string; timestamp?: string };
 interface CacheEntry { rows: SerRow[]; fetchedAt: number; }
 type CacheMap = Record<string, CacheEntry>;
 
@@ -15,11 +15,11 @@ export function windowKey(from: string, to: string): string {
 }
 
 export function serializeRows(rows: TransactionRow[]): SerRow[] {
-  return rows.map((r) => ({ ...r, date: r.date.toISOString() }));
+  return rows.map((r) => ({ ...r, date: r.date.toISOString(), timestamp: r.timestamp?.toISOString() }));
 }
 
 export function deserializeRows(ser: SerRow[]): TransactionRow[] {
-  return ser.map((r) => ({ ...r, date: new Date(r.date) }));
+  return ser.map((r) => ({ ...r, date: new Date(r.date), timestamp: r.timestamp ? new Date(r.timestamp) : undefined }));
 }
 
 function readMap(): CacheMap {

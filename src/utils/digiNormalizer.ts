@@ -97,6 +97,14 @@ export function normalizeDigiTransaction(t: DigiAPITransaction): TransactionRow 
     ? new Date(rawDate.slice(0, 10) + "T00:00:00Z")
     : new Date(0);
 
+  // Timestamp completo (com hora) para o gráfico intradiário. `created_at` traz
+  // "YYYY-MM-DD HH:MM:SS"; interpretado como UTC (hora do relógio reportado). O campo
+  // `date` (só data) permanece a base de todo agrupamento/filtro por dia.
+  const rawTs = str("created_at", "transaction_created_at", "transaction_pay_date", "pay_date");
+  const timestamp = rawTs
+    ? new Date((rawTs.length > 10 ? rawTs.replace(" ", "T") : rawTs.slice(0, 10) + "T00:00:00") + "Z")
+    : date;
+
   // ── Transaction type ──────────────────────────────────────────────────────
   // Lowercase to avoid case-sensitivity bugs — Digistore may return mixed casing
   const transactionType = str("transaction_type").toLowerCase();
@@ -146,6 +154,7 @@ export function normalizeDigiTransaction(t: DigiAPITransaction): TransactionRow 
   // ── Other fields ──────────────────────────────────────────────────────────
   return {
     date,
+    timestamp,
     orderId:         str("purchase_id", "transaction_id"),
     buyerId:         str("buyer_id"),
     transactionType,

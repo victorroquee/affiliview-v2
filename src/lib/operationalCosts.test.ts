@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeFromFiltered } from "./transactions";
+import { computeFromFiltered, computeIntradayGross } from "./transactions";
 import type { TransactionRow } from "./transactions";
 
 function row(o: Partial<TransactionRow>): TransactionRow {
@@ -72,6 +72,47 @@ describe("Custos Operacionais — reconciliação do Valor Líquido com taxas", 
       m.earnings - m.productCost - m.shippingCost - m.fulfillmentFees - m.capitalCost,
       6
     );
+  });
+});
+
+describe("Timeline intradiária (gross por hora)", () => {
+  const at = (hour: number) => new Date(Date.UTC(2026, 4, 4, hour, 30, 0)); // 2026-05-04 HH:30
+
+  it("INTRA-01: dia passado → 24 horas (00h..23h) com valores nas horas certas", () => {
+    const rows = [
+      row({ grossAmount: 100, timestamp: at(8) }),
+      row({ grossAmount: 250, timestamp: at(14) }),
+    ];
+    const s = computeIntradayGross(rows, new Date("2026-06-01T09:00:00Z")); // outro dia → não é hoje
+    expect(s).toHaveLength(24);
+    expect(s.find((x) => x.date === "08h")!.value).toBe(100);
+    expect(s.find((x) => x.date === "14h")!.value).toBe(250);
+    expect(s.find((x) => x.date === "09h")!.value).toBe(0);
+  });
+
+  it("INTRA-02: hoje → estende até a hora atual", () => {
+    const rows = [row({ grossAmount: 50, timestamp: at(3) })];
+    const s = computeIntradayGross(rows, new Date("2026-05-04T10:00:00Z")); // hoje, hora 10
+    expect(s).toHaveLength(11); // 00h..10h
+    expect(s[s.length - 1]!.date).toBe("10h");
+    expect(s.find((x) => x.date === "03h")!.value).toBe(50);
+  });
+
+  it("INTRA-03: hoje → nunca trunca dados além da hora atual", () => {
+    const rows = [row({ grossAmount: 70, timestamp: at(20) })];
+    const s = computeIntradayGross(rows, new Date("2026-05-04T10:00:00Z")); // hora 10, mas há dado às 20h
+    expect(s).toHaveLength(21); // 00h..20h
+    expect(s.find((x) => x.date === "20h")!.value).toBe(70);
+  });
+
+  it("INTRA-04: refunds não entram; fallback para date quando sem timestamp", () => {
+    const rows = [
+      row({ grossAmount: 100, transactionType: "refund", timestamp: at(8) }),
+      row({ grossAmount: 40, date: new Date("2026-05-04T00:00:00Z") }), // sem timestamp → hora 0
+    ];
+    const s = computeIntradayGross(rows, new Date("2026-06-01T00:00:00Z"));
+    expect(s.find((x) => x.date === "08h")!.value).toBe(0);   // refund ignorado
+    expect(s.find((x) => x.date === "00h")!.value).toBe(40);  // fallback date → 00h
   });
 });
 

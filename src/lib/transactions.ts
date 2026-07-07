@@ -3,6 +3,7 @@ import { getFulfillmentBreakdown, getFulfillmentCost, detectBottles, getProductC
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface TransactionRow {
   date: Date;
+  timestamp?: Date;   // datetime completo (created_at, com hora) — usado no gráfico intradiário
   orderId: string;
   buyerId: string;
   transactionType: string;
@@ -1022,6 +1023,35 @@ export function computePeriod(
     bundleUpsellUnattributed,
     topAffiliates,
   };
+}
+
+// ─── Intraday gross (timeline por hora para período de 1 dia) ─────────────────
+/**
+ * Gross por hora (00h → última hora relevante) para uma janela de 1 dia.
+ * Usa o `timestamp` (created_at) de cada pagamento; cai para `date` se ausente.
+ * Se o dia for hoje, estende o eixo até `max(hora atual, última hora com dados)`
+ * — nunca trunca dados reais. Para dias passados, vai até 23h.
+ */
+export function computeIntradayGross(
+  rows: TransactionRow[],
+  now: Date
+): { date: string; value: number }[] {
+  if (rows.length === 0) return [];
+  const byHour = new Array(24).fill(0) as number[];
+  let maxWithData = 0;
+  for (const t of rows) {
+    if (!isPayment(t)) continue;
+    const h = (t.timestamp ?? t.date).getUTCHours();
+    byHour[h]! += t.grossAmount;
+    if (byHour[h]! > 0 && h > maxWithData) maxWithData = h;
+  }
+  const dayISO = rows[0]!.date.toISOString().slice(0, 10);
+  const isToday = dayISO === now.toISOString().slice(0, 10);
+  const lastHour = isToday ? Math.max(now.getUTCHours(), maxWithData) : 23;
+  return Array.from({ length: lastHour + 1 }, (_, h) => ({
+    date: `${String(h).padStart(2, "0")}h`,
+    value: byHour[h]!,
+  }));
 }
 
 // ─── Compute from pre-filtered rows (no internal date filter) ─────────────────

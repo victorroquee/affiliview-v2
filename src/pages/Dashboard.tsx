@@ -11,7 +11,7 @@ import { GrossEvolutionChart } from "../components/Charts";
 import { AffiliateTable } from "../components/ProductTable";
 import {
   type TransactionRow, type AffiliateRow, type AffiliateRankingInfo, type PeriodMetrics,
-  computeFromFiltered, computeAffiliateRankings, isMaileonardo, formatEur, formatPct, formatInt,
+  computeFromFiltered, computeAffiliateRankings, computeIntradayGross, isMaileonardo, formatEur, formatPct, formatInt,
 } from "../lib/transactions";
 import type { PayoutSchedule } from "../lib/payout";
 import type { Page } from "../App";
@@ -55,6 +55,13 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const drawerRanking: AffiliateRankingInfo | null = drawerAffiliate ? (rankings.get(drawerAffiliate.name) ?? null) : null;
 
+  // Período de 1 dia → timeline intradiária (gross por hora, 00h → agora), usando o
+  // timestamp (created_at). Evita o gráfico com um ponto só no modo "Hoje".
+  const intraday = useMemo(
+    () => (periodDays === 1 ? computeIntradayGross(filteredRows, new Date()) : null),
+    [filteredRows, periodDays]
+  );
+
   if (!metrics) {
     return <EmptyState loading={loading} title={error ? "Falha ao carregar" : "Nenhum dado no período"} hint={error ? "Verifique a conexão com a API Digistore24." : "Selecione um período com transações (Hoje, 7d, 30d) ou amplie a janela."} />;
   }
@@ -92,7 +99,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       {/* ── Evolução + Caixa (payout) ── */}
       <div className="dash-split">
         <div className="dash-split-main">
-          <GrossEvolutionChart data={metrics.dailyGross} periodDays={periodDays} />
+          <GrossEvolutionChart data={intraday ?? metrics.dailyGross} periodDays={periodDays} intraday={!!intraday} />
         </div>
         <button className="cash-panel" onClick={() => onNavigate("payout")} title="Abrir aba Payout">
           <div className="cash-panel-head"><CalendarClock size={14} strokeWidth={1.7} /> Caixa · Payout <ChevronRight size={14} strokeWidth={2} className="cash-panel-arrow" /></div>

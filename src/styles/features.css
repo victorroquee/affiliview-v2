@@ -263,7 +263,7 @@ td.num.red    { color: var(--red); }
 .period-custom { position: relative; }
 .period-btn.pill { display: inline-flex; align-items: center; gap: 5px; }
 .drp-backdrop { position: fixed; inset: 0; z-index: 70; }
-.drp-dropdown { position: absolute; top: 34px; left: 0; z-index: 71; }
+.drp-dropdown { position: fixed; z-index: 71; }
 .drp {
   width: 268px; background: var(--bg-primary); border: 1px solid var(--border);
   border-radius: var(--radius-lg); box-shadow: 0 14px 44px rgba(12,14,19,0.16); padding: 12px;
