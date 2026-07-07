@@ -127,3 +127,134 @@
 td.num.green  { color: var(--green); }
 td.num.yellow { color: var(--yellow); }
 td.num.red    { color: var(--red); }
+
+/* ============================================================
+   Redesign v2: topbar, hero, command-center, conferências
+   ============================================================ */
+
+/* ── Topbar direita ──────────────────────────────────────── */
+.topbar-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+
+/* Refresh status (estilo WHOOP) */
+.refresh-status {
+  display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 11px;
+  border: 1px solid var(--border); border-radius: 999px; background: var(--bg-primary);
+  font-size: 12px; color: var(--text-2); cursor: pointer; transition: background 0.15s;
+}
+.refresh-status:hover:not(:disabled) { background: var(--bg-tertiary); }
+.refresh-status:disabled { cursor: default; }
+.refresh-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+.refresh-status.ok  .refresh-dot { background: var(--green); }
+.refresh-status.err .refresh-dot { background: var(--red); }
+.refresh-status.busy .refresh-dot { background: #EAB308; animation: og-pulse 1s ease-in-out infinite; }
+.refresh-status.busy { color: #A16207; border-color: var(--yellow-bd); background: var(--yellow-bg); }
+.refresh-status.err  { color: var(--red); border-color: var(--red-bd); background: var(--red-bg); }
+@keyframes og-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.5); } }
+
+/* ── Header payout widget clicável + popover ─────────────── */
+.hw-payout-wrap { position: relative; }
+.hw-payout {
+  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px;
+  border: none; border-radius: 999px; background: var(--banner-bg); color: rgba(255,255,255,0.7);
+  font-size: 12px; cursor: pointer; transition: filter 0.15s;
+}
+.hw-payout:hover { filter: brightness(1.35); }
+.hw-payout-arrow { opacity: 0.5; }
+.hw-popover {
+  position: absolute; top: 38px; right: 0; width: 250px; z-index: 60;
+  background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  box-shadow: 0 12px 40px rgba(12,14,19,0.14); padding: 13px 14px;
+  opacity: 0; visibility: hidden; transform: translateY(-4px); transition: all 0.15s;
+}
+.hw-payout-wrap:hover .hw-popover { opacity: 1; visibility: visible; transform: translateY(0); }
+.hw-pop-title { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-3); font-weight: 600; }
+.hw-pop-amount { font-size: 24px; font-weight: 700; color: var(--green); margin: 4px 0 10px; }
+.hw-pop-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-2); padding: 3px 0; }
+.hw-pop-row b { margin-left: auto; color: var(--text-1); }
+.hw-pop-cta { margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-3); display: flex; align-items: center; gap: 3px; }
+
+/* ── Hero grid (KPIs chave) ──────────────────────────────── */
+.dash-actions { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+.hero-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+.hero-stat {
+  background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 16px 18px; transition: box-shadow 0.15s, transform 0.1s;
+}
+.hero-stat.clickable { cursor: pointer; }
+.hero-stat.clickable:hover { box-shadow: 0 6px 20px rgba(12,14,19,0.07); transform: translateY(-1px); }
+.hero-stat-top { display: flex; align-items: center; gap: 8px; color: var(--text-2); font-size: 12.5px; font-weight: 500; }
+.hero-stat-icon { width: 26px; height: 26px; border-radius: 7px; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center; color: var(--text-2); }
+.hero-stat-value { font-size: 30px; font-weight: 700; letter-spacing: -0.5px; color: var(--text-1); margin: 10px 0 3px; }
+.hero-stat-value.green { color: var(--green); }
+.hero-stat-value.red { color: var(--red); }
+.hero-stat-value.yellow { color: var(--yellow); }
+.hero-stat-sub { font-size: 11.5px; color: var(--text-3); }
+
+/* ── Split: evolução + caixa ─────────────────────────────── */
+.dash-split { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 14px; align-items: stretch; }
+.dash-split-main { min-width: 0; }
+.cash-panel {
+  text-align: left; background: radial-gradient(120% 120% at 90% 0%, #132210 0%, var(--banner-bg) 70%);
+  border: none; border-radius: var(--radius-lg); padding: 16px 18px; color: #fff; cursor: pointer;
+  display: flex; flex-direction: column; transition: filter 0.15s;
+}
+.cash-panel:hover { filter: brightness(1.2); }
+.cash-panel-head { display: flex; align-items: center; gap: 7px; font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 600; }
+.cash-panel-arrow { margin-left: auto; }
+.cash-panel-hero { margin: 14px 0; }
+.cash-panel-label { display: block; font-size: 11px; color: rgba(255,255,255,0.5); }
+.cash-panel-value { font-size: 30px; font-weight: 700; color: var(--lime); letter-spacing: -0.5px; }
+.cash-panel-rows { margin-top: auto; display: flex; flex-direction: column; gap: 7px; }
+.cash-panel-rows > div { display: flex; align-items: center; gap: 7px; font-size: 12px; color: rgba(255,255,255,0.7); }
+.cash-panel-rows b { margin-left: auto; color: #fff; }
+
+/* ── KPI grid 6 col ──────────────────────────────────────── */
+.kpi-grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+
+/* ── Quicklinks p/ abas ──────────────────────────────────── */
+.dash-quicklinks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0; }
+.dash-quicklinks button {
+  display: flex; align-items: center; gap: 11px; text-align: left; padding: 13px 15px;
+  background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  cursor: pointer; color: var(--text-1); transition: border-color 0.15s, box-shadow 0.15s;
+}
+.dash-quicklinks button:hover { border-color: var(--border-strong); box-shadow: 0 4px 14px rgba(12,14,19,0.06); }
+.dash-quicklinks button > svg:first-child { color: var(--green); flex-shrink: 0; }
+.dash-quicklinks button > svg:last-child { margin-left: auto; color: var(--text-3); flex-shrink: 0; }
+.dash-quicklinks button div { display: flex; flex-direction: column; min-width: 0; }
+.dash-quicklinks button b { font-size: 13px; }
+.dash-quicklinks button span { font-size: 11px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Conferências ────────────────────────────────────────── */
+.conf-toolbar { display: flex; align-items: center; gap: 8px; margin: 4px 0 12px; flex-wrap: wrap; }
+.conf-toolbar-label { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-2); font-weight: 600; }
+.conf-toolbar-note { font-size: 12px; color: var(--text-3); margin-left: 6px; }
+.conf-select { height: 30px; padding: 0 10px; border: 1px solid var(--border-strong); border-radius: var(--radius); font-size: 13px; background: var(--bg-primary); color: var(--text-1); max-width: 280px; }
+.conf-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+.conf-badge.ok { background: var(--green-bg); color: var(--green-text); }
+.conf-badge.watch { background: var(--yellow-bg); color: var(--yellow); }
+.conf-badge.over { background: var(--red-bg); color: var(--red); }
+.conf-kind { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 5px; background: var(--bg-tertiary); color: var(--text-2); }
+.conf-kind.front { background: var(--green-bg); color: var(--green-text); }
+.conf-kind.upsell { background: var(--blue-bg); color: var(--blue); }
+.conf-kind.refund { background: var(--red-bg); color: var(--red); }
+.conf-vl-totals { display: flex; flex-wrap: wrap; gap: 20px; padding: 14px 18px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.conf-vl-totals > div { display: flex; flex-direction: column; }
+.conf-vl-totals span { font-size: 11px; color: var(--text-3); }
+.conf-vl-totals b { font-size: 16px; color: var(--text-1); font-variant-numeric: tabular-nums; }
+.conf-vl-liq b { color: var(--green); }
+.conf-vl-table { font-size: 12px; }
+.conf-vl-table .mono { font-family: ui-monospace, monospace; font-size: 11px; color: var(--text-3); }
+.conf-vl-prod { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Sidebar agrupada ────────────────────────────────────── */
+.sidebar-nav--grouped { gap: 2px; }
+.sidebar-group { margin-bottom: 10px; }
+.sidebar-group .sidebar-section-label { margin-top: 8px; }
+
+@media (max-width: 1100px) {
+  .hero-grid { grid-template-columns: repeat(2, 1fr); }
+  .kpi-grid-6 { grid-template-columns: repeat(3, 1fr); }
+  .dash-split { grid-template-columns: 1fr; }
+  .dash-quicklinks { grid-template-columns: 1fr; }
+}

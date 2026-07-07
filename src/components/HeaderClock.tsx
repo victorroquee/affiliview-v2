@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { Clock, CalendarClock } from "lucide-react";
+import { Clock, CalendarClock, PiggyBank, Hourglass, ChevronRight } from "lucide-react";
 import { formatEur } from "../lib/transactions";
 
 interface Props {
   nextPayoutDate: string | null; // "YYYY-MM-DD" (sexta)
   nextPayoutAmount: number;
+  pendingReserve: number;
+  pendingClearing: number;
+  onOpenPayout: () => void;
 }
 
-/** Relógio ao vivo + countdown para o próximo payout Digistore (sexta). */
-const HeaderClock: React.FC<Props> = ({ nextPayoutDate, nextPayoutAmount }) => {
+/** Relógio ao vivo + widget de payout (clicável → aba Payout; hover mostra mais infos). */
+const HeaderClock: React.FC<Props> = ({
+  nextPayoutDate, nextPayoutAmount, pendingReserve, pendingClearing, onOpenPayout,
+}) => {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -20,7 +25,6 @@ const HeaderClock: React.FC<Props> = ({ nextPayoutDate, nextPayoutAmount }) => {
 
   let countdown = "—";
   if (nextPayoutDate) {
-    // payout referenciado ao início da sexta (00:00 UTC) — aproximação para o countdown
     const target = new Date(nextPayoutDate + "T00:00:00Z").getTime();
     const diff = target - now.getTime();
     if (diff <= 0) {
@@ -42,11 +46,26 @@ const HeaderClock: React.FC<Props> = ({ nextPayoutDate, nextPayoutAmount }) => {
         <span className="hw-time">{timeStr}</span>
         <span className="hw-date">{dateStr}</span>
       </div>
-      <div className="hw-payout" title={nextPayoutDate ? `Próximo payout: ${nextPayoutDate}` : "Sem payout previsto"}>
-        <CalendarClock size={13} strokeWidth={1.6} />
-        <span className="hw-payout-label">Próx. payout</span>
-        <span className="hw-payout-cd">{countdown}</span>
-        {nextPayoutAmount > 0 && <span className="hw-payout-amt">{formatEur(nextPayoutAmount)}</span>}
+
+      {/* Widget de payout: clicável + hover popover */}
+      <div className="hw-payout-wrap">
+        <button className="hw-payout" onClick={onOpenPayout} title="Abrir aba Payout">
+          <CalendarClock size={13} strokeWidth={1.6} />
+          <span className="hw-payout-label">Próx. payout</span>
+          <span className="hw-payout-cd">{countdown}</span>
+          <ChevronRight size={12} strokeWidth={2} className="hw-payout-arrow" />
+        </button>
+
+        <div className="hw-popover" role="tooltip">
+          <div className="hw-pop-title">
+            <CalendarClock size={13} strokeWidth={1.7} />
+            Próximo payout {nextPayoutDate ? `· ${nextPayoutDate.slice(8, 10)}/${nextPayoutDate.slice(5, 7)}` : ""}
+          </div>
+          <div className="hw-pop-amount">{formatEur(nextPayoutAmount)}</div>
+          <div className="hw-pop-row"><PiggyBank size={12} strokeWidth={1.7} /> Reserva retida <b>{formatEur(pendingReserve)}</b></div>
+          <div className="hw-pop-row"><Hourglass size={12} strokeWidth={1.7} /> Em clearing (D+14) <b>{formatEur(pendingClearing)}</b></div>
+          <div className="hw-pop-cta">Clique para ver o schedule completo <ChevronRight size={11} strokeWidth={2} /></div>
+        </div>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import type { TransactionRow } from "../lib/transactions";
 import type { DigiAPIResponse } from "../utils/digiNormalizer";
 import { normalizeDigiTransactions } from "../utils/digiNormalizer";
+import { readRowsCache, writeRowsCache, windowKey } from "../lib/rowsCache";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -12,9 +13,10 @@ export interface FetchOptions {
 
 export interface UseDigistoreAPIReturn {
   rows:        TransactionRow[];
-  loading:     boolean;
+  loading:     boolean;   // true só quando NÃO há dados em cache para mostrar (cold start)
+  refreshing:  boolean;   // true durante revalidação em background sobre dados de cache
   error:       string | null;
-  lastFetched: string | null;
+  lastFetched: string | null;  // ISO da última busca bem-sucedida
   fetch:       (opts: FetchOptions) => Promise<void>;
   reset:       () => void;
 }
@@ -28,6 +30,7 @@ function sleep(ms: number): Promise<void> {
 export function useDigistoreAPI(): UseDigistoreAPIReturn {
   const [rows,        setRows]        = useState<TransactionRow[]>([]);
   const [loading,     setLoading]     = useState(false);
+  const [refreshing,  setRefreshing]  = useState(false);
   const [error,       setError]       = useState<string | null>(null);
   const [lastFetched, setLastFetched] = useState<string | null>(null);
 
@@ -41,7 +44,17 @@ export function useDigistoreAPI(): UseDigistoreAPIReturn {
     const controller = new AbortController();
     abortRef.current = controller;
 
-    setLoading(true);
+    // ── Instant-load: hidrata do cache e revalida em background ──────────────
+    const key = windowKey(from, to);
+    const cached = readRowsCache(key);
+    if (cached) {
+      setRows(cached.rows);
+      setLastFetched(new Date(cached.fetchedAt).toISOString());
+      setRefreshing(true);   // mostra dados salvos + indicador "atualizando"
+      setLoading(false);
+    } else {
+      setLoading(true);      // cold start — sem dados para mostrar
+    }
     setError(null);
 
     try {
@@ -53,11 +66,7 @@ export function useDigistoreAPI(): UseDigistoreAPIReturn {
         const params = new URLSearchParams({
           from,
           to,
-          // Only vendor transactions (where we are the seller)
           "search[role]":             "vendor",
-          // Digistore API only accepts: payment, refund, chargeback.
-          // Upsells come as transaction_type="payment" with upsell_no >= 1.
-          // Types like "sale", "upsell", "return", "reversal" cause HTTP 400.
           "search[transaction_type]": "payment,refund,chargeback",
           sort_by:    "date",
           sort_order: "asc",
@@ -90,16 +99,18 @@ export function useDigistoreAPI(): UseDigistoreAPIReturn {
       } while (page <= totalPages);
 
       setRows(all);
+      writeRowsCache(key, all, Date.now());
       setLastFetched(new Date().toISOString());
 
     } catch (err) {
       if ((err as Error).name === "AbortError") return; // fetch cancelado intencionalmente
+      // Se havia cache, mantém os dados salvos e só sinaliza o erro (não apaga a tela)
       setError((err as Error).message);
     } finally {
-      // Só reseta loading se este ainda é o fetch ativo.
-      // Se foi abortado (novo fetch já iniciou), não interfere com o loading do novo fetch.
+      // Só reseta se este ainda é o fetch ativo (evita corrida com um novo fetch)
       if (abortRef.current === controller) {
         setLoading(false);
+        setRefreshing(false);
       }
     }
   }, []);
@@ -110,5 +121,5 @@ export function useDigistoreAPI(): UseDigistoreAPIReturn {
     setLastFetched(null);
   }, []);
 
-  return { rows, loading, error, lastFetched, fetch, reset };
+  return { rows, loading, refreshing, error, lastFetched, fetch, reset };
 }

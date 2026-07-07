@@ -13,7 +13,7 @@ export interface PeriodFilter {
 
 export const INITIAL_PERIOD: PeriodFilter = {
   mode:   "preset",
-  preset: "last30",
+  preset: "today",   // abre em "Hoje"; 7d/30d já vêm no superset buscado (fatia client-side)
   dateFrom: "",
   dateTo:   "",
 };
