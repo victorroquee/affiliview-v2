@@ -1,14 +1,16 @@
 import React from "react";
-import { LayoutDashboard, Users, Calculator, TrendingUp, DollarSign } from "lucide-react";
+import { LayoutDashboard, Users, Calculator, TrendingUp, DollarSign, Banknote, LogOut } from "lucide-react";
 
-type Page = "dashboard" | "affiliates" | "cpa-fixo" | "cpa-variavel";
+type Page = "dashboard" | "affiliates" | "cpa-fixo" | "cpa-variavel" | "payout";
 
 interface SidebarProps {
   activePage: Page;
   onNavigate: (page: Page) => void;
+  onSignOut: () => void;
+  userEmail: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activePage, onNavigate }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activePage, onNavigate, onSignOut, userEmail }) => {
   return (
     <aside className="sidebar">
       {/* OG Group Logo */}
@@ -44,6 +46,14 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, onNavigate }) => {
           Afiliados
         </button>
         <button
+          className={`sidebar-link ${activePage === "payout" ? "active" : ""}`}
+          onClick={() => onNavigate("payout")}
+        >
+          <Banknote size={15} strokeWidth={1.4} />
+          Payout
+          <span className="sidebar-link-badge">NOVO</span>
+        </button>
+        <button
           className={`sidebar-link ${activePage === "cpa-variavel" ? "active" : ""}`}
           onClick={() => onNavigate("cpa-variavel")}
         >
@@ -56,7 +66,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, onNavigate }) => {
         >
           <DollarSign size={15} strokeWidth={1.4} />
           CPA Fixo
-          <span className="sidebar-link-badge">NOVO</span>
         </button>
       </nav>
 
@@ -65,8 +74,11 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, onNavigate }) => {
         <div className="sidebar-avatar">OG</div>
         <div className="sidebar-footer-info">
           <div className="sidebar-footer-name">OG Group</div>
-          <div className="sidebar-footer-role">Admin</div>
+          <div className="sidebar-footer-role" title={userEmail}>{userEmail || "Admin"}</div>
         </div>
+        <button className="sidebar-signout" onClick={onSignOut} title="Sair">
+          <LogOut size={15} strokeWidth={1.6} />
+        </button>
       </div>
     </aside>
   );

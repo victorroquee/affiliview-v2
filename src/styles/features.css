@@ -1,0 +1,129 @@
+/* ============================================================
+   Features: Login/Auth · Header clock+countdown · Payout · Custos
+   Desktop-only. Reaproveita os tokens de :root do index.css.
+   ============================================================ */
+
+@keyframes og-spin { to { transform: rotate(360deg); } }
+.spin { animation: og-spin 0.8s linear infinite; }
+
+/* ── Auth splash ─────────────────────────────────────────── */
+.auth-splash {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text-2);
+  font-size: 14px;
+  background: var(--bg-secondary);
+}
+
+/* ── Login ───────────────────────────────────────────────── */
+.login-screen {
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  background: var(--bg-secondary);
+}
+.login-aside {
+  background: radial-gradient(120% 120% at 20% 10%, #132210 0%, var(--sidebar-bg) 55%, #05080a 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 72px;
+  gap: 14px;
+}
+.login-aside-logo { width: 132px; height: auto; object-fit: contain; margin-bottom: 8px; }
+.login-aside-tag {
+  font-size: 11px; letter-spacing: 3px; font-weight: 700;
+  color: var(--lime);
+}
+.login-aside-title { font-size: 40px; font-weight: 700; margin: 0; letter-spacing: -0.5px; }
+.login-aside-sub { font-size: 15px; color: rgba(255,255,255,0.62); max-width: 360px; line-height: 1.5; margin: 0; }
+.login-aside-foot {
+  margin-top: 20px; display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; color: rgba(255,255,255,0.4);
+}
+
+.login-panel { display: flex; align-items: center; justify-content: center; padding: 24px; }
+.login-card {
+  width: 100%; max-width: 360px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 34px 30px;
+  box-shadow: 0 12px 40px rgba(12,14,19,0.08);
+  display: flex; flex-direction: column;
+}
+.login-mark {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: var(--green-bg); color: var(--green);
+  display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
+}
+.login-title { font-size: 22px; font-weight: 700; margin: 0 0 4px; color: var(--text-1); }
+.login-desc { font-size: 13px; color: var(--text-3); margin: 0 0 22px; }
+.login-label { font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; }
+.login-input {
+  width: 100%; box-sizing: border-box;
+  height: 40px; padding: 0 12px; margin-bottom: 16px;
+  border: 1px solid var(--border-strong); border-radius: var(--radius);
+  font-size: 14px; color: var(--text-1); background: var(--bg-primary);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.login-input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px var(--green-bg); }
+.login-error {
+  background: var(--red-bg); border: 1px solid var(--red-bd); color: var(--red);
+  font-size: 12.5px; padding: 8px 10px; border-radius: var(--radius); margin-bottom: 14px;
+}
+.login-btn {
+  height: 42px; border: none; border-radius: var(--radius);
+  background: var(--btn-dark); color: #fff; font-size: 14px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  cursor: pointer; transition: background 0.15s;
+}
+.login-btn:hover:not(:disabled) { background: var(--btn-dark-hov); }
+.login-btn:disabled { opacity: 0.65; cursor: default; }
+.login-foot { margin-top: 22px; text-align: center; font-size: 10.5px; letter-spacing: 1px; color: var(--text-3); }
+
+/* ── Header widgets (relógio + countdown) ────────────────── */
+.header-widgets { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.hw-clock, .hw-payout {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 30px; padding: 0 11px;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--bg-primary); color: var(--text-2); font-size: 12px;
+}
+.hw-time { font-weight: 700; color: var(--text-1); font-variant-numeric: tabular-nums; }
+.hw-date { color: var(--text-3); text-transform: capitalize; }
+.hw-payout { background: var(--banner-bg); border-color: transparent; color: rgba(255,255,255,0.7); }
+.hw-payout-label { color: rgba(255,255,255,0.5); }
+.hw-payout-cd { font-weight: 700; color: var(--lime); font-variant-numeric: tabular-nums; }
+.hw-payout-amt { font-weight: 700; color: #fff; }
+
+/* ── Sidebar logout ──────────────────────────────────────── */
+.sidebar-signout {
+  margin-left: auto; background: transparent; border: none;
+  color: var(--sidebar-text); cursor: pointer; padding: 6px; border-radius: 6px;
+  display: inline-flex; align-items: center; transition: color 0.15s, background 0.15s;
+}
+.sidebar-signout:hover { color: #fff; background: var(--sidebar-surface); }
+
+/* ── Section subtitle ────────────────────────────────────── */
+.section-sub { font-size: 12px; color: var(--text-3); margin-left: 10px; font-weight: 400; }
+
+/* ── Payout table ────────────────────────────────────────── */
+.payout-real-input {
+  width: 96px; box-sizing: border-box; height: 28px; padding: 0 8px;
+  border: 1px solid var(--border-strong); border-radius: 6px;
+  font-size: 12.5px; text-align: right; color: var(--text-1); background: var(--bg-primary);
+  font-variant-numeric: tabular-nums;
+}
+.payout-real-input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 2px var(--green-bg); }
+.payout-note { font-size: 12px; color: var(--text-3); margin: 10px 2px 0; }
+
+/* ── Table total row + delta colors ──────────────────────── */
+.table-total-row td { border-top: 2px solid var(--border-strong); background: var(--bg-secondary); }
+td.num.green  { color: var(--green); }
+td.num.yellow { color: var(--yellow); }
+td.num.red    { color: var(--red); }

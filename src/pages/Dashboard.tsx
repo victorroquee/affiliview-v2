@@ -11,9 +11,14 @@ import {
   BarChart2,
   UserX,
   FileDown,
+  CalendarClock,
+  PiggyBank,
+  Hourglass,
 } from "lucide-react";
 import KPICard from "../components/KPICard";
+import OperationalCosts from "../components/OperationalCosts";
 import LoadingDot from "../components/LoadingDot";
+import type { PayoutSchedule } from "../lib/payout";
 import { GrossEvolutionChart, ProductMixChart, RefundByProductChart, PRODUCT_COLORS } from "../components/Charts";
 import { ProductSummaryTable, BundlePerformanceTable, AffiliateTable } from "../components/ProductTable";
 import {
@@ -38,6 +43,7 @@ interface DashboardProps {
   filteredRows: TransactionRow[];
   allRows:      TransactionRow[];
   periodDays:   number | undefined;
+  payoutSchedule: PayoutSchedule;
   loading:      boolean;
   error:        string | null;
 }
@@ -46,6 +52,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   filteredRows,
   allRows,
   periodDays,
+  payoutSchedule,
   loading,
   error,
 }) => {
@@ -237,6 +244,35 @@ const Dashboard: React.FC<DashboardProps> = ({
               />
             </div>
           </div>
+
+          {/* ── Bloco: Caixa (Payout) ── */}
+          <div className="kpi-group">
+            <div className="kpi-group-label">Caixa &mdash; Payout Digistore</div>
+            <div className="kpi-grid">
+              <KPICard
+                icon={CalendarClock}
+                label="Próximo Payout"
+                value={formatEur(payoutSchedule.nextPayoutAmount)}
+                info={payoutSchedule.nextPayoutDate ? `Sexta ${payoutSchedule.nextPayoutDate}. Modelo D+14 (90%) + reserva 10% em D+60. Detalhes na aba Payout.` : "Sem próxima sexta prevista."}
+                color="green"
+              />
+              <KPICard
+                icon={PiggyBank}
+                label="Reserva Retida"
+                value={formatEur(payoutSchedule.pendingReserve)}
+                info="10% retido pela Digistore por 60 dias — ainda não sacável."
+              />
+              <KPICard
+                icon={Hourglass}
+                label="Em Clearing (D+14)"
+                value={formatEur(payoutSchedule.pendingClearing)}
+                info="90% de vendas recentes ainda dentro da janela de 14 dias."
+              />
+            </div>
+          </div>
+
+          {/* ── Custos Operacionais (COGS, potes, frete, pedidos, taxas) ── */}
+          <OperationalCosts metrics={metrics} />
 
           {/* ── Top Afiliados & Reembolsos ── */}
           <div className="section-header">
