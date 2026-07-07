@@ -234,10 +234,10 @@ describe("computePeriod — Custo de capital + provisão (§8.1)", () => {
     const m = computeFromFiltered(rows);
     // capitalCost = 294 × 0,10 × (60/365) × 0,20 = 0,9666
     expect(m.capitalCost).toBeCloseTo(0.97, 2);
-    // valorLiq = 40 − 19,56 (produto) − 9,42 (frete) − 0,9666 (capital) = 10,0534
+    // Tier 2 (data 2026-05-04): valorLiq = 40 − 19,56 (produto) − 8,60 (frete) − 0,82 (taxas) − 0,9666 (capital) = 10,0534
     expect(m.valorLiq).toBeCloseTo(10.05, 2);
-    // reconciliação exata do breakdown
-    expect(m.valorLiq).toBeCloseTo(m.earnings - m.productCost - m.shippingCost - m.capitalCost, 6);
+    // reconciliação exata do breakdown (inclui taxas de fulfillment)
+    expect(m.valorLiq).toBeCloseTo(m.earnings - m.productCost - m.shippingCost - m.fulfillmentFees - m.capitalCost, 6);
   });
 
   it("CAP-02: por afiliado desconta capital e reconcilia com o global", () => {

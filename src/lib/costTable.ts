@@ -40,8 +40,17 @@ export function getProductCostPerBottle(productName: string): number {
 // ─── Zone Types ───────────────────────────────────────────────────────────────
 export type ZoneKey = "z1" | "z2" | "z3" | "z4" | "z5" | "z6" | "z7" | "uk";
 
-// ─── Shipping Table (€ per zone × bottle count) ──────────────────────────────
-export const SHIPPING_TABLE: Record<number, Record<ZoneKey, number>> = {
+// ─── Shipping Tables (€ por zona × frascos) — versionadas por data ────────────
+//
+// Versionamento por data de vigência (ver logica/custo_frete.md):
+//   • v1-legacy  → transações até 2025-11-30 (tarifas antigas, sem taxas)
+//   • v2-tier2   → transações a partir de 2025-12-01 (PDF ShipOffers Tier 2)
+//
+// Cada transação usa a versão vigente na sua própria data → histórico não muda
+// retroativamente. É a fonte ÚNICA de custo (Valor Líquido, CPA, painel de custos).
+
+/** Tarifas de frete LEGADAS (vigentes até 2025-11-30). */
+export const SHIPPING_TABLE_LEGACY: Record<number, Record<ZoneKey, number>> = {
   1:  { z1: 7.58, z2: 8.25, z3: 9.60, z4: 11.07, z5: 14.39, z6: 20.29, z7: 40.96, uk: 8.25 },
   2:  { z1: 7.58, z2: 8.25, z3: 9.60, z4: 11.07, z5: 14.39, z6: 20.29, z7: 40.96, uk: 8.25 },
   3:  { z1: 7.58, z2: 8.25, z3: 9.60, z4: 11.07, z5: 14.39, z6: 20.29, z7: 40.96, uk: 8.25 },
@@ -49,6 +58,67 @@ export const SHIPPING_TABLE: Record<number, Record<ZoneKey, number>> = {
   9:  { z1: 9.60, z2: 10.59, z3: 12.77, z4: 14.13, z5: 18.30, z6: 26.66, z7: 52.56, uk: 10.59 },
   12: { z1: 9.60, z2: 10.59, z3: 12.77, z4: 14.13, z5: 18.30, z6: 26.66, z7: 52.56, uk: 10.59 },
 };
+
+/** Tarifas de frete TIER 2 (PDF ShipOffers, vigentes a partir de 2025-12-01).
+ *  Frascos {1,2,3,6} compartilham o mesmo frete; {9,12} compartilham entre si. */
+export const SHIPPING_TABLE_TIER2: Record<number, Record<ZoneKey, number>> = {
+  1:  { z1: 8.60, z2: 9.44, z3: 11.12, z4: 12.96, z5: 17.11, z6: 24.49, z7: 50.33, uk: 9.44 },
+  2:  { z1: 8.60, z2: 9.44, z3: 11.12, z4: 12.96, z5: 17.11, z6: 24.49, z7: 50.33, uk: 9.44 },
+  3:  { z1: 8.60, z2: 9.44, z3: 11.12, z4: 12.96, z5: 17.11, z6: 24.49, z7: 50.33, uk: 9.44 },
+  6:  { z1: 8.60, z2: 9.44, z3: 11.12, z4: 12.96, z5: 17.11, z6: 24.49, z7: 50.33, uk: 9.44 },
+  9:  { z1: 8.78, z2: 9.77, z3: 11.95, z4: 13.31, z5: 17.48, z6: 25.84, z7: 51.74, uk: 9.77 },
+  12: { z1: 8.78, z2: 9.77, z3: 11.95, z4: 13.31, z5: 17.48, z6: 25.84, z7: 51.74, uk: 9.77 },
+};
+
+/** Embalagem Tier 2 por frascos: poly bag pequena (≤3) €0,23; média (≥6) €0,35. */
+export const PACKAGING_TIER2: Record<number, number> = {
+  1: 0.23, 2: 0.23, 3: 0.23, 6: 0.35, 9: 0.35, 12: 0.35,
+};
+
+/** Processing fee Tier 2: €0,47 flat, independente de frascos/zona. */
+export const PROCESSING_FEE_TIER2 = 0.47;
+
+/** Alias de compatibilidade: SHIPPING_TABLE aponta para a tabela legada. */
+export const SHIPPING_TABLE = SHIPPING_TABLE_LEGACY;
+
+// ─── Registro de versões (ordem decrescente por vigência) ─────────────────────
+interface FulfillmentVersion {
+  version: string;
+  effectiveFrom: number; // timestamp UTC (ms) do início da vigência
+  shipping: Record<number, Record<ZoneKey, number>>;
+  packaging: Record<number, number>;
+  processing: number;
+}
+
+export const TIER2_EFFECTIVE_FROM = Date.UTC(2025, 11, 1); // 2025-12-01 (mês 11 = dezembro)
+
+const COST_VERSIONS: FulfillmentVersion[] = [
+  {
+    version: "v2-tier2",
+    effectiveFrom: TIER2_EFFECTIVE_FROM,
+    shipping: SHIPPING_TABLE_TIER2,
+    packaging: PACKAGING_TIER2,
+    processing: PROCESSING_FEE_TIER2,
+  },
+  {
+    version: "v1-legacy",
+    effectiveFrom: 0,
+    shipping: SHIPPING_TABLE_LEGACY,
+    packaging: {}, // sem taxas de embalagem no legado (→ 0)
+    processing: 0,
+  },
+];
+
+/** Seleciona a versão de custo vigente na data da transação.
+ *  Sem data → usa a versão mais recente (Tier 2). */
+function selectCostVersion(date?: Date): FulfillmentVersion {
+  if (!date) return COST_VERSIONS[0]!;
+  const t = date.getTime();
+  for (const v of COST_VERSIONS) {
+    if (t >= v.effectiveFrom) return v;
+  }
+  return COST_VERSIONS[COST_VERSIONS.length - 1]!;
+}
 
 const validCounts = [1, 2, 3, 6, 9, 12];
 
@@ -64,8 +134,8 @@ export const COUNTRY_ZONE: Record<string, ZoneKey> = {
   BG: "z4", HR: "z4", DK: "z4", LT: "z4", SI: "z4",
   // Z5
   EE: "z5", FI: "z5", LV: "z5", SE: "z5",
-  // Z6
-  CY: "z6", LU: "z6", MT: "z6", CH: "z6", LI: "z6", AE: "z6", GA: "z6",
+  // Z6 (AD Andorra adicionado no Tier 2)
+  CY: "z6", LU: "z6", MT: "z6", CH: "z6", LI: "z6", AE: "z6", GA: "z6", AD: "z6",
   // Z7
   IS: "z7", GE: "z7", MX: "z7", CA: "z7", DO: "z7", CL: "z7", UY: "z7", PY: "z7", MC: "z7", NO: "z7",
   // UK
@@ -81,7 +151,7 @@ const COUNTRY_NAME_TO_CODE: Record<string, string> = {
   bulgaria: "BG", croatia: "HR", denmark: "DK", lithuania: "LT", slovenia: "SI",
   estonia: "EE", finland: "FI", latvia: "LV", sweden: "SE",
   cyprus: "CY", luxembourg: "LU", malta: "MT", switzerland: "CH", schweiz: "CH", suisse: "CH",
-  liechtenstein: "LI", "united arab emirates": "AE", gabon: "GA",
+  liechtenstein: "LI", "united arab emirates": "AE", gabon: "GA", andorra: "AD",
   iceland: "IS", georgia: "GE", mexico: "MX", canada: "CA",
   "dominican republic": "DO", chile: "CL", uruguay: "UY", paraguay: "PY", monaco: "MC", norway: "NO",
   "united kingdom": "GB", "great britain": "GB", uk: "GB",
@@ -101,11 +171,11 @@ export function detectBottles(productName: string): number {
   // 0th: bundles "N+M" (ex.: "3+3 Kostenlos", "2F+1K") → soma frascos pagos + grátis
   // (as garrafas grátis são físicas e geram COGS de produto; ver custo_produto.md)
   const plus = n.match(/(\d+)\s*[a-z]*\s*\+\s*(\d+)/i);
-  if (plus) return parseInt(plus[1], 10) + parseInt(plus[2], 10);
+  if (plus) return parseInt(plus[1]!, 10) + parseInt(plus[2]!, 10);
 
   // 1st: keyword match (e.g. "6 Bottles", "3 Garrafas")
   const m = n.match(/(\d+)\s*(bottle|garrafa|frasco|b\b|pack|un|capsule|flasche)/i);
-  if (m) return parseInt(m[1], 10);
+  if (m) return parseInt(m[1]!, 10);
 
   // 2nd: fallback known counts in descending order
   if (n.includes("12")) return 12;
@@ -118,45 +188,68 @@ export function detectBottles(productName: string): number {
   return 1;
 }
 
+/** Arredonda a contagem de frascos para o tier de tabela mais próximo (1/2/3/6/9/12). */
+export function closestBottleTier(bottles: number): number {
+  return validCounts.reduce((prev, curr) =>
+    Math.abs(curr - bottles) < Math.abs(prev - bottles) ? curr : prev
+  );
+}
+
 // ─── Fulfillment Breakdown ───────────────────────────────────────────────────
 export interface FulfillmentBreakdown {
   product: number;
   shipping: number;
+  packaging: number;
+  processing: number;
   total: number;
 }
 
+/**
+ * Custo de fulfillment de um pedido frontal, na versão de custo vigente na `date`.
+ * total = produto + frete + embalagem + processing.
+ * Desconto Z6 (€20) aplica-se só ao frete, em vendas frontais para LU/CH.
+ */
 export function getFulfillmentBreakdown(
   productName: string,
   countryCode: string,
-  isFrontSale = true
+  isFrontSale = true,
+  date?: Date
 ): FulfillmentBreakdown {
   const cc = resolveCountryCode(countryCode);
   const zone = COUNTRY_ZONE[cc];
   if (!zone) {
-    return { product: 0, shipping: 0, total: 0 };
+    return { product: 0, shipping: 0, packaging: 0, processing: 0, total: 0 };
   }
 
-  const bottles = detectBottles(productName);
-  const closestCount = validCounts.reduce((prev, curr) =>
-    Math.abs(curr - bottles) < Math.abs(prev - bottles) ? curr : prev
-  );
+  const ver = selectCostVersion(date);
+  const closestCount = closestBottleTier(detectBottles(productName));
 
   const productCost = closestCount * getProductCostPerBottle(productName);
-  let shippingCost = SHIPPING_TABLE[closestCount][zone];
+  let shippingCost = ver.shipping[closestCount]![zone];
 
-  // Z6 discount: only for front sales (produto M) in LU and CH
+  // Desconto Z6: cliente paga €20 — apenas em vendas frontais (upsell_no === 0)
   if (isFrontSale && CUSTOMER_SHIPPING_COUNTRIES.has(cc)) {
     shippingCost = Math.max(0, shippingCost - CUSTOMER_SHIPPING_AMOUNT);
   }
 
-  return { product: productCost, shipping: shippingCost, total: productCost + shippingCost };
+  const packaging = ver.packaging[closestCount] ?? 0;
+  const processing = ver.processing;
+
+  return {
+    product: productCost,
+    shipping: shippingCost,
+    packaging,
+    processing,
+    total: productCost + shippingCost + packaging + processing,
+  };
 }
 
 // Helper to get just the total cost
 export function getFulfillmentCost(
   productName: string,
   countryCode: string,
-  isFrontSale = true
+  isFrontSale = true,
+  date?: Date
 ): number {
-  return getFulfillmentBreakdown(productName, countryCode, isFrontSale).total;
+  return getFulfillmentBreakdown(productName, countryCode, isFrontSale, date).total;
 }

@@ -26,9 +26,15 @@ export interface PeriodMetrics {
   grossBruto: number;   // alias of gross, kept for backward compat
   earnings: number;     // ALL payments + refund/CB deductions — alinhado com Digistore24 Your Earnings
   valorLiq: number;
-  productCost: number;
-  shippingCost: number;
+  productCost: number;      // COGS: custo de produto de TODOS os pagamentos (front + upsell)
+  shippingCost: number;     // frete (só front)
+  packagingCost: number;    // embalagem — front only, Tier 2 (§custos_operacionais)
+  processingCost: number;   // processing fee — front only, Tier 2
+  fulfillmentFees: number;  // packagingCost + processingCost
   capitalCost: number;  // §8.1 — 10% retidos 60 dias × 20% a.a. sobre o gross dos pagamentos
+  bottlesSold: number;      // Σ frascos físicos vendidos (front + upsell)
+  uniqueShippedOrders: number; // pedidos únicos com frete pago (orderIds distintos de fronts)
+  dailyCosts: DailyCostRow[];  // breakdown de custos operacionais por dia
   aov: number;
   sales: number;
   refundPct: number;
@@ -46,6 +52,16 @@ export interface PeriodMetrics {
   bundlePerformance: BundleRow[];
   bundleUpsellUnattributed: number; // lucro líquido de upsells sem front reconhecido no período
   topAffiliates: AffiliateRow[];
+}
+
+export interface DailyCostRow {
+  date: string;            // "YYYY-MM-DD"
+  orders: number;          // pedidos front (envios) do dia
+  bottles: number;         // Σ frascos físicos (front + upsell) do dia
+  productCost: number;     // COGS do dia (produto, front + upsell)
+  shipping: number;        // frete do dia (só front)
+  fulfillmentFees: number; // embalagem + processing do dia (só front)
+  totalCost: number;       // productCost + shipping + fulfillmentFees
 }
 
 export interface ProductSummaryRow {
@@ -604,12 +620,34 @@ export function computePeriod(
   // Front: produto + envio | Upsells: só produto (enviados no mesmo pacote, sem envio extra)
   let productCostTotal = 0;
   let shippingCostTotal = 0;
+  let packagingCostTotal = 0;
+  let processingCostTotal = 0;
   let cogsTotal = 0;
+  // dailyCosts acumula por dia (front paga produto+frete+taxas; upsell só produto)
+  const dailyCostMap = new Map<string, DailyCostRow>();
+  const dayRow = (t: TransactionRow): DailyCostRow => {
+    const key = t.date.toISOString().split("T")[0]!;
+    let d = dailyCostMap.get(key);
+    if (!d) {
+      d = { date: key, orders: 0, bottles: 0, productCost: 0, shipping: 0, fulfillmentFees: 0, totalCost: 0 };
+      dailyCostMap.set(key, d);
+    }
+    return d;
+  };
   for (const t of frontPayments) {
-    const b = getFulfillmentBreakdown(t.productName, t.country, true);
-    productCostTotal  += b.product;
-    shippingCostTotal += b.shipping;
-    cogsTotal         += b.total;
+    const b = getFulfillmentBreakdown(t.productName, t.country, true, t.date);
+    productCostTotal   += b.product;
+    shippingCostTotal  += b.shipping;
+    packagingCostTotal += b.packaging;
+    processingCostTotal += b.processing;
+    cogsTotal          += b.total;
+    const d = dayRow(t);
+    d.orders += 1;
+    d.bottles += detectBottles(t.productName);
+    d.productCost += b.product;
+    d.shipping += b.shipping;
+    d.fulfillmentFees += b.packaging + b.processing;
+    d.totalCost += b.product + b.shipping + b.packaging + b.processing;
   }
   // Upsells: custo de produto apenas (garrafas enviadas no mesmo pacote)
   const upsellPayments = payTxs.filter((t) => t.upsellNo > 0);
@@ -618,7 +656,19 @@ export function computePeriod(
     const pCost = bottles * getProductCostPerBottle(t.productName);
     productCostTotal += pCost;
     cogsTotal        += pCost;
+    const d = dayRow(t);
+    d.bottles += bottles;
+    d.productCost += pCost;
+    d.totalCost += pCost;
   }
+  const fulfillmentFeesTotal = packagingCostTotal + processingCostTotal;
+  const dailyCosts = Array.from(dailyCostMap.values()).sort((a, b) => a.date.localeCompare(b.date));
+
+  // ── Potes vendidos & pedidos únicos com frete pago ──────────────────────────
+  const bottlesSold = payTxs.reduce((s, t) => s + detectBottles(t.productName), 0);
+  const uniqueShippedOrders = new Set(
+    frontPayments.map((t) => t.orderId || `__row_${t.buyerId}_${t.date.getTime()}`)
+  ).size;
   // Custo de capital + provisão (§8.1): sobre o gross de TODOS os pagamentos.
   // Refunds/CB não geram nem revertem capital (o custo do dinheiro parado já ocorreu).
   const capitalCostTotal = grossBruto * CAPITAL_COST_FACTOR;
@@ -804,7 +854,7 @@ export function computePeriod(
     };
     e.vendas   += 1;
     e.gross    += t.grossAmount;
-    e.valorLiq += t.earnings - getFulfillmentCost(t.productName, t.country, true) - t.grossAmount * CAPITAL_COST_FACTOR;
+    e.valorLiq += t.earnings - getFulfillmentCost(t.productName, t.country, true, t.date) - t.grossAmount * CAPITAL_COST_FACTOR;
     bundleMap.set(name, e);
   }
   for (const t of frontRefCbTxs) {
@@ -886,8 +936,8 @@ export function computePeriod(
     if (t.upsellNo === 0) {
       e.sales      += 1;               // count only front orders as "sales"
       e.frontGross += t.grossAmount;   // AOV numerator: only upsell_no === 0 gross
-      // Front: earnings − fulfillment completo (produto + envio) − capital
-      e.liq += t.earnings - getFulfillmentCost(t.productName, t.country, true) - t.grossAmount * CAPITAL_COST_FACTOR;
+      // Front: earnings − fulfillment completo (produto + envio + taxas) − capital
+      e.liq += t.earnings - getFulfillmentCost(t.productName, t.country, true, t.date) - t.grossAmount * CAPITAL_COST_FACTOR;
     } else {
       // Upsell: earnings − custo de produto (mesmo pacote, sem envio) − capital
       const bottles = detectBottles(t.productName);
@@ -941,7 +991,13 @@ export function computePeriod(
     valorLiq,
     productCost:  productCostTotal,
     shippingCost: shippingCostTotal,
+    packagingCost:  packagingCostTotal,
+    processingCost: processingCostTotal,
+    fulfillmentFees: fulfillmentFeesTotal,
     capitalCost:  capitalCostTotal,
+    bottlesSold,
+    uniqueShippedOrders,
+    dailyCosts,
     aov,
     sales: frontSales,
     refundPct:    rPct,

@@ -52,7 +52,7 @@ describe("buildValorLiqBreakdown — reconciliação transação a transação",
     expect(front.kind).toBe("front");
     expect(front.bottles).toBe(6);
     expect(front.productCost).toBeCloseTo(19.56, 2);
-    expect(front.shippingCost).toBeCloseTo(9.42, 2);
+    expect(front.shippingCost).toBeCloseTo(8.60, 2); // Tier 2 (data 2026-06-27), z1@6
     const upsell = b.lines[1]!;
     expect(upsell.kind).toBe("upsell");
     expect(upsell.shippingCost).toBe(0); // mesmo pacote

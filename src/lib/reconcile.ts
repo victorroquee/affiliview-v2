@@ -32,6 +32,7 @@ export interface BreakdownLine {
   earnings: number;
   productCost: number;
   shippingCost: number;
+  fulfillmentFees: number; // embalagem + processing (front, Tier 2)
   capitalCost: number;
   liq: number; // contribuição desta transação ao Valor Líquido
 }
@@ -45,6 +46,7 @@ export interface BreakdownTotals {
   earningsKPI: number;
   productCost: number;
   shippingCost: number;
+  fulfillmentFees: number;
   capitalCost: number;
   cogsTotal: number;
   valorLiq: number;
@@ -67,7 +69,7 @@ export function buildValorLiqBreakdown(
   const totals: BreakdownTotals = {
     txCount: 0, frontCount: 0, upsellCount: 0, refundCbCount: 0,
     grossTotal: 0, earningsKPI: 0,
-    productCost: 0, shippingCost: 0, capitalCost: 0, cogsTotal: 0, valorLiq: 0,
+    productCost: 0, shippingCost: 0, fulfillmentFees: 0, capitalCost: 0, cogsTotal: 0, valorLiq: 0,
   };
 
   for (const t of filtered) {
@@ -79,14 +81,16 @@ export function buildValorLiqBreakdown(
     let kind: BreakdownLine["kind"];
     let productCost = 0;
     let shippingCost = 0;
+    let fulfillmentFees = 0;
     let capitalCost = 0;
     let bottles = detectBottles(t.productName);
 
     if (pay && t.upsellNo === 0) {
       kind = "front";
-      const b = getFulfillmentBreakdown(t.productName, t.country, true);
+      const b = getFulfillmentBreakdown(t.productName, t.country, true, t.date);
       productCost = b.product;
       shippingCost = b.shipping;
+      fulfillmentFees = b.packaging + b.processing;
       capitalCost = t.grossAmount * CAPITAL_COST_FACTOR;
       totals.frontCount += 1;
     } else if (pay) {
@@ -100,7 +104,7 @@ export function buildValorLiqBreakdown(
       totals.refundCbCount += 1;
     }
 
-    const liq = t.earnings - productCost - shippingCost - capitalCost;
+    const liq = t.earnings - productCost - shippingCost - fulfillmentFees - capitalCost;
 
     lines.push({
       date: t.date.toISOString().slice(0, 10),
@@ -116,6 +120,7 @@ export function buildValorLiqBreakdown(
       earnings: t.earnings,
       productCost,
       shippingCost,
+      fulfillmentFees,
       capitalCost,
       liq,
     });
@@ -125,10 +130,11 @@ export function buildValorLiqBreakdown(
     totals.earningsKPI += t.earnings;
     totals.productCost += productCost;
     totals.shippingCost += shippingCost;
+    totals.fulfillmentFees += fulfillmentFees;
     totals.capitalCost += capitalCost;
     totals.valorLiq += liq;
   }
 
-  totals.cogsTotal = totals.productCost + totals.shippingCost;
+  totals.cogsTotal = totals.productCost + totals.shippingCost + totals.fulfillmentFees;
   return { lines, totals };
 }

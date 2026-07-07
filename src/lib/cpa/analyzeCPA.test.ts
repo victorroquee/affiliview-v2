@@ -25,20 +25,20 @@ function makeRow(overrides: Partial<TransactionRow>): TransactionRow {
 }
 
 describe("analyzeCPA — COGS alinhado com costTable (fonte única)", () => {
-  it("CPA-01: front 3 frascos usa frete atualizado da SHIPPING_TABLE (7,58 z1, não 9,30)", () => {
+  it("CPA-01: front 3 frascos usa Tier 2 da costTable (frete 8,60 z1 + taxas)", () => {
     const rows = [makeRow({ productName: "M2 - Slimjara - 3 Bottles", country: "DE" })];
     const r = analyzeCPA(rows, 0);
     const v = r[0]!.variants.find((x) => x.variant === 2)!;
-    // 3 × 3,26 + 7,58 = 17,36 (tabela antiga do espelho CPA dava 19,08)
-    expect(v.frontCogsPer).toBeCloseTo(17.36, 2);
+    // Tier 2 (fonte única, tarifas atuais): 3 × 3,26 + 8,60 + 0,23 + 0,47 = 19,08
+    expect(v.frontCogsPer).toBeCloseTo(19.08, 2);
   });
 
-  it("CPA-02: front usa custo por produto (Liposkin 3,64/frasco)", () => {
+  it("CPA-02: front usa custo por produto (Liposkin 3,64/frasco) + Tier 2", () => {
     const rows = [makeRow({ productName: "M2 - Liposkin - 3 Bottles", country: "DE" })];
     const r = analyzeCPA(rows, 0);
     const v = r[0]!.variants.find((x) => x.variant === 2)!;
-    // 3 × 3,64 + 7,58 = 18,50 (espelho antigo usava 3,26 fixo)
-    expect(v.frontCogsPer).toBeCloseTo(18.50, 2);
+    // Tier 2: 3 × 3,64 + 8,60 + 0,23 + 0,47 = 20,22
+    expect(v.frontCogsPer).toBeCloseTo(20.22, 2);
   });
 
   it("CPA-03: upsell tem COGS só de produto — sem frete (mesmo pacote do front)", () => {
