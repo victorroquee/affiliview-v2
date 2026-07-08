@@ -102,6 +102,7 @@ Auditado em **2026-07-07** sobre **10.463 transações reais** (20.294 eventos):
 
 ## Onde é Usado
 - Projeção de payout semanal para comparação com o valor real pago pela Digistore24 (validação manual)
+- Base do **Net Amount** para a camada de reconciliação (Transfer Amount + anomalia) — ver [reconciliacao.md](./reconciliacao.md)
 
 ---
 

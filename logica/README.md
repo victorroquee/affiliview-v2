@@ -119,6 +119,14 @@ Abaixo o progresso de implementação de cada componente lógico documentado nes
 - Badge colorido de status (Scale/Watch/Probation)
 - Cores condicionais por threshold
 
+### ✅ Etapa 17 — Payout Semanal & Reconciliação
+- **Lógica documentada em**: `payout_semanal.md` (projeção) e `reconciliacao.md` (Net → Transfer)
+- **Implementado em**: `src/lib/payout.ts`, `src/hooks/usePayoutReconciliation.ts`, `src/pages/Payout.tsx`
+- Projeção do Net esperado por sexta (ledger D+14/D+60; reserva 10% **só sobre vendor_share positivo**)
+- Transfer Amount = Net esperado − invoice ShipOffers − SEPA €2,50 (entrada manual da invoice)
+- Detecção de anomalia (ratio Real/Esperado) + banner de alerta para payouts abaixo de 50% ou zerados
+- Persistência em Supabase (`payout_reconciliation`) dos valores manuais por sexta
+
 ---
 
 ## Regras Globais do Sistema
@@ -155,7 +163,8 @@ O sistema contempla cinco produtos (ver `PRODUCT_COSTS` em `costTable.ts`):
 | [custo_produto.md](./custo_produto.md) | Custo de Produto | Calculado | Frascos detectados × custo/frasco do produto (`PRODUCT_COSTS`) |
 | [custo_frete.md](./custo_frete.md) | Custo de Frete | Tabela | Tabela por zona geográfica × frascos (versionada: legada até 2025-11-30, Tier 2 desde 2025-12-01) |
 | [custos_operacionais.md](./custos_operacionais.md) | Custos Operacionais (Fulfillment Diário) | Calculado | COGS + frete + embalagem + processing por dia; potes vendidos e pedidos com frete |
-| [payout_semanal.md](./payout_semanal.md) | Payout Semanal (Saque Digistore24) | Calculado | Ledger D+14/D+60, saque toda sexta, cap de 4/mês |
+| [payout_semanal.md](./payout_semanal.md) | Payout Semanal (Saque Digistore24) | Calculado | Ledger D+14/D+60 (reserva só sobre vendor_share positivo), saque toda sexta, cap de 4/mês |
+| [reconciliacao.md](./reconciliacao.md) | Reconciliação de Payout (Net → Transfer) | Calculado + Manual | Transfer = Net − invoice ShipOffers − SEPA €2,50; detecção de anomalia (ratio Real/Esperado) |
 | [auditoria_custos.md](./auditoria_custos.md) | Auditoria Custos & Payout (dados reais) | Auditoria | Checklist de avaliação + resultados reais (resíduos €0,00) |
 | [cpa.md](./cpa.md) | CPA (Custo por Aquisição) | Calculado | (Gross − Earnings) / Vendas Frontais |
 | [margem.md](./margem.md) | Margem % | Calculado | Valor Líquido / Gross × 100 |
