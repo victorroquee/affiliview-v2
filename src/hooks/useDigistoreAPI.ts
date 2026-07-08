@@ -3,6 +3,7 @@ import type { TransactionRow } from "../lib/transactions";
 import type { DigiAPIResponse } from "../utils/digiNormalizer";
 import { normalizeDigiTransactions } from "../utils/digiNormalizer";
 import { readRowsCache, writeRowsCache, windowKey } from "../lib/rowsCache";
+import { supabase } from "../lib/supabase";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -44,6 +45,10 @@ export function useDigistoreAPI(): UseDigistoreAPIReturn {
     const controller = new AbortController();
     abortRef.current = controller;
 
+    // Token da sessão — o proxy /api/digistore exige Bearer válido (dados financeiros).
+    const { data: { session } } = await supabase.auth.getSession();
+    const accessToken = session?.access_token;
+
     // ── Instant-load: hidrata do cache e revalida em background ──────────────
     const key = windowKey(from, to);
     const cached = readRowsCache(key);
@@ -76,6 +81,7 @@ export function useDigistoreAPI(): UseDigistoreAPIReturn {
 
         const res = await window.fetch(`/api/digistore?${params}`, {
           signal: controller.signal,
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
         });
 
         if (!res.ok) {
