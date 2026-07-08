@@ -37,9 +37,11 @@ Payout da sexta = Σ eventos de saldo em (sexta ativa anterior, esta sexta]
 
 ### 1. Ledger por eventos (`buildPayoutEvents`)
 Cada transação gera eventos de saldo com uma **data** em que afetam o saldo:
-- **Pagamento** → dois eventos:
+- **Pagamento com `earned_amount` > 0** → dois eventos:
   - `clear`: `+90% × earned_amount` em **D+14**
   - `reserve`: `+10% × earned_amount` em **D+60**
+- **Pagamento com `earned_amount` ≤ 0** (ex.: M1/M2 cujo CPA zera o vendor_share) → **um** evento:
+  - `clear`: `earned_amount` (100%) em **D+14** — **sem reserva**. A retenção de 10% incide apenas sobre vendor_share **positivo** (regra confirmada no relatório de alinhamento §2.1/§4.2).
 - **Refund / Chargeback** → um evento `refund`: `earned_amount` (negativo) na **própria data do estorno**.
 
 ### 2. Sextas de saque com cap (`listPayoutFridays`)
@@ -112,9 +114,10 @@ Auditado em **2026-07-07** sobre **10.463 transações reais** (20.294 eventos):
 - `computePayoutSchedule(rows, { asOf })` → `PayoutSchedule` — varredura semanal, pendências e próxima sexta.
 
 ```typescript
-// buildPayoutEvents: cada pagamento → clear (D+14) + reserve (D+60)
-events.push({ date: addDaysUTC(t.date, CLEARING_DAYS), amount: (1 - RESERVE_PCT) * t.earnings, kind: "clear", ... });
-events.push({ date: addDaysUTC(t.date, RESERVE_DAYS),  amount: RESERVE_PCT * t.earnings,       kind: "reserve", ... });
+// buildPayoutEvents: reserva só sobre vendor_share positivo (clear + reserve = earnings)
+const reserve = t.earnings > 0 ? RESERVE_PCT * t.earnings : 0;
+events.push({ date: addDaysUTC(t.date, CLEARING_DAYS), amount: t.earnings - reserve, kind: "clear", ... });
+if (reserve > 0) events.push({ date: addDaysUTC(t.date, RESERVE_DAYS), amount: reserve, kind: "reserve", ... });
 // refund/CB → negativo na própria data
 events.push({ date: atMidnightUTC(t.date), amount: t.earnings, kind: "refund", ... });
 

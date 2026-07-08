@@ -55,16 +55,22 @@ export function buildPayoutEvents(rows: TransactionRow[]): PayoutEvent[] {
   for (const t of rows) {
     if (isPayment(t)) {
       const src = key(t.date);
+      // A reserva de 10% incide APENAS sobre vendor_share positivo (relatório §2.1/§4.2):
+      // vendas cujo CPA zera/negativa o earned_amount (M1/M2) não retêm reserva — o valor
+      // (negativo) libera 100% em D+14. Mantém a invariância clear + reserve = earnings.
+      const reserve = t.earnings > 0 ? RESERVE_PCT * t.earnings : 0;
       events.push({
         date: addDaysUTC(t.date, CLEARING_DAYS),
-        amount: (1 - RESERVE_PCT) * t.earnings,
+        amount: t.earnings - reserve,
         kind: "clear", orderId: t.orderId, sourceDate: src,
       });
-      events.push({
-        date: addDaysUTC(t.date, RESERVE_DAYS),
-        amount: RESERVE_PCT * t.earnings,
-        kind: "reserve", orderId: t.orderId, sourceDate: src,
-      });
+      if (reserve > 0) {
+        events.push({
+          date: addDaysUTC(t.date, RESERVE_DAYS),
+          amount: reserve,
+          kind: "reserve", orderId: t.orderId, sourceDate: src,
+        });
+      }
     } else if (isRefund(t) || isChargeback(t)) {
       events.push({
         date: atMidnightUTC(t.date),

@@ -39,6 +39,16 @@ describe("payout — geração de eventos (D+14 90%, D+60 10%)", () => {
     expect(evs.filter((e) => e.kind === "clear")[0]!.amount).toBeCloseTo(180, 6);
     expect(evs.filter((e) => e.kind === "reserve")[0]!.amount).toBeCloseTo(20, 6);
   });
+
+  it("PAY-04: pagamento com earned_amount negativo NÃO gera reserva (só earnings positivo retém 10%)", () => {
+    // Regra Digistore24 (relatório §2.1 e §4.2): a reserva de 10% incide apenas sobre
+    // vendor_share POSITIVO. Vendas com CPA que zeram o vendor_share (M1/M2) não retêm
+    // reserva — o valor (negativo) libera 100% em D+14.
+    const evs = buildPayoutEvents([row({ earnings: -50, date: new Date("2026-03-02T10:00:00Z") })]);
+    const clear = evs.find((e) => e.kind === "clear")!;
+    expect(clear.amount).toBeCloseTo(-50, 6);            // 100% em D+14, sem retenção
+    expect(evs.some((e) => e.kind === "reserve")).toBe(false); // nenhuma reserva
+  });
 });
 
 describe("payout — sextas de saque com cap de 4/mês", () => {
@@ -106,5 +116,17 @@ describe("payout — varredura semanal (sexta), sem mínimo", () => {
     for (const w of s.weeks) {
       expect(w.expectedPayout).toBeCloseTo(w.cleared + w.reserveReleased + w.refunds, 6);
     }
+  });
+
+  it("PAY-15: venda com vendor_share negativo não retém reserva (pendingReserve só do positivo)", () => {
+    const s = computePayoutSchedule([
+      row({ earnings: 1000, orderId: "A", date: new Date("2026-03-02T10:00:00Z") }),
+      row({ earnings: -100, orderId: "B", date: new Date("2026-03-02T10:00:00Z") }),
+    ], { asOf: new Date("2026-04-01T00:00:00Z") });
+    // Reserva retida = 10% de 1000 = 100. A venda negativa (−100) não gera reserva:
+    // não deve reduzir a reserva retida para 90 (o −10 do modelo antigo era incorreto).
+    expect(s.pendingReserve).toBeCloseTo(100, 6);
+    // Conservação preservada: total esperado = soma dos earnings (900).
+    expect(s.totalExpected).toBeCloseTo(900, 6);
   });
 });
