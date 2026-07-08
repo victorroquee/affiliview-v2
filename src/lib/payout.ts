@@ -8,6 +8,51 @@ export const CLEARING_DAYS = 14;          // 90% liberado em D+14 (modelo D14)
 export const PAYOUT_WEEKDAY = 5;          // sexta-feira (getUTCDay: 0=Dom .. 5=Sex)
 export const MAX_PAYOUTS_PER_MONTH = 4;   // até 4 saques por mês (5ª sexta pulada)
 
+// ─── Reconciliação de payout (Net → Transfer) ─────────────────────────────────
+// Relatório de alinhamento §3.3: o que a Digistore paga (Net Amount) menos a
+// invoice semanal da ShipOffers e a taxa SEPA fixa é o Transfer Amount que cai
+// na conta. Net e ShipOffers vêm de entrada manual; SEPA é constante.
+export const SEPA_FEE = 2.50;             // taxa SEPA fixa por saque (€)
+
+// Limiares de anomalia sobre o ratio (Real ÷ Esperado) do Net Amount da semana.
+// Calibrados pelos casos reais do relatório §4.3 (32% crítico, 96% normal, 0% pulado).
+export const ANOMALY_WATCH_RATIO = 0.90;     // < 90% do esperado → observar
+export const ANOMALY_CRITICAL_RATIO = 0.50;  // < 50% do esperado → crítico
+
+export type PayoutAnomaly = "none" | "ok" | "watch" | "critical" | "skipped";
+
+/**
+ * Transfer Amount esperado que cai na conta bancária (§3.3):
+ *   Net Amount − invoice ShipOffers − SEPA.
+ * Retorna `null` enquanto a invoice ShipOffers não for preenchida (sem ela o
+ * Transfer é indefinido — não assumir 0).
+ */
+export function computeTransferAmount(
+  net: number,
+  shipOffersInvoice: number | null,
+  sepaFee = SEPA_FEE
+): number | null {
+  if (shipOffersInvoice === null) return null;
+  return net - shipOffersInvoice - sepaFee;
+}
+
+/**
+ * Classifica a semana comparando o Net real recebido com o esperado (§4.3).
+ * `none` quando não há real preenchido ou nada era esperado; `skipped` quando
+ * era esperado receber mas o real veio 0 (payout pulado).
+ */
+export function classifyPayoutAnomaly(
+  expected: number,
+  real: number | null
+): { level: PayoutAnomaly; ratio: number | null } {
+  if (real === null || expected <= 0) return { level: "none", ratio: null };
+  if (real === 0) return { level: "skipped", ratio: 0 };
+  const ratio = real / expected;
+  if (ratio < ANOMALY_CRITICAL_RATIO) return { level: "critical", ratio };
+  if (ratio < ANOMALY_WATCH_RATIO) return { level: "watch", ratio };
+  return { level: "ok", ratio };
+}
+
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 export interface PayoutEvent {
   date: Date;                       // dia (meia-noite UTC) em que o valor afeta o saldo

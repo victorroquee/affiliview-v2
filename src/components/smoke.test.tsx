@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { render, cleanup } from "@testing-library/react";
+import type { ReactElement } from "react";
 import { Users } from "lucide-react";
 import EmptyState from "./EmptyState";
 import HeroStat from "./HeroStat";
@@ -9,10 +10,18 @@ import DateRangePicker from "./DateRangePicker";
 import Payout from "../pages/Payout";
 import ConferenciaVL from "../pages/ConferenciaVL";
 import ConferenciaCPA from "../pages/ConferenciaCPA";
+import { AuthProvider } from "../hooks/useAuth";
+import { SettingsProvider } from "../hooks/useSettings";
 import type { PayoutSchedule } from "../lib/payout";
 import type { TransactionRow } from "../lib/transactions";
 
 afterEach(cleanup);
+
+// Payout consome useSettings/usePayoutReconciliation → precisa dos providers.
+// Sem sessão Supabase os providers ficam offline (não fazem rede).
+const withProviders = (ui: ReactElement): ReactElement => (
+  <AuthProvider><SettingsProvider>{ui}</SettingsProvider></AuthProvider>
+);
 
 const noop = () => {};
 const row = (o: Partial<TransactionRow>): TransactionRow => ({
@@ -36,10 +45,10 @@ describe("smoke: componentes novos renderizam sem crash", () => {
 
   it("Payout: schedule vazio → estado vazio; com semana → tabela", () => {
     const empty: PayoutSchedule = { weeks: [], pendingReserve: 0, pendingClearing: 0, skippedFridays: [], nextPayoutDate: null, nextPayoutAmount: 0, totalExpected: 0, asOf: "2026-07-07" };
-    expect(() => render(<Payout schedule={empty} loading={false} />)).not.toThrow();
+    expect(() => render(withProviders(<Payout schedule={empty} loading={false} />))).not.toThrow();
     cleanup();
     const withWeek: PayoutSchedule = { ...empty, weeks: [{ payoutDate: "2026-07-10", windowStart: "2026-07-04", cleared: 900, reserveReleased: 100, refunds: -50, expectedPayout: 950, salesCleared: 12 }], nextPayoutDate: "2026-07-10", nextPayoutAmount: 950, totalExpected: 950 };
-    expect(() => render(<Payout schedule={withWeek} loading={false} />)).not.toThrow();
+    expect(() => render(withProviders(<Payout schedule={withWeek} loading={false} />))).not.toThrow();
   });
 
   it("Conferências renderizam com dados", () => {

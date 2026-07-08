@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { buildPayoutEvents, listPayoutFridays, computePayoutSchedule } from "./payout";
+import {
+  buildPayoutEvents, listPayoutFridays, computePayoutSchedule,
+  computeTransferAmount, classifyPayoutAnomaly, SEPA_FEE,
+} from "./payout";
 import type { TransactionRow } from "./transactions";
 
 function row(o: Partial<TransactionRow>): TransactionRow {
@@ -128,5 +131,46 @@ describe("payout — varredura semanal (sexta), sem mínimo", () => {
     expect(s.pendingReserve).toBeCloseTo(100, 6);
     // Conservação preservada: total esperado = soma dos earnings (900).
     expect(s.totalExpected).toBeCloseTo(900, 6);
+  });
+});
+
+describe("reconciliação — Transfer Amount (relatório §3.3)", () => {
+  it("REC-TA-01: Transfer = Net − invoice ShipOffers − SEPA €2,50 (Overview #018)", () => {
+    // §9.2: Net 51.316,98 − ShipOffers 50.357,93 − SEPA 2,50 = Transfer 956,55
+    expect(computeTransferAmount(51316.98, 50357.93)).toBeCloseTo(956.55, 2);
+  });
+
+  it("REC-TA-02: sem invoice ShipOffers preenchida → Transfer indefinido (null)", () => {
+    expect(computeTransferAmount(51316.98, null)).toBeNull();
+  });
+
+  it("REC-TA-03: SEPA_FEE é €2,50 e pode ser sobrescrita", () => {
+    expect(SEPA_FEE).toBeCloseTo(2.5, 6);
+    expect(computeTransferAmount(100, 10, 0)).toBeCloseTo(90, 6);
+  });
+});
+
+describe("reconciliação — detecção de anomalia (relatório §4.3)", () => {
+  it("REC-AN-01: ratio ~32% → crítico (semana 08–14/06 real vs esperado)", () => {
+    const a = classifyPayoutAnomaly(41815.86, 13369.01);
+    expect(a.level).toBe("critical");
+    expect(a.ratio!).toBeCloseTo(0.3197, 3);
+  });
+
+  it("REC-AN-02: ratio ~96% → ok (semana 15–21/06)", () => {
+    expect(classifyPayoutAnomaly(39605.26, 37947.97).level).toBe("ok");
+  });
+
+  it("REC-AN-03: real = 0 com esperado > 0 → pulado (skipped)", () => {
+    expect(classifyPayoutAnomaly(25000, 0).level).toBe("skipped");
+  });
+
+  it("REC-AN-04: ratio 0,8 → observar (watch)", () => {
+    expect(classifyPayoutAnomaly(100, 80).level).toBe("watch");
+  });
+
+  it("REC-AN-05: real não preenchido (null) ou esperado ≤ 0 → sem classificação (none)", () => {
+    expect(classifyPayoutAnomaly(100, null).level).toBe("none");
+    expect(classifyPayoutAnomaly(0, 50).level).toBe("none");
   });
 });
