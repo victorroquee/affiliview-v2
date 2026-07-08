@@ -1,4 +1,5 @@
 import { getFulfillmentBreakdown, getFulfillmentCost, detectBottles, getProductCostPerBottle, CAPITAL_COST_FACTOR } from "./costTable";
+import { getMoneyState, currencyMeta, numberLocale } from "./settingsStore";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface TransactionRow {
@@ -1066,11 +1067,39 @@ export function computeFromFiltered(
 }
 
 // ─── Format helpers ───────────────────────────────────────────────────────────
-export function formatEur(value: number): string {
-  return `€${value.toLocaleString("de-DE", {
+// Os valores são sempre calculados em EUR. A conversão para a moeda ativa acontece
+// só aqui, na exibição, lendo a moeda/taxa/locale do settingsStore (singleton).
+/**
+ * Formata um valor (em EUR) na moeda ativa. `formatEur` é mantido como alias para
+ * não tocar nos ~18 imports existentes — todos ficam currency-aware de graça.
+ */
+export function formatMoney(eurValue: number): string {
+  const { currency, rate } = getMoneyState();
+  const { symbol, locale } = currencyMeta(currency);
+  const converted = eurValue * rate;
+  return `${symbol}${converted.toLocaleString(locale, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
+}
+
+/** @deprecated Use formatMoney. Mantido como alias currency-aware por compatibilidade. */
+export const formatEur = formatMoney;
+
+/**
+ * Formato compacto (k) na moeda ativa — para eixos e labels de gráfico, onde não
+ * cabe o valor cheio. Converte pela taxa e usa o símbolo/locale ativos, evitando
+ * misturar € cru com os cards já convertidos para R$/US$.
+ */
+export function formatMoneyShort(eurValue: number): string {
+  const { currency, rate } = getMoneyState();
+  const { symbol, locale } = currencyMeta(currency);
+  const v = eurValue * rate;
+  if (v === 0) return "—";
+  const abs = Math.abs(v);
+  if (abs >= 10000) return `${symbol}${(v / 1000).toLocaleString(locale, { maximumFractionDigits: 0 })}k`;
+  if (abs >= 1000)  return `${symbol}${(v / 1000).toLocaleString(locale, { maximumFractionDigits: 1 })}k`;
+  return `${symbol}${v.toLocaleString(locale, { maximumFractionDigits: 0 })}`;
 }
 
 export function formatPct(value: number): string {
@@ -1078,5 +1107,5 @@ export function formatPct(value: number): string {
 }
 
 export function formatInt(value: number): string {
-  return value.toLocaleString("de-DE");
+  return value.toLocaleString(numberLocale(getMoneyState().language));
 }

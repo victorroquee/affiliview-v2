@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Env — nunca commitar segredos (mantém só o .example)
+.env
+.env.*
+!.env.example
+
+# Relatórios de sessão (documentos de trabalho, não versionar)
+relatorio-sessao-*.txt
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

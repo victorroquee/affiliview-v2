@@ -1,4 +1,5 @@
 import React from "react";
+import { formatMoney, formatMoneyShort } from "../lib/transactions";
 import {
   AreaChart,
   Area,
@@ -68,7 +69,7 @@ const CustomTooltip = ({
             letterSpacing: "-0.4px",
           }}
         >
-          €{payload[0].value.toLocaleString("de-DE", { minimumFractionDigits: 2 })}
+          {formatMoney(payload[0].value)}
         </div>
       </div>
     );
@@ -125,9 +126,7 @@ export const GrossEvolutionChart: React.FC<{ data: DailyData[]; periodDays?: num
             axisLine={false}
             tickLine={false}
             tick={{ fill: "#9299A8", fontSize: 9 }}
-            tickFormatter={(v: number) =>
-              v >= 1000 ? `€${(v / 1000).toFixed(0)}k` : `€${v.toFixed(0)}`
-            }
+            tickFormatter={(v: number) => formatMoneyShort(v)}
             width={46}
           />
           <Tooltip content={<CustomTooltip />} />
@@ -191,10 +190,7 @@ export const ProductMixChart: React.FC<{ data: MixData[] }> = ({ data }) => {
             )}
           />
           <Tooltip
-            formatter={(value) => [
-              `€${Number(value).toLocaleString("de-DE", { minimumFractionDigits: 2 })}`,
-              "Gross",
-            ]}
+            formatter={(value) => [formatMoney(Number(value)), "Gross"]}
             contentStyle={PieTooltipStyle}
           />
         </PieChart>

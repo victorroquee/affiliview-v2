@@ -18,6 +18,7 @@ import type { Page } from "../App";
 import AffiliateDrawer from "../components/AffiliateDrawer";
 import { generateKPIReport } from "../lib/pdfExport";
 import { getRefundColor, getMarginColor } from "../utils/colorThresholds";
+import { useSettings } from "../hooks/useSettings";
 
 interface DashboardProps {
   filteredRows: TransactionRow[];
@@ -32,6 +33,7 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({
   filteredRows, allRows, periodDays, payoutSchedule, onNavigate, loading, error,
 }) => {
+  const { t } = useSettings();
   const [drawerAffiliate, setDrawerAffiliate] = useState<AffiliateRow | null>(null);
 
   useEffect(() => { setDrawerAffiliate(null); }, [periodDays]);
@@ -63,7 +65,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   );
 
   if (!metrics) {
-    return <EmptyState loading={loading} title={error ? "Falha ao carregar" : "Nenhum dado no período"} hint={error ? "Verifique a conexão com a API Digistore24." : "Selecione um período com transações (Hoje, 7d, 30d) ou amplie a janela."} />;
+    return <EmptyState loading={loading} title={error ? t("dash.empty.errTitle") : t("dash.empty.title")} hint={error ? t("dash.empty.errHint") : t("dash.empty.hint")} />;
   }
 
   const margem = metrics.gross > 0 ? (metrics.valorLiq / metrics.gross) * 100 : 0;
@@ -84,16 +86,16 @@ const Dashboard: React.FC<DashboardProps> = ({
     <>
       <div className="dash-actions">
         <button className="btn-export-pdf" onClick={handleExportPDF}>
-          <FileDown size={14} strokeWidth={1.6} /> Exportar PDF
+          <FileDown size={14} strokeWidth={1.6} /> {t("dash.exportPdf")}
         </button>
       </div>
 
       {/* ── Herói: KPIs chave ── */}
       <div className="hero-grid">
-        <HeroStat icon={CircleDollarSign} label="Gross Revenue" value={formatEur(metrics.gross)} sub={`${formatInt(metrics.sales)} vendas · AOV ${formatEur(metrics.aov)}`} color="green" info="Receita bruta de todos os pagamentos (front + upsells + bumps)." />
-        <HeroStat icon={TrendingUp} label="Earnings" value={formatEur(metrics.earnings)} sub="líquido do produtor (pós-refunds)" info="Ganhos do produtor menos reembolsos/chargebacks. Alinhado com Your Earnings da Digistore24." />
-        <HeroStat icon={Wallet} label="Valor Líquido" value={formatEur(metrics.valorLiq)} sub="após COGS, frete, taxas e capital" color="green" info="Earnings menos COGS + frete + taxas de fulfillment + custo de capital." />
-        <HeroStat icon={Percent} label="Margem" value={formatPct(margem)} sub={`${formatEur(metrics.valorLiq)} / ${formatEur(metrics.gross)}`} color={getMarginColor(margem)} info="Valor Líquido ÷ Gross × 100." />
+        <HeroStat icon={CircleDollarSign} label={t("dash.grossRevenue")} value={formatEur(metrics.gross)} sub={t("dash.grossRevenue.sub", { sales: formatInt(metrics.sales), aov: formatEur(metrics.aov) })} color="green" info={t("dash.grossRevenue.info")} />
+        <HeroStat icon={TrendingUp} label={t("dash.earnings")} value={formatEur(metrics.earnings)} sub={t("dash.earnings.sub")} info={t("dash.earnings.info")} />
+        <HeroStat icon={Wallet} label={t("dash.netValue")} value={formatEur(metrics.valorLiq)} sub={t("dash.netValue.sub")} color="green" info={t("dash.netValue.info")} />
+        <HeroStat icon={Percent} label={t("dash.margin")} value={formatPct(margem)} sub={`${formatEur(metrics.valorLiq)} / ${formatEur(metrics.gross)}`} color={getMarginColor(margem)} info={t("dash.margin.info")} />
       </div>
 
       {/* ── Evolução + Caixa (payout) ── */}
@@ -101,41 +103,41 @@ const Dashboard: React.FC<DashboardProps> = ({
         <div className="dash-split-main">
           <GrossEvolutionChart data={intraday ?? metrics.dailyGross} periodDays={periodDays} intraday={!!intraday} />
         </div>
-        <button className="cash-panel" onClick={() => onNavigate("payout")} title="Abrir aba Payout">
-          <div className="cash-panel-head"><CalendarClock size={14} strokeWidth={1.7} /> Caixa · Payout <ChevronRight size={14} strokeWidth={2} className="cash-panel-arrow" /></div>
+        <button className="cash-panel" onClick={() => onNavigate("payout")} title={t("nav.payout")}>
+          <div className="cash-panel-head"><CalendarClock size={14} strokeWidth={1.7} /> {t("dash.cash.head")} <ChevronRight size={14} strokeWidth={2} className="cash-panel-arrow" /></div>
           <div className="cash-panel-hero">
-            <span className="cash-panel-label">Próximo payout {payoutSchedule.nextPayoutDate ? `· ${payoutSchedule.nextPayoutDate.slice(8, 10)}/${payoutSchedule.nextPayoutDate.slice(5, 7)}` : ""}</span>
+            <span className="cash-panel-label">{t("dash.cash.next")} {payoutSchedule.nextPayoutDate ? `· ${payoutSchedule.nextPayoutDate.slice(8, 10)}/${payoutSchedule.nextPayoutDate.slice(5, 7)}` : ""}</span>
             <span className="cash-panel-value">{formatEur(payoutSchedule.nextPayoutAmount)}</span>
           </div>
           <div className="cash-panel-rows">
-            <div><PiggyBank size={13} strokeWidth={1.7} /><span>Reserva retida</span><b>{formatEur(payoutSchedule.pendingReserve)}</b></div>
-            <div><Hourglass size={13} strokeWidth={1.7} /><span>Em clearing (D+14)</span><b>{formatEur(payoutSchedule.pendingClearing)}</b></div>
+            <div><PiggyBank size={13} strokeWidth={1.7} /><span>{t("dash.cash.reserve")}</span><b>{formatEur(payoutSchedule.pendingReserve)}</b></div>
+            <div><Hourglass size={13} strokeWidth={1.7} /><span>{t("dash.cash.clearing")}</span><b>{formatEur(payoutSchedule.pendingClearing)}</b></div>
           </div>
         </button>
       </div>
 
       {/* ── Atividade ── */}
       <div className="kpi-group">
-        <div className="kpi-group-label">Atividade no período</div>
+        <div className="kpi-group-label">{t("dash.group.activity")}</div>
         <div className="kpi-grid-6">
-          <KPICard icon={ShoppingCart} label="Vendas Totais" value={formatInt(metrics.sales)} info="Pagamentos front (upsell_no=0)." />
-          <KPICard icon={RotateCcw} label="Reembolso + CB" value={formatPct(metrics.refundCbPct)} color={getRefundColor(metrics.refundCbPct)} info={`Reembolso ${formatPct(metrics.refundPct)} · Chargeback ${formatPct(metrics.chargebackPct)}`} />
-          <KPICard icon={Zap} label="Ativados ≥ €2K" value={formatInt(metrics.activated)} info="Afiliados com affiliate_amount ≥ €2.000 no período." />
-          <KPICard icon={Award} label="Novos Qualificados" value={formatInt(metrics.novosQualificados)} info="Afiliados com média ≥ €1.000/dia no período." />
-          <KPICard icon={Users} label="Afiliados Ativos" value={formatInt(activosCount)} info={`${activosCount} Ativos · ${emRampaCount} Em Rampa · ${inativoCount} Inativos`} />
-          <KPICard icon={UserX} label="Inativos" value={formatInt(inativoCount)} info="Última venda front há mais de 5 dias." />
+          <KPICard icon={ShoppingCart} label={t("dash.sales")} value={formatInt(metrics.sales)} info={t("dash.sales.info")} />
+          <KPICard icon={RotateCcw} label={t("dash.refundCb")} value={formatPct(metrics.refundCbPct)} color={getRefundColor(metrics.refundCbPct)} info={t("dash.refundCb.info", { refund: formatPct(metrics.refundPct), cb: formatPct(metrics.chargebackPct) })} />
+          <KPICard icon={Zap} label={t("dash.activated")} value={formatInt(metrics.activated)} info={t("dash.activated.info")} />
+          <KPICard icon={Award} label={t("dash.qualified")} value={formatInt(metrics.novosQualificados)} info={t("dash.qualified.info")} />
+          <KPICard icon={Users} label={t("dash.activeAff")} value={formatInt(activosCount)} info={t("dash.activeAff.info", { active: activosCount, ramp: emRampaCount, inactive: inativoCount })} />
+          <KPICard icon={UserX} label={t("dash.inactive")} value={formatInt(inativoCount)} info={t("dash.inactive.info")} />
         </div>
       </div>
 
       {/* ── Atalhos para detalhes (nada some — vai para abas) ── */}
       <div className="dash-quicklinks">
-        <button onClick={() => onNavigate("custos")}><Boxes size={15} strokeWidth={1.6} /><div><b>Custos Operacionais</b><span>COGS {formatEur(metrics.productCost)} · frete {formatEur(metrics.shippingCost)} · {formatInt(metrics.bottlesSold)} potes</span></div><ChevronRight size={16} strokeWidth={1.8} /></button>
-        <button onClick={() => onNavigate("produtos")}><Package size={15} strokeWidth={1.6} /><div><b>Produtos</b><span>mix, performance por kit e backend</span></div><ChevronRight size={16} strokeWidth={1.8} /></button>
-        <button onClick={() => onNavigate("conf-vl")}><Wallet size={15} strokeWidth={1.6} /><div><b>Conferência</b><span>CPA e Valor Líquido transação a transação</span></div><ChevronRight size={16} strokeWidth={1.8} /></button>
+        <button onClick={() => onNavigate("custos")}><Boxes size={15} strokeWidth={1.6} /><div><b>{t("dash.quick.custos")}</b><span>{t("dash.quick.custos.sub", { cogs: formatEur(metrics.productCost), shipping: formatEur(metrics.shippingCost), bottles: formatInt(metrics.bottlesSold) })}</span></div><ChevronRight size={16} strokeWidth={1.8} /></button>
+        <button onClick={() => onNavigate("produtos")}><Package size={15} strokeWidth={1.6} /><div><b>{t("dash.quick.produtos")}</b><span>{t("dash.quick.produtos.sub")}</span></div><ChevronRight size={16} strokeWidth={1.8} /></button>
+        <button onClick={() => onNavigate("conf-vl")}><Wallet size={15} strokeWidth={1.6} /><div><b>{t("dash.quick.conf")}</b><span>{t("dash.quick.conf.sub")}</span></div><ChevronRight size={16} strokeWidth={1.8} /></button>
       </div>
 
       {/* ── Top Afiliados ── */}
-      <div className="section-header"><h2>Top Afiliados</h2></div>
+      <div className="section-header"><h2>{t("dash.topAffiliates")}</h2></div>
       <AffiliateTable data={affiliatesWithoutMail} rankings={rankings} onSelectAffiliate={setDrawerAffiliate} />
 
       <div className="footer">AFFILIVIEW by OG GROUP · 2026</div>

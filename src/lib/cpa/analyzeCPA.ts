@@ -72,8 +72,9 @@ export function analyzeCPA(
       if (!acc.fronts[v]) acc.fronts[v] = { count: 0, earn: 0, cogs: 0, gross: 0 };
       acc.fronts[v].count++;
       acc.fronts[v].earn += r.earnings;
-      // Front: fulfillment completo (produto + frete) via costTable — fonte única
-      acc.fronts[v].cogs += getFulfillmentCost(r.productName, r.country, true);
+      // Front: fulfillment completo (produto + frete) via costTable — fonte única,
+      // na versão de custo vigente na DATA da transação (não sempre a mais recente).
+      acc.fronts[v].cogs += getFulfillmentCost(r.productName, r.country, true, r.date);
       acc.fronts[v].gross += r.grossAmount;
       acc.grossBruto += r.grossAmount;  // grossAmount is correctly set for payments
 

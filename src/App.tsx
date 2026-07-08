@@ -9,6 +9,7 @@ import CustosOperacionais from "./pages/CustosOperacionais";
 import Produtos from "./pages/Produtos";
 import ConferenciaCPA from "./pages/ConferenciaCPA";
 import ConferenciaVL from "./pages/ConferenciaVL";
+import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import PeriodBar from "./components/PeriodBar";
 import HeaderClock from "./components/HeaderClock";
@@ -16,6 +17,7 @@ import RefreshStatus from "./components/RefreshStatus";
 import { useDigistoreAPI } from "./hooks/useDigistoreAPI";
 import { useFilters, offsetDate } from "./hooks/useFilters";
 import { useAuth } from "./hooks/useAuth";
+import { useSettings } from "./hooks/useSettings";
 import { computePayoutSchedule } from "./lib/payout";
 import type { PeriodFilter } from "./hooks/useFilters";
 import { INITIAL_PERIOD } from "./hooks/useFilters";
@@ -23,7 +25,7 @@ import { Loader2 } from "lucide-react";
 
 export type Page =
   | "dashboard" | "affiliates" | "payout" | "custos" | "produtos"
-  | "conf-cpa" | "conf-vl" | "cpa-fixo" | "cpa-variavel";
+  | "conf-cpa" | "conf-vl" | "cpa-fixo" | "cpa-variavel" | "settings";
 
 const EPOCH_FROM = "2020-01-01";                 // "Tudo (desde o início)"
 const SUPERSET_LABEL = "-30d";                   // janela padrão buscada (cobre Hoje/7d/30d)
@@ -40,6 +42,7 @@ function neededFrom(p: PeriodFilter): string {
 
 const App: React.FC = () => {
   const { session, loading: authLoading, signOut } = useAuth();
+  const { settings } = useSettings();
   const [page, setPage] = useState<Page>("dashboard");
   const [period, setPeriod] = useState<PeriodFilter>(INITIAL_PERIOD);
 
@@ -118,7 +121,7 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        <div className="page-body">
+        <div className="page-body" key={`${settings.currency}-${settings.language}`}>
           {page === "dashboard" ? (
             <Dashboard filteredRows={filteredRows} allRows={rows} periodDays={periodDays} payoutSchedule={payoutSchedule} onNavigate={setPage} loading={loading} error={error} />
           ) : page === "affiliates" ? (
@@ -135,6 +138,8 @@ const App: React.FC = () => {
             <ConferenciaVL filteredRows={filteredRows} loading={loading} />
           ) : page === "cpa-fixo" ? (
             <CpaFixo filteredRows={filteredRows} loading={loading} />
+          ) : page === "settings" ? (
+            <Settings />
           ) : (
             <CpaVariavel filteredRows={filteredRows} loading={loading} />
           )}

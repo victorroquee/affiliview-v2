@@ -2,9 +2,10 @@ import React from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard, Users, Calculator, TrendingUp, DollarSign, Banknote,
-  Boxes, Package, ShieldCheck, FileCheck2, LogOut,
+  Boxes, Package, ShieldCheck, FileCheck2, LogOut, Settings as SettingsIcon,
 } from "lucide-react";
 import type { Page } from "../App";
+import { useSettings } from "../hooks/useSettings";
 
 interface SidebarProps {
   activePage: Page;
@@ -13,32 +14,41 @@ interface SidebarProps {
   userEmail: string;
 }
 
-interface NavItem { page: Page; label: string; icon: LucideIcon; badge?: string; }
-interface NavGroup { group: string; items: NavItem[]; }
+interface NavItem { page: Page; labelKey: string; icon: LucideIcon; badge?: boolean; }
+interface NavGroup { groupKey: string; items: NavItem[]; }
 
 const NAV: NavGroup[] = [
-  { group: "Visão Geral", items: [
-    { page: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { groupKey: "nav.group.overview", items: [
+    { page: "dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
   ]},
-  { group: "Operação", items: [
-    { page: "custos", label: "Custos Operacionais", icon: Boxes, badge: "NOVO" },
-    { page: "payout", label: "Payout", icon: Banknote, badge: "NOVO" },
+  { groupKey: "nav.group.operation", items: [
+    { page: "custos", labelKey: "nav.custos", icon: Boxes, badge: true },
+    { page: "payout", labelKey: "nav.payout", icon: Banknote, badge: true },
   ]},
-  { group: "Afiliados", items: [
-    { page: "affiliates", label: "Afiliados", icon: Users },
-    { page: "cpa-variavel", label: "CPA Variável", icon: Calculator },
-    { page: "cpa-fixo", label: "CPA Fixo", icon: DollarSign },
+  { groupKey: "nav.group.affiliates", items: [
+    { page: "affiliates", labelKey: "nav.affiliates", icon: Users },
+    { page: "cpa-variavel", labelKey: "nav.cpaVariavel", icon: Calculator },
+    { page: "cpa-fixo", labelKey: "nav.cpaFixo", icon: DollarSign },
   ]},
-  { group: "Produtos", items: [
-    { page: "produtos", label: "Produtos", icon: Package, badge: "NOVO" },
+  { groupKey: "nav.group.products", items: [
+    { page: "produtos", labelKey: "nav.produtos", icon: Package, badge: true },
   ]},
-  { group: "Conferência", items: [
-    { page: "conf-cpa", label: "Conferência CPA", icon: ShieldCheck, badge: "NOVO" },
-    { page: "conf-vl", label: "Conferência Valor Líq.", icon: FileCheck2, badge: "NOVO" },
+  { groupKey: "nav.group.audit", items: [
+    { page: "conf-cpa", labelKey: "nav.confCpa", icon: ShieldCheck, badge: true },
+    { page: "conf-vl", labelKey: "nav.confVl", icon: FileCheck2, badge: true },
   ]},
 ];
 
+function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const letters = parts.map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  return letters || "OG";
+}
+
 const Sidebar: React.FC<SidebarProps> = ({ activePage, onNavigate, onSignOut, userEmail }) => {
+  const { t, settings } = useSettings();
+  const { displayName, accountName } = settings;
+
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -48,13 +58,13 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, onNavigate, onSignOut, us
       <div className="sidebar-logo">
         <div className="sidebar-logo-mark"><TrendingUp size={14} strokeWidth={1.4} /></div>
         <span className="sidebar-logo-name">AffiliView</span>
-        <span className="sidebar-logo-badge">Online</span>
+        <span className="sidebar-logo-badge">{t("sidebar.online")}</span>
       </div>
 
       <nav className="sidebar-nav sidebar-nav--grouped">
         {NAV.map((g) => (
-          <div className="sidebar-group" key={g.group}>
-            <span className="sidebar-section-label">{g.group}</span>
+          <div className="sidebar-group" key={g.groupKey}>
+            <span className="sidebar-section-label">{t(g.groupKey)}</span>
             {g.items.map((it) => (
               <button
                 key={it.page}
@@ -62,8 +72,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, onNavigate, onSignOut, us
                 onClick={() => onNavigate(it.page)}
               >
                 <it.icon size={15} strokeWidth={1.4} />
-                {it.label}
-                {it.badge && <span className="sidebar-link-badge">{it.badge}</span>}
+                {t(it.labelKey)}
+                {it.badge && <span className="sidebar-link-badge">{t("badge.new")}</span>}
               </button>
             ))}
           </div>
@@ -71,13 +81,21 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, onNavigate, onSignOut, us
       </nav>
 
       <div className="sidebar-footer">
-        <div className="sidebar-avatar">OG</div>
+        <div className="sidebar-avatar">{initialsOf(accountName)}</div>
         <div className="sidebar-footer-info">
-          <div className="sidebar-footer-name">OG Group</div>
+          <div className="sidebar-footer-name" title={accountName}>{displayName || "OG Group"}</div>
           <div className="sidebar-footer-role" title={userEmail}>{userEmail || "Admin"}</div>
         </div>
-        <button className="sidebar-signout" onClick={onSignOut} title="Sair"><LogOut size={15} strokeWidth={1.6} /></button>
+        <button className="sidebar-signout" onClick={onSignOut} title={t("sidebar.signout")}><LogOut size={15} strokeWidth={1.6} /></button>
       </div>
+
+      <button
+        className={`sidebar-settings ${activePage === "settings" ? "active" : ""}`}
+        onClick={() => onNavigate("settings")}
+      >
+        <SettingsIcon size={15} strokeWidth={1.5} />
+        {t("nav.settings")}
+      </button>
     </aside>
   );
 };

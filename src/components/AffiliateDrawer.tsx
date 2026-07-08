@@ -9,6 +9,7 @@ import {
   type AffiliateRankingInfo,
   type TransactionRow,
   formatEur,
+  formatMoneyShort,
   formatPct,
   formatInt,
   TIER_MIN,
@@ -49,12 +50,8 @@ function formatDaysAgo(iso: string): string {
   return `${d} dias atrás`;
 }
 
-function fmtK(v: number): string {
-  if (v === 0) return "—";
-  if (v >= 10000) return `€${(v / 1000).toFixed(0)}k`;
-  if (v >= 1000)  return `€${(v / 1000).toFixed(1)}k`;
-  return `€${Math.round(v)}`;
-}
+// Compacto (k) na moeda ativa — converte e usa símbolo/locale correntes.
+const fmtK = formatMoneyShort;
 
 // Color each day square by the highest tier it reaches
 function dayTierClass(t1: boolean, t2: boolean, t3: boolean): string {

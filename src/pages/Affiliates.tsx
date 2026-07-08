@@ -7,6 +7,7 @@ import {
   computeFromFiltered,
   computeAffiliateRankings,
   computeTopProductPerAffiliate,
+  getProductBase,
   isMaileonardo,
   formatEur,
   formatPct,
@@ -17,6 +18,7 @@ import LoadingDot from "../components/LoadingDot";
 import HeroStat from "../components/HeroStat";
 import InfoTooltip from "../components/InfoTooltip";
 import AffiliateDrawer from "../components/AffiliateDrawer";
+import ProductAvatar from "../components/ProductAvatar";
 import { useAffiliateTags } from "../hooks/useAffiliateTags";
 import { useAffiliateSource, AFFILIATE_SOURCES, SOURCE_KEYS } from "../hooks/useAffiliateSource";
 import { getMarginColor, getRefundColor } from "../utils/colorThresholds";
@@ -266,13 +268,12 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
               <th style={{ textAlign: "right" }}>CPA Médio</th>
               <th style={{ textAlign: "right" }}>Margem %</th>
               <th style={{ textAlign: "right" }}>Refund+CB %</th>
-              <th>Status</th>
             </tr>
           </thead>
           <tbody>
             {filteredAffiliates.length === 0 ? (
               <tr>
-                <td colSpan={13} className="aff-filter-empty">
+                <td colSpan={12} className="aff-filter-empty">
                   {statusFilter === "Inativo"
                     ? "Nenhum afiliado inativo no período."
                     : statusFilter === "Em Rampa"
@@ -327,8 +328,11 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
                     </td>
                     <td>
                       {topProducts.get(a.name) ? (
-                        <span style={{ fontSize: 12, color: "var(--text-2)", background: "var(--bg-2)", padding: "2px 8px", borderRadius: 4 }}>
-                          {topProducts.get(a.name)}
+                        <span title={topProducts.get(a.name)!} style={{ display: "inline-flex", alignItems: "center" }}>
+                          <ProductAvatar
+                            product={getProductBase(topProducts.get(a.name)!) ?? topProducts.get(a.name)!}
+                            size={30}
+                          />
                         </span>
                       ) : (
                         <span style={{ color: "var(--text-3)", fontSize: 12 }}>—</span>
@@ -349,9 +353,6 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
                     <td className={`num ${getRefundColor(a.refundCbPct)}`}>
                       {formatPct(a.refundCbPct)}
                     </td>
-                    <td>
-                      <span className={`status-badge ${a.status.toLowerCase()}`}>{a.status}</span>
-                    </td>
                   </tr>
                 );
               })
@@ -368,11 +369,6 @@ const AffiliatesPage: React.FC<AffiliatesPageProps> = ({
         <span className="status-legend-item"><span className="tier-badge tier-ativo">Ativo</span> ≥10 vendas em 7 dias</span>
         <span className="status-legend-item"><span className="tier-badge tier-em-rampa">Em Rampa</span> 1–9 vendas em 7 dias</span>
         <span className="status-legend-item"><span className="tier-badge tier-inativo">Inativo</span> 0 vendas em 7 dias</span>
-      </div>
-      <div className="status-legend">
-        <span className="status-legend-item"><span className="status-badge scale">Scale</span> Meta superada — candidato a aumento de CPA</span>
-        <span className="status-legend-item"><span className="status-badge watch">Watch</span> Dentro da meta, mas com indicadores a monitorar</span>
-        <span className="status-legend-item"><span className="status-badge probation">Probation</span> Abaixo da meta — requer atenção</span>
       </div>
 
       <div className="footer">AFFILIVIEW by OG GROUP · 2026</div>
